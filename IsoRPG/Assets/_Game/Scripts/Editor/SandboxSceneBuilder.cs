@@ -233,15 +233,38 @@ namespace IsoRPG.EditorTools
             }
 
             // Бой: сам игрок тоже цель — иначе монстрам некого будет бить.
+            //
+            // Коллайдер обязателен, но помечен триггером. Причина тонкая:
+            // монстры ищут врагов физическим сканированием, и без коллайдера
+            // игрок для них не существует — они стоят столбом. При этом луч
+            // клика по земле проходит сквозь триггеры насквозь, так что
+            // персонаж по-прежнему не мешает игроку кликать себе под ноги.
+            var playerBody = player.AddComponent<CapsuleCollider>();
+            playerBody.center = Vector3.up;
+            playerBody.height = 2f;
+            playerBody.radius = 0.4f;
+            playerBody.isTrigger = true;
+
             var playerTarget = player.AddComponent<Targetable>();
             playerTarget.Setup("Разбойник", Faction.Player);
 
             var playerHealth = player.AddComponent<Health>();
             playerHealth.Setup(200);
 
-            player.AddComponent<TargetSelector>();
+            var selector = player.AddComponent<TargetSelector>();
+            selector.SetFaction(Faction.Player);
+
             player.AddComponent<PlayerInputRouter>();
             player.AddComponent<MeleeCombatant>();
+
+            // Смерть игрока обрабатываем тем же компонентом, но тело не
+            // убираем: пока нет воскрешения, исчезнувший игрок означал бы
+            // сцену без героя и полную потерю управления.
+            var death = player.AddComponent<DeathHandler>();
+            var deathSo = new SerializedObject(death);
+            deathSo.FindProperty("removeAfter").floatValue = 0f;
+            deathSo.FindProperty("sinkBeforeRemoval").boolValue = false;
+            deathSo.ApplyModifiedPropertiesWithoutUndo();
 
             return player;
         }
@@ -255,35 +278,64 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static void CreateDummies()
         {
-            var root = new GameObject("Dummies");
+            var root = new GameObject("Monsters");
 
+            // Разнесены по карте, чтобы радиусы агрессии не перекрывались:
+            // иначе на первый же бой сбегаются все сразу, и понять поведение
+            // одного монстра невозможно.
             var spots = new (Vector3 pos, string name, int hp)[]
             {
-                (new Vector3( 4f, 0f,  2f), "Манекен",         120),
-                (new Vector3(-3f, 0f, -4f), "Манекен покрепче", 260),
-                (new Vector3( 8f, 0f, -3f), "Манекен вдали",   180),
+                (new Vector3(  6f, 0f,   6f), "Бандит",         120),
+                (new Vector3(-10f, 0f,  -6f), "Головорез",      260),
+                (new Vector3( 16f, 0f,  -8f), "Бродяга",        180),
             };
 
             var material = GetOrCreateMaterial("M_Dummy", DummyColor, smoothness: 0.1f);
 
             foreach (var (pos, name, hp) in spots)
             {
-                var dummy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                dummy.name = name;
-                dummy.transform.SetParent(root.transform);
-                dummy.transform.position = pos + Vector3.up;
-                dummy.GetComponent<Renderer>().sharedMaterial = material;
+                // Корень стоит НА земле, а не в центре капсулы: навигационный
+                // агент ищет сетку под своей точкой, и поднятый на метр монстр
+                // может её не найти — тогда он просто стоит столбом.
+                var monster = new GameObject(name);
+                monster.transform.SetParent(root.transform);
+                monster.transform.position = pos;
 
-                // Коллайдер оставляем: именно по нему игрок кликает,
-                // выбирая цель. Без него манекен нельзя взять в цель вообще.
+                var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                visual.name = "Body";
+                visual.transform.SetParent(monster.transform);
+                visual.transform.localPosition = Vector3.up;
+                Object.DestroyImmediate(visual.GetComponent<Collider>());
+                visual.GetComponent<Renderer>().sharedMaterial = material;
 
-                var targetable = dummy.AddComponent<Targetable>();
+                // Коллайдер вешаем на корень: по нему игрок кликает, выбирая
+                // цель, и по нему же монстров находят чужие сканирования.
+                var body = monster.AddComponent<CapsuleCollider>();
+                body.center = Vector3.up;
+                body.height = 2f;
+                body.radius = 0.5f;
+
+                var targetable = monster.AddComponent<Targetable>();
                 targetable.Setup(name, Faction.Hostile);
 
-                var health = dummy.AddComponent<Health>();
+                var health = monster.AddComponent<Health>();
                 health.Setup(hp);
 
-                dummy.AddComponent<OverheadHealthBar>();
+                var agent = monster.AddComponent<NavMeshAgent>();
+                agent.radius = 0.45f;
+                agent.height = 2f;
+                agent.speed = 3.4f;          // медленнее игрока: от боя можно уйти
+                agent.angularSpeed = 600f;
+                agent.acceleration = 24f;
+                agent.stoppingDistance = 0.1f;
+
+                var selector = monster.AddComponent<TargetSelector>();
+                selector.SetFaction(Faction.Hostile);
+
+                monster.AddComponent<MeleeCombatant>();
+                monster.AddComponent<MonsterBrain>();
+                monster.AddComponent<DeathHandler>();
+                monster.AddComponent<OverheadHealthBar>();
             }
         }
 

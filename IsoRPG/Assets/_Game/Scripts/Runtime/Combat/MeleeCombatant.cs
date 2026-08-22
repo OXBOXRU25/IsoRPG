@@ -113,8 +113,6 @@ namespace IsoRPG.Combat
 
         private void ChaseTo(Targetable target, float attackDistance)
         {
-            if (movement == null) return;
-
             // Идём не в саму цель, а в точку перед ней: иначе агент упирается
             // в её тело, толкается и не может доехать до «места назначения».
             Vector3 toSelf = (transform.position - target.transform.position);
@@ -125,7 +123,23 @@ namespace IsoRPG.Combat
                 : transform.forward;
 
             Vector3 standPoint = target.transform.position + direction * (attackDistance * 0.8f);
-            movement.MoveTo(standPoint);
+
+            // У игрока движением заведует контроллер кликов — он умеет
+            // притягивать точку к навигационной сетке и показывать отметку.
+            // У монстра такого контроллера нет, и раньше погоня здесь молча
+            // заканчивалась ничем: монстры стояли столбом без единой ошибки
+            // в консоли. Поэтому запасной путь — напрямую через агента.
+            if (movement != null)
+            {
+                movement.MoveTo(standPoint);
+            }
+            else if (agent != null && agent.isOnNavMesh)
+            {
+                if (NavMesh.SamplePosition(standPoint, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+                    agent.SetDestination(hit.position);
+                else
+                    agent.SetDestination(target.transform.position);
+            }
         }
 
         private void StopMoving()

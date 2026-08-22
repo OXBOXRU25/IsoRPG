@@ -19,6 +19,9 @@ namespace IsoRPG.Combat
         public Targetable Current => current;
         public Faction OwnFaction => ownFaction;
 
+        /// <summary>Задать сторону. Нужно сборщику сцены: монстры и игрок различаются только этим.</summary>
+        public void SetFaction(Faction faction) => ownFaction = faction;
+
         /// <summary>Цель сменилась. null означает «сняли выделение».</summary>
         public event Action<Targetable> TargetChanged;
 

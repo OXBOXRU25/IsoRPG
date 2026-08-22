@@ -23,13 +23,13 @@ namespace IsoRPG.Cameras
         [SerializeField] private Vector3 lookOffset = new Vector3(0f, 1f, 0f);
 
         [Header("Угол обзора")]
-        [Tooltip("Наклон к земле. 30 — низкий, вытянутый вид. 45 — как в Albion. 60 — почти сверху.")]
+        [Tooltip("Наклон к земле. 30 — низкий, вытянутый вид. 60 — почти сверху. Наши 35 сняты замером с Albion (там 32–36).")]
         [Range(15f, 85f)]
-        [SerializeField] private float pitch = 45f;
+        [SerializeField] private float pitch = 35f;
 
-        [Tooltip("Поворот вокруг вертикали. 45 — классическая изометрия, когда рёбра кубов идут по диагоналям экрана.")]
+        [Tooltip("Поворот вокруг вертикали. 45 — каноническая изометрия. Наши 50 сняты замером с Albion (там ~51).")]
         [Range(0f, 360f)]
-        [SerializeField] private float yaw = 45f;
+        [SerializeField] private float yaw = 50f;
 
         [Header("Дистанция и зум")]
         [Tooltip("Как далеко камера отодвинута. На ортографической проекции не влияет на масштаб — только на то, что попадает в зону отрисовки.")]

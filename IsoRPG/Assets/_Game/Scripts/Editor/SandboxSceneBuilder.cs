@@ -141,6 +141,41 @@ namespace IsoRPG.EditorTools
                 rock.transform.rotation = Quaternion.Euler(0f, rotY, 0f);
                 rock.GetComponent<Renderer>().sharedMaterial = material;
             }
+
+            CreateGridAlignedStructures(root.transform, material);
+        }
+
+        /// <summary>
+        /// Постройки, строго выровненные по осям мира.
+        ///
+        /// Без них нельзя судить об угле поворота камеры: у повёрнутых под
+        /// случайными углами камней грани видны при любом Yaw, и разница между
+        /// 81° и 90° не проявляется вообще. А на выровненном доме при Yaw,
+        /// кратном 90, видно ровно две грани вместо трёх — и объём пропадает.
+        /// </summary>
+        private static void CreateGridAlignedStructures(Transform parent, Material material)
+        {
+            var root = new GameObject("GridAligned");
+            root.transform.SetParent(parent);
+
+            var boxes = new (Vector3 pos, Vector3 scale)[]
+            {
+                (new Vector3(-14f, 0f,  10f), new Vector3(6f, 4f, 6f)),   // «дом»
+                (new Vector3( -6f, 0f,  16f), new Vector3(4f, 3f, 4f)),   // «сарай»
+                (new Vector3(  4f, 0f,  14f), new Vector3(10f, 1f, 1f)),  // «забор» вдоль X
+                (new Vector3( 12f, 0f,   9f), new Vector3(1f, 1f, 8f)),   // «забор» вдоль Z
+            };
+
+            foreach (var (pos, scale) in boxes)
+            {
+                var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                box.name = "Structure";
+                box.transform.SetParent(root.transform);
+                box.transform.position = pos + Vector3.up * (scale.y * 0.5f);
+                box.transform.localScale = scale;
+                box.transform.rotation = Quaternion.identity; // строго по осям — в этом весь смысл
+                box.GetComponent<Renderer>().sharedMaterial = material;
+            }
         }
 
         private static GameObject CreateDestinationMarker()
@@ -167,25 +202,9 @@ namespace IsoRPG.EditorTools
             var player = new GameObject("Player");
             player.transform.position = Vector3.zero;
 
-            // Визуал отдельным дочерним объектом и БЕЗ коллайдера: иначе луч
+            // Визуал — отдельным дочерним объектом и БЕЗ коллайдера: иначе луч
             // клика попадает в самого персонажа, и он идёт сам в себя.
-            var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            body.name = "Body";
-            body.transform.SetParent(player.transform);
-            body.transform.localPosition = new Vector3(0f, 1f, 0f);
-            Object.DestroyImmediate(body.GetComponent<Collider>());
-            ApplyMaterial(body, "M_Player", PlayerColor, smoothness: 0.15f);
-
-            // Клинышек-нос, чтобы было видно, куда персонаж повёрнут.
-            // Без него на капсуле поворот не читается вообще.
-            var nose = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            nose.name = "Facing";
-            nose.transform.SetParent(player.transform);
-            nose.transform.localPosition = new Vector3(0f, 1.1f, 0.42f);
-            nose.transform.localScale = new Vector3(0.18f, 0.18f, 0.5f);
-            Object.DestroyImmediate(nose.GetComponent<Collider>());
-            nose.GetComponent<Renderer>().sharedMaterial =
-                GetOrCreateMaterial("M_Marker", MarkerColor, smoothness: 0.2f, emissive: true);
+            GameObject visual = CreatePlayerVisual(player.transform);
 
             var agent = player.AddComponent<NavMeshAgent>();
             agent.radius = 0.4f;
@@ -204,7 +223,58 @@ namespace IsoRPG.EditorTools
             so.FindProperty("destinationMarker").objectReferenceValue = marker;
             so.ApplyModifiedPropertiesWithoutUndo();
 
+            // Анимация цепляется к движению только если визуал умеет анимироваться.
+            if (visual != null && visual.GetComponentInChildren<Animator>() != null)
+            {
+                player.AddComponent<CharacterAnimatorDriver>();
+            }
+
             return player;
+        }
+
+        /// <summary>
+        /// Ставит модель персонажа, если она собрана, иначе — капсулу-заглушку.
+        ///
+        /// Запасной вариант нужен не для красоты: пока модель не готова,
+        /// сцена должна собираться и запускаться. Иначе один недостающий ассет
+        /// блокирует всю работу над механикой.
+        /// </summary>
+        private static GameObject CreatePlayerVisual(Transform parent)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Prefabs/Player.prefab");
+
+            if (prefab != null)
+            {
+                var visual = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                visual.transform.SetParent(parent);
+                visual.transform.localPosition = Vector3.zero;
+                visual.transform.localRotation = Quaternion.identity;
+                Debug.Log("[IsoRPG] Персонаж: используется модель из Player.prefab.");
+                return visual;
+            }
+
+            Debug.Log("[IsoRPG] Модель не найдена — ставлю капсулу. " +
+                      "Собери персонажа через Tools/IsoRPG/Собрать персонажа.");
+
+            var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            body.name = "Body";
+            body.transform.SetParent(parent);
+            body.transform.localPosition = new Vector3(0f, 1f, 0f);
+            Object.DestroyImmediate(body.GetComponent<Collider>());
+            ApplyMaterial(body, "M_Player", PlayerColor, smoothness: 0.15f);
+
+            // Клинышек-нос, чтобы было видно, куда персонаж повёрнут.
+            // Без него на капсуле поворот не читается вообще.
+            var nose = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            nose.name = "Facing";
+            nose.transform.SetParent(parent);
+            nose.transform.localPosition = new Vector3(0f, 1.1f, 0.42f);
+            nose.transform.localScale = new Vector3(0.18f, 0.18f, 0.5f);
+            Object.DestroyImmediate(nose.GetComponent<Collider>());
+            nose.GetComponent<Renderer>().sharedMaterial =
+                GetOrCreateMaterial("M_Marker", MarkerColor, smoothness: 0.2f, emissive: true);
+
+            return body;
         }
 
         // ------------------------------------------------------------------

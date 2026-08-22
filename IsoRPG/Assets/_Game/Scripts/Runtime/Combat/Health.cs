@@ -18,6 +18,7 @@ namespace IsoRPG.Combat
         [SerializeField] private float destroyDelay = 3f;
 
         private int current;
+        private DefenseStats defense;
 
         public int Max => maxHealth;
         public int Current => current;
@@ -53,19 +54,52 @@ namespace IsoRPG.Combat
             Changed?.Invoke(current, maxHealth);
         }
 
-        public void TakeDamage(int amount, GameObject source = null)
+        /// <summary>
+        /// Нанести урон. Возвращает, сколько дошло на самом деле — броня
+        /// применяется здесь, и вызывающий должен показать игроку итог,
+        /// а не то, что замахивался нанести.
+        ///
+        /// Защиту считает получатель, а не бьющий: иначе каждый источник
+        /// урона обязан знать правила всех броней и щитов, и добавление
+        /// нового вида защиты становится правкой всей боевой системы.
+        /// </summary>
+        public int TakeDamage(int amount, GameObject source = null)
         {
-            if (!IsAlive || amount <= 0) return;
+            if (!IsAlive || amount <= 0) return 0;
 
-            current = Mathf.Max(0, current - amount);
+            int dealt = ApplyDefenses(amount, source);
+
+            current = Mathf.Max(0, current - dealt);
             Changed?.Invoke(current, maxHealth);
-            Damaged?.Invoke(amount, source);
+            Damaged?.Invoke(dealt, source);
 
             if (current == 0)
             {
                 Died?.Invoke(source);
                 if (destroyOnDeath) Destroy(gameObject, destroyDelay);
             }
+
+            return dealt;
+        }
+
+        private int ApplyDefenses(int amount, GameObject source)
+        {
+            if (defense == null) defense = GetComponent<DefenseStats>();
+            if (defense == null) return amount;
+
+            int attackerLevel = 1;
+            if (source != null)
+            {
+                var attackerDefense = source.GetComponent<DefenseStats>();
+                if (attackerDefense != null) attackerLevel = attackerDefense.Level;
+            }
+
+            // Поправка на разницу уровней. Намеренно мягкая: основную работу
+            // делают броня и шанс отражения, а это лишь добавляет остроты.
+            float levelFactor = LevelDifficulty.DamageMultiplier(attackerLevel, defense.Level);
+            int adjusted = Mathf.Max(1, Mathf.RoundToInt(amount * levelFactor));
+
+            return defense.ApplyArmor(adjusted, attackerLevel);
         }
 
         public void Heal(int amount)

@@ -89,6 +89,18 @@ namespace IsoRPG.Combat
 
             var victim = targets.Current;
 
+            // Цель ушла в тень прямо во время боя — теряем её.
+            if (victim != null)
+            {
+                var vanished = victim.GetComponent<StealthState>();
+                if (vanished != null && vanished.IsStealthed)
+                {
+                    targets.Clear();
+                    GoHome();
+                    return;
+                }
+            }
+
             // Цель ещё жива и рядом — держимся за неё.
             if (victim != null && victim.IsAlive
                 && Vector3.Distance(transform.position, victim.transform.position) <= aggroRadius * 1.6f)
@@ -122,6 +134,11 @@ namespace IsoRPG.Combat
                 if (candidate == null || candidate == self) continue;
                 if (!candidate.IsAlive) continue;
                 if (!candidate.IsHostileTo(targets.OwnFaction)) continue;
+
+                // Скрытых не видим. Это и есть смысл скрытности: подойти к
+                // тому, кто тебя не ищет, и ударить первым.
+                var hidden = candidate.GetComponent<StealthState>();
+                if (hidden != null && hidden.IsStealthed) continue;
 
                 float distance = Vector3.Distance(transform.position, candidate.transform.position);
                 if (distance < bestDistance)

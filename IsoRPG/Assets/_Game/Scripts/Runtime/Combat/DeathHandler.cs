@@ -39,6 +39,8 @@ namespace IsoRPG.Combat
             dead = true;
             deathTime = Time.time;
 
+            GrantExperience(killer);
+
             // Анимация смерти, если персонаж вообще умеет анимироваться.
             var driver = GetComponent<CharacterAnimatorDriver>();
             if (driver != null) driver.SetDead(true);
@@ -70,6 +72,33 @@ namespace IsoRPG.Combat
             // коллайдер вернём, но уже для другой роли.
             foreach (var collider in GetComponentsInChildren<Collider>())
                 collider.enabled = false;
+        }
+
+        /// <summary>
+        /// Наградить убийцу опытом.
+        ///
+        /// Считает погибший, а не убийца: только он знает свой уровень.
+        /// Убийца лишь получает готовое число — так же, как с уроном, где
+        /// защиту применяет получатель.
+        /// </summary>
+        private void GrantExperience(GameObject killer)
+        {
+            if (killer == null) return;
+
+            var killerExp = killer.GetComponent<Experience>();
+            if (killerExp == null) return;
+
+            var ownDefense = GetComponent<DefenseStats>();
+            int ownLevel = ownDefense != null ? ownDefense.Level : 1;
+
+            int reward = Experience.RewardFor(ownLevel, killerExp.Level);
+            if (reward <= 0) return;   // серая цель опыта не даёт
+
+            killerExp.AddExperience(reward);
+
+            var self = GetComponent<Targetable>();
+            Vector3 point = self != null ? self.OverheadPoint : transform.position + Vector3.up * 2f;
+            ExperiencePopup.Show(point, reward);
         }
 
         private void Update()

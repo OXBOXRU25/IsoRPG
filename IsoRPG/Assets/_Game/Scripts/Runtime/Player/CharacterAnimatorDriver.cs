@@ -16,6 +16,7 @@ namespace IsoRPG.Player
     public sealed class CharacterAnimatorDriver : MonoBehaviour
     {
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
+        private static readonly int AttackSpeedHash = Animator.StringToHash("AttackSpeed");
         private static readonly int AttackHash = Animator.StringToHash("Attack");
         private static readonly int StealthKillHash = Animator.StringToHash("StealthKill");
         private static readonly int DeadHash = Animator.StringToHash("Dead");
@@ -63,6 +64,25 @@ namespace IsoRPG.Player
             if (speed <= 0f && smoothedSpeed < 0.05f) smoothedSpeed = 0f;
 
             animator.SetFloat(SpeedHash, smoothedSpeed);
+        }
+
+        /// <summary>
+        /// Подогнать длительность анимации удара под ритм боя.
+        ///
+        /// Скорость атаки — характеристика оружия, а не длина скачанного
+        /// клипа. Поэтому клип растягивается или поджимается так, чтобы ровно
+        /// заполнить интервал между ударами: без пауз стояния и без наложения
+        /// одного замаха на другой.
+        /// </summary>
+        public void SetActionDuration(float seconds)
+        {
+            if (animator == null || seconds <= 0.01f) return;
+
+            // В контроллере длительность действия задана постоянной, и скорость
+            // считается относительно неё.
+            const float baseDuration = 1.3f;
+
+            animator.SetFloat(AttackSpeedHash, baseDuration / seconds);
         }
 
         /// <summary>Обычная атака. Вызывается боевой системой.</summary>

@@ -195,6 +195,17 @@ namespace IsoRPG.EditorTools
             controller.AddParameter("StealthKill", AnimatorControllerParameterType.Trigger);
             controller.AddParameter("Dead", AnimatorControllerParameterType.Bool);
 
+            // Множитель скорости удара. Через него боевая система подгоняет
+            // длительность анимации под скорость оружия: кинжал бьёт чаще,
+            // и клип поджимается, чтобы не было пауз между ударами.
+            var attackSpeed = new AnimatorControllerParameter
+            {
+                name = "AttackSpeed",
+                type = AnimatorControllerParameterType.Float,
+                defaultFloat = 1f
+            };
+            controller.AddParameter(attackSpeed);
+
             var root = controller.layers[0].stateMachine;
 
             // Движение одним деревом смешивания: стойка перетекает в шаг,
@@ -250,6 +261,11 @@ namespace IsoRPG.EditorTools
 
             var state = root.AddState(stateName);
             state.motion = clip;
+
+            // Скорость состояния домножается на параметр: базовое ускорение
+            // клипа задаётся ниже, а ритм боя накидывается поверх в рантайме.
+            state.speedParameterActive = true;
+            state.speedParameter = "AttackSpeed";
 
             // Mixamo отдаёт связки на несколько секунд — «комбо» из трёх
             // ударов вместо одного. Ускорять их сильно нельзя: движение

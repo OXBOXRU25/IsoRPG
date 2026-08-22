@@ -18,13 +18,24 @@ namespace IsoRPG.Combat
         [Tooltip("Дальность удара сверх радиусов тел. Кинжал — короткая.")]
         [SerializeField] private float reach = 0.9f;
 
-        [Tooltip("Секунд между ударами. Скорость оружия.")]
+        [Tooltip("Секунд между ударами, если оружия нет. У игрока берётся из WeaponStats — там это характеристика предмета.")]
         [SerializeField] private float attackInterval = 2f;
 
         [Tooltip("Задержка урона от начала замаха — момент касания в анимации. Без неё урон срабатывает раньше, чем клинок дошёл, и это видно.")]
         [SerializeField] private float impactDelay = 0.5f;
 
-        [SerializeField] private int damage = 12;
+        [Tooltip("Урон, если оружия нет. У игрока урон берётся из WeaponStats, у монстров пока отсюда.")]
+        [SerializeField] private int fallbackDamage = 10;
+
+        [Header("Исход удара")]
+        [Range(0f, 1f)]
+        [SerializeField] private float critChance = CombatMath.DefaultCritChance;
+        [SerializeField] private float critMultiplier = CombatMath.DefaultCritMultiplier;
+
+        [Tooltip("Шанс частично отражённого удара — урон вдвое меньше.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float missChance = CombatMath.DefaultMissChance;
+        [SerializeField] private float missMultiplier = CombatMath.DefaultMissMultiplier;
 
         [Header("Преследование")]
         [Tooltip("Догонять ли цель, если она отошла.")]
@@ -41,6 +52,7 @@ namespace IsoRPG.Combat
         private ClickToMoveController movement;
         private CharacterAnimatorDriver animDriver;
         private Targetable self;
+        private WeaponStats weapon;
 
         private float nextAttackTime;
         private float pendingImpactTime = -1f;
@@ -70,7 +82,31 @@ namespace IsoRPG.Combat
             movement = GetComponent<ClickToMoveController>();
             animDriver = GetComponent<CharacterAnimatorDriver>();
             self = GetComponent<Targetable>();
+            weapon = GetComponent<WeaponStats>();
         }
+
+        private void OnEnable()
+        {
+            if (weapon != null) weapon.Changed += ApplyWeaponRhythm;
+            ApplyWeaponRhythm();
+        }
+
+        private void OnDisable()
+        {
+            if (weapon != null) weapon.Changed -= ApplyWeaponRhythm;
+        }
+
+        /// <summary>Ритм боя задаёт оружие: и частоту ударов, и длительность анимации.</summary>
+        private void ApplyWeaponRhythm()
+        {
+            float interval = CurrentInterval;
+
+            // Анимацию поджимаем чуть сильнее интервала: замах должен
+            // закончиться до следующего, а не впритык к нему.
+            if (animDriver != null) animDriver.SetActionDuration(interval * 0.9f);
+        }
+
+        private float CurrentInterval => weapon != null ? weapon.AttackInterval : attackInterval;
 
         private void Update()
         {
@@ -161,7 +197,7 @@ namespace IsoRPG.Combat
 
         private void Attack(Targetable target)
         {
-            nextAttackTime = Time.time + attackInterval;
+            nextAttackTime = Time.time + CurrentInterval;
 
             if (animDriver != null) animDriver.PlayAttack();
 
@@ -185,7 +221,19 @@ namespace IsoRPG.Combat
             if (distance > AttackDistanceTo(pendingVictim) + 1f) return;
 
             if (pendingVictim.Health != null)
-                pendingVictim.Health.TakeDamage(damage, gameObject);
+            {
+                // Автоатака бьёт ровно уроном оружия, без прибавок и без
+                // комбо-очков. Очки даёт только способность — это отличает
+                // «просто бью» от «делаю приём».
+                int baseDamage = weapon != null ? weapon.WeaponDamage : fallbackDamage;
+
+                int dealt = CombatMath.Roll(baseDamage, critChance, critMultiplier,
+                                            missChance, missMultiplier, out HitResult result);
+
+                // Показываем то, что дошло после брони, а не то, чем замахивались.
+                int actual = pendingVictim.Health.TakeDamage(dealt, gameObject);
+                DamagePopup.Show(pendingVictim.OverheadPoint, actual, result);
+            }
 
             pendingVictim = null;
         }

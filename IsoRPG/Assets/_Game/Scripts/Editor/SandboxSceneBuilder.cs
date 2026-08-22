@@ -257,6 +257,38 @@ namespace IsoRPG.EditorTools
             player.AddComponent<PlayerInputRouter>();
             player.AddComponent<MeleeCombatant>();
 
+            // Ресурсы разбойника: энергия копится сама, комбо-очки живут на цели.
+            var energy = player.AddComponent<ResourcePool>();
+            energy.Setup(ResourceType.Energy, 100, 10f);
+
+            player.AddComponent<ComboPoints>();
+
+            // Оружие. Кинжал — простейшее стартовое, урон 10. Когда появится
+            // инвентарь, сюда будет писать надетый предмет, а боевой код
+            // продолжит спрашивать урон в том же месте.
+            var weapon = player.AddComponent<WeaponStats>();
+            weapon.Equip("Кинжал", 10, 1.4f);
+
+            // Уровень игрока и броня. Броня пока нулевая — её будет давать
+            // экипировка, когда появится инвентарь.
+            player.AddComponent<Experience>();
+            player.AddComponent<StealthState>();
+
+            var playerDefense = player.AddComponent<DefenseStats>();
+            playerDefense.Setup(1, 0);
+
+            // Способности берём из ассетов. Если их ещё нет — создаём:
+            // так сборка песочницы работает и на чистом проекте.
+            var abilityAssets = RogueAbilitiesBuilder.Load();
+            if (abilityAssets.Count == 0)
+            {
+                RogueAbilitiesBuilder.Build();
+                abilityAssets = RogueAbilitiesBuilder.Load();
+            }
+
+            var book = player.AddComponent<AbilityBook>();
+            book.Setup(abilityAssets);
+
             // Смерть игрока обрабатываем тем же компонентом, но тело не
             // убираем: пока нет воскрешения, исчезнувший игрок означал бы
             // сцену без героя и полную потерю управления.
@@ -265,6 +297,10 @@ namespace IsoRPG.EditorTools
             deathSo.FindProperty("removeAfter").floatValue = 0f;
             deathSo.FindProperty("sinkBeforeRemoval").boolValue = false;
             deathSo.ApplyModifiedPropertiesWithoutUndo();
+
+            // Боевой интерфейс висит на игроке: ему нужны и здоровье игрока,
+            // и его выбранная цель, а оба живут здесь же.
+            player.AddComponent<CombatHud>();
 
             return player;
         }
@@ -283,16 +319,18 @@ namespace IsoRPG.EditorTools
             // Разнесены по карте, чтобы радиусы агрессии не перекрывались:
             // иначе на первый же бой сбегаются все сразу, и понять поведение
             // одного монстра невозможно.
-            var spots = new (Vector3 pos, string name, int hp)[]
+            // Три разных противника, чтобы было видно работу брони и уровней:
+            // лёгкий, бронированный и средний.
+            var spots = new (Vector3 pos, string name, int hp, int level, int armor)[]
             {
-                (new Vector3(  6f, 0f,   6f), "Бандит",         120),
-                (new Vector3(-10f, 0f,  -6f), "Головорез",      260),
-                (new Vector3( 16f, 0f,  -8f), "Бродяга",        180),
+                (new Vector3(  6f, 0f,   6f), "Бандит",    120, 1,  40),
+                (new Vector3(-10f, 0f,  -6f), "Головорез", 260, 3, 150),
+                (new Vector3( 16f, 0f,  -8f), "Бродяга",   180, 2,  70),
             };
 
             var material = GetOrCreateMaterial("M_Dummy", DummyColor, smoothness: 0.1f);
 
-            foreach (var (pos, name, hp) in spots)
+            foreach (var (pos, name, hp, level, armor) in spots)
             {
                 // Корень стоит НА земле, а не в центре капсулы: навигационный
                 // агент ищет сетку под своей точкой, и поднятый на метр монстр
@@ -321,6 +359,9 @@ namespace IsoRPG.EditorTools
                 var health = monster.AddComponent<Health>();
                 health.Setup(hp);
 
+                var defense = monster.AddComponent<DefenseStats>();
+                defense.Setup(level, armor);
+
                 var agent = monster.AddComponent<NavMeshAgent>();
                 agent.radius = 0.45f;
                 agent.height = 2f;
@@ -334,6 +375,7 @@ namespace IsoRPG.EditorTools
 
                 monster.AddComponent<MeleeCombatant>();
                 monster.AddComponent<MonsterBrain>();
+                monster.AddComponent<StunReceiver>();
                 monster.AddComponent<DeathHandler>();
                 monster.AddComponent<OverheadHealthBar>();
             }

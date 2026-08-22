@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using IsoRPG.Cameras;
 using IsoRPG.Player;
+using IsoRPG.Combat;
 
 namespace IsoRPG.EditorTools
 {
@@ -27,6 +28,7 @@ namespace IsoRPG.EditorTools
         private static readonly Color RockColor = new Color32(0x8A, 0x8F, 0x94, 0xFF);   // холодный камень
         private static readonly Color PlayerColor = new Color32(0xC4, 0x62, 0x3A, 0xFF); // тёплый акцент
         private static readonly Color MarkerColor = new Color32(0xE8, 0xC3, 0x5A, 0xFF); // отметка клика
+        private static readonly Color DummyColor = new Color32(0x6E, 0x4A, 0x4A, 0xFF);  // манекен: тёплый тёмный, не путается с камнем
 
         private const float GroundSize = 80f;
 
@@ -54,6 +56,7 @@ namespace IsoRPG.EditorTools
 
             GameObject marker = CreateDestinationMarker();
             GameObject player = CreatePlayer(marker);
+            CreateDummies();
             CreateCamera(player.transform);
 
             EnsureFolder(Path.GetDirectoryName(ScenePath));
@@ -229,7 +232,59 @@ namespace IsoRPG.EditorTools
                 player.AddComponent<CharacterAnimatorDriver>();
             }
 
+            // Бой: сам игрок тоже цель — иначе монстрам некого будет бить.
+            var playerTarget = player.AddComponent<Targetable>();
+            playerTarget.Setup("Разбойник", Faction.Player);
+
+            var playerHealth = player.AddComponent<Health>();
+            playerHealth.Setup(200);
+
+            player.AddComponent<TargetSelector>();
+            player.AddComponent<PlayerInputRouter>();
+            player.AddComponent<MeleeCombatant>();
+
             return player;
+        }
+
+        /// <summary>
+        /// Манекены для битья: неподвижные цели с запасом здоровья.
+        ///
+        /// Специально не двигаются и не отвечают — на этом шаге проверяется
+        /// только связка «выбрал цель, подошёл, ударил, здоровье убыло».
+        /// Ответный удар и погоня появятся, когда эта часть будет надёжной.
+        /// </summary>
+        private static void CreateDummies()
+        {
+            var root = new GameObject("Dummies");
+
+            var spots = new (Vector3 pos, string name, int hp)[]
+            {
+                (new Vector3( 4f, 0f,  2f), "Манекен",         120),
+                (new Vector3(-3f, 0f, -4f), "Манекен покрепче", 260),
+                (new Vector3( 8f, 0f, -3f), "Манекен вдали",   180),
+            };
+
+            var material = GetOrCreateMaterial("M_Dummy", DummyColor, smoothness: 0.1f);
+
+            foreach (var (pos, name, hp) in spots)
+            {
+                var dummy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                dummy.name = name;
+                dummy.transform.SetParent(root.transform);
+                dummy.transform.position = pos + Vector3.up;
+                dummy.GetComponent<Renderer>().sharedMaterial = material;
+
+                // Коллайдер оставляем: именно по нему игрок кликает,
+                // выбирая цель. Без него манекен нельзя взять в цель вообще.
+
+                var targetable = dummy.AddComponent<Targetable>();
+                targetable.Setup(name, Faction.Hostile);
+
+                var health = dummy.AddComponent<Health>();
+                health.Setup(hp);
+
+                dummy.AddComponent<OverheadHealthBar>();
+            }
         }
 
         /// <summary>
@@ -375,3 +430,4 @@ namespace IsoRPG.EditorTools
         }
     }
 }
+

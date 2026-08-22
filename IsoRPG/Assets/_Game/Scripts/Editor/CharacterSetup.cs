@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -35,6 +35,20 @@ namespace IsoRPG.EditorTools
         // Должны совпадать со скоростью NavMeshAgent, иначе ноги поедут.
         private const float WalkSpeed = 2f;
         private const float RunSpeed = 5.5f;
+
+        // Сколько должно длиться разовое действие — удар, добивание.
+        // Держим короче интервала между ударами (1.4 с), чтобы анимация
+        // успевала закончиться до следующей и не наслаивалась.
+        private const float TargetActionDuration = 1.3f;
+
+        // Скорость, выше которой начатое действие считается прерванным.
+        // Ниже порога — мелкие доводки позиции у цели, их прерывать не надо.
+        private const float MoveInterruptSpeed = 1.2f;
+
+        // Предел ускорения анимации. Выше примерно полутора раз движение
+        // человека начинает читаться как перемотка — проверено на глаз
+        // Павлоном: «слишком быстро, выглядит нереалистично».
+        private const float MaxSpeedUp = 1.5f;
 
         [MenuItem("Tools/IsoRPG/Собрать персонажа", priority = 10)]
         public static void Build()
@@ -94,8 +108,11 @@ namespace IsoRPG.EditorTools
 
             // Mixamo отдаёт материалы, которые в URP выглядят розовыми:
             // их шейдер из встроенного рендера. Пусть Unity создаст свои.
+            //
+            // Свойство materialLocation не трогаем: External объявлено
+            // устаревшим, а поведение по умолчанию (материалы внутри модели)
+            // нас устраивает — Unity всё равно вытащил текстуры отдельно.
             importer.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
-            importer.materialLocation = ModelImporterMaterialLocation.External;
 
             importer.SaveAndReimport();
 
@@ -229,6 +246,32 @@ namespace IsoRPG.EditorTools
             var state = root.AddState(stateName);
             state.motion = clip;
 
+            // Mixamo отдаёт связки на несколько секунд — «комбо» из трёх
+            // ударов вместо одного. Ускорять их сильно нельзя: движение
+            // становится суетливым и сразу читается как подделка. Поэтому
+            // жмём умеренно, а если клип всё равно длинный — честно говорим
+            // об этом в консоль. Правильное лечение здесь — короткий клип.
+            if (clip.length > TargetActionDuration)
+            {
+                float needed = clip.length / TargetActionDuration;
+                state.speed = Mathf.Min(needed, MaxSpeedUp);
+
+                float actual = clip.length / state.speed;
+
+                if (needed > MaxSpeedUp)
+                {
+                    Debug.LogWarning(
+                        $"[IsoRPG] «{key}» длится {clip.length:0.00} с — это связка, а не одиночный удар. " +
+                        $"Ускорено в {state.speed:0.0} раза до {actual:0.00} с (сильнее нельзя — будет суета). " +
+                        $"Для нормального боя нужна короткая анимация одиночного удара.");
+                }
+                else
+                {
+                    Debug.Log($"[IsoRPG] «{key}»: {clip.length:0.00} с → {actual:0.00} с " +
+                              $"(ускорение {state.speed:0.0}).");
+                }
+            }
+
             var enter = returnTo.AddTransition(state);
             enter.AddCondition(AnimatorConditionMode.If, 0f, trigger);
             enter.hasExitTime = false;
@@ -236,8 +279,16 @@ namespace IsoRPG.EditorTools
 
             var exit = state.AddTransition(returnTo);
             exit.hasExitTime = true;
-            exit.exitTime = 0.85f;    // возвращаемся, не досматривая хвост
-            exit.duration = 0.15f;
+            exit.exitTime = 0.8f;     // возвращаемся, не досматривая хвост
+            exit.duration = 0.12f;
+
+            // Побежал — удар прерывается. Без этого персонаж, которого увели
+            // от цели сразу после замаха, доигрывает взмах по воздуху на бегу.
+            // В играх движение почти всегда отменяет начатое действие.
+            var interrupt = state.AddTransition(returnTo);
+            interrupt.AddCondition(AnimatorConditionMode.Greater, MoveInterruptSpeed, "Speed");
+            interrupt.hasExitTime = false;
+            interrupt.duration = 0.1f;
         }
 
         private static void AddDeath(AnimatorController controller, AnimatorStateMachine root,

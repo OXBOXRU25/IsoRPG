@@ -67,27 +67,26 @@ namespace IsoRPG.Player
 
         private void Update()
         {
-            HandleInput();
             HandleMarker();
         }
 
-        private void HandleInput()
+        /// <summary>
+        /// Обработать клик по земле. Вызывается маршрутизатором ввода, а не
+        /// самим компонентом: решение «это движение или выбор цели» принимается
+        /// в одном месте, иначе два обработчика читают одну мышь и дерутся.
+        /// </summary>
+        public bool TryClickToMove(Vector2 screenPosition, bool isFreshPress)
         {
-            var mouse = Mouse.current;
-            if (mouse == null) return;
+            if (!isFreshPress && Time.time < nextRepathTime) return false;
+            if (!TryGetGroundPoint(screenPosition, out Vector3 point)) return false;
 
-            bool pressed = mouse.leftButton.wasPressedThisFrame;
-            bool held = followWhileHeld
-                        && mouse.leftButton.isPressed
-                        && Time.time >= nextRepathTime;
-
-            if (!pressed && !held) return;
-
-            if (!TryGetGroundPoint(mouse.position.ReadValue(), out Vector3 point)) return;
-
-            MoveTo(point, showMarker: pressed);
+            MoveTo(point, showMarker: isFreshPress);
             nextRepathTime = Time.time + holdRepathInterval;
+            return true;
         }
+
+        /// <summary>Продолжать ли вести персонажа за курсором, пока кнопка зажата.</summary>
+        public bool FollowWhileHeld => followWhileHeld;
 
         /// <summary>Отправить персонажа в точку. Публичный — им же пользуется боевая система.</summary>
         public void MoveTo(Vector3 worldPoint, bool showMarker = false)

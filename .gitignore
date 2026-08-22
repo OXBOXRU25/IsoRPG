@@ -1,0 +1,60 @@
+# ============================================================
+#  Unity — служебные папки. Генерируются заново при открытии
+#  проекта, весят гигабайты, в репозитории им не место.
+#  Паттерны без ведущего слэша — работают на любом уровне
+#  вложенности, поэтому папку Unity-проекта можно переименовать.
+# ============================================================
+
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# Кеш пакетного менеджера
+[Pp]ackages/com.unity.*/
+
+# Артефакты сборки и IDE
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+.vs/
+.idea/
+.vscode/
+*.code-workspace
+
+# Отладочные символы и нативные сборки
+*.apk
+*.aab
+*.unitypackage
+*.app
+ExportedObj/
+.consulo/
+sysinfo.txt
+
+# Crashlytics / отчёты
+crashlytics-build.properties
+
+# Windows / macOS мусор
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+$RECYCLE.BIN/
+
+# Наш скратч
+scratch/

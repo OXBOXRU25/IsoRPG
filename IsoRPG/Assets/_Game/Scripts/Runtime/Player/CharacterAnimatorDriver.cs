@@ -23,8 +23,11 @@ namespace IsoRPG.Player
         [Tooltip("Аниматор персонажа. Обычно на дочерней модели.")]
         [SerializeField] private Animator animator;
 
-        [Tooltip("Сглаживание скорости. Без него при старте и остановке ноги дёргаются, потому что агент меняет скорость рывком.")]
+        [Tooltip("Сглаживание разгона. Без него при старте ноги дёргаются, потому что агент меняет скорость рывком.")]
         [SerializeField] private float speedSmooth = 8f;
+
+        [Tooltip("Сглаживание остановки — намеренно резче разгона. Пока сглаженная скорость сползает вниз, аниматор считает персонажа бегущим и не даёт начаться удару.")]
+        [SerializeField] private float stopSmooth = 22f;
 
         [Tooltip("Ниже этой скорости считаем, что персонаж стоит. Спасает от подрагивания стойки, когда агент доезжает последние сантиметры.")]
         [SerializeField] private float idleThreshold = 0.1f;
@@ -48,7 +51,17 @@ namespace IsoRPG.Player
             float speed = agent.velocity.magnitude;
             if (speed < idleThreshold) speed = 0f;
 
-            smoothedSpeed = Mathf.Lerp(smoothedSpeed, speed, 1f - Mathf.Exp(-speedSmooth * Time.deltaTime));
+            // Разгон сглаживаем мягко, торможение — резко. Асимметрия здесь не
+            // косметика: пока «скорость» медленно сползает к нулю, аниматор
+            // считает персонажа бегущим и отменяет начатый удар.
+            float rate = speed < smoothedSpeed ? stopSmooth : speedSmooth;
+
+            smoothedSpeed = Mathf.Lerp(smoothedSpeed, speed, 1f - Mathf.Exp(-rate * Time.deltaTime));
+
+            // Дожимаем до нуля: остаточные сотые доли всё равно читаются
+            // деревом смешивания как «чуть-чуть идёт», и стойка подрагивает.
+            if (speed <= 0f && smoothedSpeed < 0.05f) smoothedSpeed = 0f;
+
             animator.SetFloat(SpeedHash, smoothedSpeed);
         }
 

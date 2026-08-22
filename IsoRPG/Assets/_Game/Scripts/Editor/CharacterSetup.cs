@@ -27,7 +27,7 @@ namespace IsoRPG.EditorTools
         private const string ClipIdle = "Knife Idle";
         private const string ClipWalk = "Walking";
         private const string ClipRun = "Running";
-        private const string ClipAttack = "One Hand Sword Combo";
+        private const string ClipAttack = "Sword And Shield Slash";
         private const string ClipStealthKill = "Brutal Assassination";
         private const string ClipDeath = "Dying";
 
@@ -42,8 +42,13 @@ namespace IsoRPG.EditorTools
         private const float TargetActionDuration = 1.3f;
 
         // Скорость, выше которой начатое действие считается прерванным.
-        // Ниже порога — мелкие доводки позиции у цели, их прерывать не надо.
-        private const float MoveInterruptSpeed = 1.2f;
+        // Порог выше скорости шага (2) — прерываем только на явном беге,
+        // иначе доводка позиции у цели считается «побежал».
+        private const float MoveInterruptSpeed = 2.5f;
+
+        // Доля клипа от начала, в течение которой прерывать нельзя.
+        // Защита от вылета в тот же кадр, пока сглаженная скорость падает.
+        private const float InterruptGuard = 0.15f;
 
         // Предел ускорения анимации. Выше примерно полутора раз движение
         // человека начинает читаться как перемотка — проверено на глаз
@@ -284,10 +289,16 @@ namespace IsoRPG.EditorTools
 
             // Побежал — удар прерывается. Без этого персонаж, которого увели
             // от цели сразу после замаха, доигрывает взмах по воздуху на бегу.
-            // В играх движение почти всегда отменяет начатое действие.
+            //
+            // ВАЖНО: прерывание разрешено только после InterruptGuard от начала
+            // клипа. Скорость в аниматоре сглажена и после остановки падает не
+            // сразу — без этой защиты состояние удара вылетает обратно в тот же
+            // кадр, в котором вошло. Со стороны это выглядит как пауза: замаха
+            // нет, а урон уже прошёл, потому что он считается своим таймером.
             var interrupt = state.AddTransition(returnTo);
             interrupt.AddCondition(AnimatorConditionMode.Greater, MoveInterruptSpeed, "Speed");
-            interrupt.hasExitTime = false;
+            interrupt.hasExitTime = true;
+            interrupt.exitTime = InterruptGuard;
             interrupt.duration = 0.1f;
         }
 

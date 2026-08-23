@@ -28,6 +28,7 @@ namespace IsoRPG.Player
 
         private TargetSelector targets;
         private LootWindow lootWindow;
+        private IsoRPG.UI.MerchantWindow merchantWindow;
         private IsoRPG.Quests.DialogueWindow dialogue;
         private ClickToMoveController movement;
         private MeleeCombatant combat;
@@ -48,6 +49,7 @@ namespace IsoRPG.Player
         {
             targets = GetComponent<TargetSelector>();
             lootWindow = GetComponent<LootWindow>();
+            merchantWindow = GetComponent<IsoRPG.UI.MerchantWindow>();
             dialogue = GetComponent<IsoRPG.Quests.DialogueWindow>();
             movement = GetComponent<ClickToMoveController>();
             combat = GetComponent<MeleeCombatant>();
@@ -159,6 +161,23 @@ namespace IsoRPG.Player
                 // NPC с квестом — разговариваем, а не бьём. Раньше живых:
                 // NPC мирный, целью он не берётся, и клик по нему должен
                 // открывать разговор, а не проваливаться.
+                // Торговец раньше собеседника: у лавочника может быть и
+                // квест, но пришли к нему в первую очередь торговать.
+                var shop = hit.collider.GetComponentInParent<IsoRPG.Items.Merchant>();
+                if (shop != null)
+                {
+                    float toShop = Vector3.Distance(transform.position, shop.transform.position);
+
+                    if (toShop > shop.TalkRange)
+                    {
+                        if (movement != null) movement.MoveTo(shop.transform.position);
+                        return true;
+                    }
+
+                    if (merchantWindow != null) merchantWindow.Open(shop);
+                    return true;
+                }
+
                 var giver = hit.collider.GetComponentInParent<IsoRPG.Quests.QuestGiver>();
                 if (giver != null)
                 {

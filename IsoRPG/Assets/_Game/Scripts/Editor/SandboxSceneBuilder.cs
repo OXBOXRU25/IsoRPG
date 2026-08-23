@@ -30,7 +30,7 @@ namespace IsoRPG.EditorTools
         private static readonly Color MarkerColor = new Color32(0xE8, 0xC3, 0x5A, 0xFF); // отметка клика
         private static readonly Color DummyColor = new Color32(0x6E, 0x4A, 0x4A, 0xFF);  // манекен: тёплый тёмный, не путается с камнем
 
-        private const float GroundSize = 130f;
+        private const float GroundSize = 230f;
 
         [MenuItem("Tools/IsoRPG/Собрать песочницу", priority = 0)]
         public static void Build()
@@ -87,6 +87,13 @@ namespace IsoRPG.EditorTools
             GameObject player = CreatePlayer(marker);
             CreateDummies();
             CreateBossRoom();
+            CreateMerchant();
+
+            // Лагерь ставим в общий корень окружения: он часть того же мира,
+            // а не отдельная сцена. Разные сцены пришлось бы синхронизировать
+            // между хостом и клиентом, когда дойдём до игры вдвоём.
+            var environment = GameObject.Find("Environment");
+            BanditCampBuilder.Build(environment != null ? environment.transform : null);
             CreateQuestGiver();
             CreateCamera(player.transform);
             CreateEventSystem();
@@ -400,6 +407,8 @@ namespace IsoRPG.EditorTools
             // Таланты: книга держит вложенное и раздаёт прибавки бою,
             // окно только показывает. Книга первой — окно её ищет.
             var talents = player.AddComponent<IsoRPG.Progression.TalentBook>();
+            DatabaseBuilder.Build();
+
             var tree = TalentsBuilder.LoadAll();
 
             // Пусто — значит ассетов ещё нет. Создаём сами: иначе дерево
@@ -416,6 +425,7 @@ namespace IsoRPG.EditorTools
             player.AddComponent<IsoRPG.Progression.TalentStats>();
             player.AddComponent<IsoRPG.UI.TalentWindow>();
             player.AddComponent<IsoRPG.UI.SettingsWindow>();
+            player.AddComponent<IsoRPG.UI.MerchantWindow>();
 
             SetupHudBar(player.AddComponent<IsoRPG.UI.HudBar>());
 
@@ -424,6 +434,11 @@ namespace IsoRPG.EditorTools
             // персонажем — на другой: «попали по мне только что или нет».
             // В бою взгляд держится на персонаже, а не на углу экрана.
             player.AddComponent<OverheadHealthBar>();
+
+            // Фоновое сохранение. Добавляется последним: в Start оно
+            // раздаёт состояние всем прочим компонентам, и они к этому
+            // моменту должны быть на месте.
+            player.AddComponent<IsoRPG.Save.SaveService>();
 
             // Смерть и возвращение. Возрождатель тот же, что у монстров, но
             // по команде: игрок встаёт кнопкой, а не сам через полминуты.
@@ -491,6 +506,24 @@ namespace IsoRPG.EditorTools
 
                 (RuinsLayout.CryptCentre + new Vector3( 6f, 0f, -4f), "Лучник склепа",      85, 3, 25, "LT_Drifter", "Skeleton_Rogue",
                  "bow_withString", null, true),
+
+                // Лагерь разбойников. Живые опаснее нежити того же уровня:
+                // у них больше здоровья и лучше снаряжение — это и отличает
+                // вторую зону от первой, а не просто другие числа.
+                (BanditCampBuilder.Centre + new Vector3(-4f, 0f,  5f), "Разбойник",         95, 2, 30, "LT_Bandit_Human", "Bandit_Brute",
+                 "axe_1handed", null, false),
+
+                (BanditCampBuilder.Centre + new Vector3( 5f, 0f,  6f), "Головорез",        120, 3, 55, "LT_Bandit_Human", "Bandit_Guard",
+                 "sword_1handed", "shield_round", false),
+
+                (BanditCampBuilder.Centre + new Vector3( 7f, 0f, -3f), "Лесной стрелок",     80, 3, 25, "LT_Bandit_Human", "Bandit_Hunter",
+                 "bow_withString", null, true),
+
+                (BanditCampBuilder.Centre + new Vector3(-7f, 0f, -4f), "Дозорный",           90, 2, 35, "LT_Bandit_Human", "Bandit_Brute",
+                 "axe_1handed", null, false),
+
+                (BanditCampBuilder.Centre + new Vector3( 0f, 0f, -8f), "Атаман Кривой Клык", 210, 4, 70, "LT_Bandit_Chief", "Bandit_Guard",
+                 "sword_1handed", "shield_round", false),
             };
 
             var material = GetOrCreateMaterial("M_Dummy", DummyColor, smoothness: 0.1f);
@@ -867,7 +900,73 @@ namespace IsoRPG.EditorTools
             // бы подсказкой к загадке, которую игра ещё не задала.
             var mark = chest.AddComponent<IsoRPG.Items.ChestMarker>();
             mark.Setup(ItemsBuilder.LoadItem("I_CryptKey"));
+            mark.SetupMaterial(MarkerMaterial());
             EditorUtility.SetDirty(mark);
+        }
+
+        /// <summary>
+        /// Лавочник в главном зале.
+        ///
+        /// Стоит в том же зале, что и заказчик квеста, и это не лень: игрок
+        /// возвращается сюда с добычей после каждой вылазки, и оба дела —
+        /// сдать задание и разгрузить сумку — делаются за один заход.
+        /// </summary>
+        private static void CreateMerchant()
+        {
+            var go = new GameObject("Торговец Кувалда");
+            go.transform.position = RuinsLayout.HallCentre + new Vector3(7f, 0f, 3f);
+
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/_Game/Art/KayKit/Characters/Barbarian.fbx");
+
+            if (model != null)
+            {
+                var visual = (GameObject)PrefabUtility.InstantiatePrefab(model);
+                visual.transform.SetParent(go.transform, false);
+
+                // Стоит и дышит: неподвижная модель читается как декорация,
+                // и кликать по ней не пробуют.
+                var animator = visual.GetComponent<Animator>();
+                if (animator == null) animator = visual.AddComponent<Animator>();
+
+                var controller = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
+                    "Assets/_Game/Art/KayKit/Controllers/AC_Rogue.controller");
+
+                if (controller != null)
+                {
+                    animator.runtimeAnimatorController = controller;
+                    animator.applyRootMotion = false;
+                }
+            }
+
+            // Коллайдер на корне: по нему кликают, чтобы открыть лавку.
+            var body = go.AddComponent<CapsuleCollider>();
+            body.center = Vector3.up;
+            body.height = 2f;
+            body.radius = 0.5f;
+
+            // Поворачивается к подошедшему: стоящий спиной торговец читается
+            // как декорация, а по декорациям не кликают.
+            go.AddComponent<IsoRPG.Items.FacePlayer>();
+
+            var shop = go.AddComponent<IsoRPG.Items.Merchant>();
+
+            // Ассортимент: то, что кончается в бою, и запасной клинок.
+            // Дорогих вещей у лавочника нет намеренно — снаряжение должно
+            // добываться, иначе бой перестаёт быть источником наград.
+            var goods = new System.Collections.Generic.List<IsoRPG.Items.ItemDefinition>
+            {
+                ItemsBuilder.LoadItem("I_Apple"),
+                ItemsBuilder.LoadItem("I_Dart"),
+                ItemsBuilder.LoadItem("I_WornCloak"),
+                ItemsBuilder.LoadItem("I_RustyDagger"),
+                ItemsBuilder.LoadItem("I_LeatherChest"),
+            };
+
+            goods.RemoveAll(item => item == null);
+
+            shop.Setup("Торговец Кувалда", goods);
+            EditorUtility.SetDirty(shop);
         }
 
         /// <summary>Модель из набора подземелья: кучки золота, мешочки.</summary>
@@ -975,6 +1074,7 @@ namespace IsoRPG.EditorTools
                 (Vector3.zero - go.transform.position).normalized);
 
             var giver = go.AddComponent<IsoRPG.Quests.QuestGiver>();
+            giver.SetupMarkerMaterial(MarkerMaterial());
             giver.Setup(quest);
             EditorUtility.SetDirty(giver);
 
@@ -1126,6 +1226,18 @@ namespace IsoRPG.EditorTools
             go.GetComponent<Renderer>().sharedMaterial =
                 GetOrCreateMaterial(name, color, smoothness, emissive);
         }
+
+        /// <summary>
+        /// Материал знаков над головой — общий ассет.
+        ///
+        /// Рантайм-копия материала примитива тянет шейдер, который в
+        /// сборку попадает только если Unity увидел его в сцене. Ссылка на
+        /// ассет такую случайность убирает: знак не станет розовым в
+        /// собранной игре.
+        /// </summary>
+        private static Material MarkerMaterial() =>
+            GetOrCreateMaterial("M_QuestMarker", new Color32(0xE8, 0xC3, 0x5A, 0xFF),
+                                smoothness: 0.2f, emissive: true);
 
         private static Material GetOrCreateMaterial(string name, Color color,
                                                     float smoothness, bool emissive = false)

@@ -92,6 +92,32 @@ namespace IsoRPG.EditorTools
             death = "Skeletons_Death",
         };
 
+        /// <summary>
+        /// Живые разбойники. Дышат и стоят иначе, чем нежить: у скелетов
+        /// свой набор покоя и ходьбы, и отдать его людям значит получить
+        /// живого человека с повадками мертвеца.
+        /// </summary>
+        private static readonly AnimSet BanditSet = new AnimSet
+        {
+            idle = "Idle_A",
+            walk = "Walking_A",
+            run = "Running_A",
+            attack = "Melee_1H_Attack_Chop",
+            stealth = "Melee_1H_Attack_Stab",
+            death = "Death_B",
+        };
+
+        /// <summary>Лучник-человек: покой с натянутым луком.</summary>
+        private static readonly AnimSet HunterSet = new AnimSet
+        {
+            idle = "Ranged_Bow_Idle",
+            walk = "Walking_A",
+            run = "Running_A",
+            attack = "Ranged_Bow_Draw",
+            stealth = "Ranged_Bow_Release",
+            death = "Death_B",
+        };
+
         /// <summary>Кого собираем: модель, набор анимаций, имя префаба.</summary>
         private static readonly (string model, string set, string prefab)[] Roster =
         {
@@ -100,6 +126,9 @@ namespace IsoRPG.EditorTools
             ("Skeleton_Rogue",   "Archer",   "Skeleton_Rogue"),
             ("Skeleton_Minion",  "Skeleton", "Skeleton_Minion"),
             ("Skeleton_Mage",    "Mage",     "Skeleton_Mage"),
+            ("Barbarian",        "Bandit",   "Bandit_Brute"),
+            ("Knight",           "Bandit",   "Bandit_Guard"),
+            ("Ranger",           "Hunter",   "Bandit_Hunter"),
         };
 
         [MenuItem("Tools/IsoRPG/Собрать персонажей KayKit", priority = 13)]
@@ -127,6 +156,8 @@ namespace IsoRPG.EditorTools
             var skeleton = BuildController("AC_Skeleton", SkeletonSet, clips);
             var archer = BuildController("AC_SkeletonArcher", ArcherSet, clips);
             var mage = BuildController("AC_SkeletonMage", MageSet, clips);
+            var bandit = BuildController("AC_Bandit", BanditSet, clips);
+            var hunter = BuildController("AC_Hunter", HunterSet, clips);
 
             // Контроллеры должны лечь в базу до того, как их попросит префаб:
             // ассет, созданный и загруженный в одном кадре, отдаётся пустой
@@ -141,6 +172,8 @@ namespace IsoRPG.EditorTools
                 var controller = set == "Rogue" ? rogue
                                : set == "Archer" ? archer
                                : set == "Mage" ? mage
+                               : set == "Bandit" ? bandit
+                               : set == "Hunter" ? hunter
                                : skeleton;
                 if (BuildPrefab(model, controller, prefab)) made++;
             }

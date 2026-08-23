@@ -85,6 +85,13 @@ namespace IsoRPG.Combat
             return true;
         }
 
+        /// <summary>Вернуть запас из сохранения.</summary>
+        public void RestoreState(int value)
+        {
+            current = Mathf.Clamp(value, 0, max);
+            Changed?.Invoke(Current, max);
+        }
+
         public void Refill()
         {
             current = max;

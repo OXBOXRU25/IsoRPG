@@ -46,6 +46,17 @@ namespace IsoRPG.Combat
             Changed?.Invoke(current, maxHealth);
         }
 
+        /// <summary>
+        /// Вернуть текущее здоровье из сохранения. Максимум не трогаем: его
+        /// уже посчитали таланты и снаряжение, и перезаписать его сохранённым
+        /// значило бы откатить их работу.
+        /// </summary>
+        public void RestoreState(int value)
+        {
+            current = Mathf.Clamp(value, 1, maxHealth);
+            Changed?.Invoke(current, maxHealth);
+        }
+
         public void Setup(int newMax, bool refill = true)
         {
             maxHealth = Mathf.Max(1, newMax);

@@ -25,6 +25,11 @@ namespace IsoRPG.Items
         [Tooltip("На какой высоте висит знак.")]
         [SerializeField] private float height = 1.6f;
 
+        [Tooltip("Материал знака. Ассетом, иначе шейдер может не попасть в сборку.")]
+        [SerializeField] private Material markerMaterial;
+
+        public void SetupMaterial(Material material) => markerMaterial = material;
+
         /// <summary>Как высоко подпрыгивает. Немного: это метка, а не фейерверк.</summary>
         private const float BobAmplitude = 0.16f;
 
@@ -103,7 +108,7 @@ namespace IsoRPG.Items
             Paint(go);
         }
 
-        private static void Paint(GameObject go)
+        private void Paint(GameObject go)
         {
             // Коллайдер снимаем: знак висит ровно там, куда игрок целится
             // мышью, и ловить клики вместо самого сундука ему нельзя.
@@ -112,7 +117,11 @@ namespace IsoRPG.Items
             var renderer = go.GetComponent<MeshRenderer>();
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
-            var material = new Material(renderer.sharedMaterial);
+            // Тот же случай, что и у знака квеста: копия материала примитива
+            // тянет за собой шейдер, которого может не оказаться в сборке.
+            var material = markerMaterial != null
+                ? new Material(markerMaterial)
+                : new Material(renderer.sharedMaterial);
             if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", MarkColor);
             if (material.HasProperty("_Color")) material.SetColor("_Color", MarkColor);
 

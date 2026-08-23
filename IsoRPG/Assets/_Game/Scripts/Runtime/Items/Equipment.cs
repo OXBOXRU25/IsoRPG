@@ -216,6 +216,53 @@ namespace IsoRPG.Items
         }
 
         /// <summary>Все надетые вещи — для интерфейса.</summary>
+        /// <summary>Что надето — для сохранения.</summary>
+        public List<IsoRPG.Save.SavedEquip> CaptureState()
+        {
+            var result = new List<IsoRPG.Save.SavedEquip>();
+
+            foreach (var pair in worn)
+            {
+                if (pair.Value.IsEmpty || pair.Value.Item == null) continue;
+
+                result.Add(new IsoRPG.Save.SavedEquip
+                {
+                    slot = (int)pair.Key,
+                    item = pair.Value.Item.name,
+                });
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Надеть сохранённое.
+        ///
+        /// Кладём напрямую в слоты, минуя проверку уровня: вещь уже была
+        /// надета, и отказать в ней при загрузке значит раздеть героя за то,
+        /// что он вышел из игры.
+        /// </summary>
+        public void RestoreState(List<IsoRPG.Save.SavedEquip> saved)
+        {
+            worn.Clear();
+
+            var database = IsoRPG.Save.GameDatabase.Instance;
+
+            if (saved != null && database != null)
+            {
+                foreach (var entry in saved)
+                {
+                    var item = database.Item(entry.item);
+                    if (item == null) continue;
+
+                    worn[(EquipSlot)entry.slot] = new ItemStack(item, 1);
+                }
+            }
+
+            Recalculate();
+            Changed?.Invoke();
+        }
+
         public IEnumerable<KeyValuePair<EquipSlot, ItemStack>> All()
         {
             foreach (var pair in worn)

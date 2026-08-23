@@ -66,6 +66,53 @@ namespace IsoRPG.Items
             }
         }
 
+        /// <summary>
+        /// Отдать содержимое для сохранения — включая пустые ячейки.
+        ///
+        /// Порядок важен: игрок раскладывает вещи так, как ему удобно, и
+        /// вернуть их «как влезло» значит перемешать сумку при каждом входе.
+        /// </summary>
+        public IsoRPG.Save.SavedStack[] CaptureState()
+        {
+            var result = new IsoRPG.Save.SavedStack[slots.Length];
+
+            for (int i = 0; i < slots.Length; i++)
+            {
+                var stack = slots[i];
+
+                result[i] = new IsoRPG.Save.SavedStack
+                {
+                    item = stack.IsEmpty || stack.Item == null ? "" : stack.Item.name,
+                    count = stack.IsEmpty ? 0 : stack.Count,
+                };
+            }
+
+            return result;
+        }
+
+        public void RestoreState(System.Collections.Generic.List<IsoRPG.Save.SavedStack> saved, int savedGold)
+        {
+            var database = IsoRPG.Save.GameDatabase.Instance;
+
+            for (int i = 0; i < slots.Length; i++) slots[i] = ItemStack.Empty;
+
+            if (saved != null && database != null)
+            {
+                for (int i = 0; i < saved.Count && i < slots.Length; i++)
+                {
+                    if (string.IsNullOrEmpty(saved[i].item)) continue;
+
+                    var item = database.Item(saved[i].item);
+                    if (item == null) continue;
+
+                    slots[i] = new ItemStack(item, Mathf.Max(1, saved[i].count));
+                }
+            }
+
+            gold = Mathf.Max(0, savedGold);
+            Changed?.Invoke();
+        }
+
         public void AddGold(int amount)
         {
             if (amount == 0) return;

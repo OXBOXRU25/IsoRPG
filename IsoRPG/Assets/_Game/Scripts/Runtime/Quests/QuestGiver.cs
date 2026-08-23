@@ -25,6 +25,11 @@ namespace IsoRPG.Quests
         [Tooltip("Высота знака над головой.")]
         [SerializeField] private float markerHeight = 2.35f;
 
+        [Tooltip("Материал знака. Ассетом, иначе шейдер может не попасть в сборку.")]
+        [SerializeField] private Material markerMaterial;
+
+        public void SetupMarkerMaterial(Material material) => markerMaterial = material;
+
         [Tooltip("Ближе этого расстояния с NPC можно говорить.")]
         [SerializeField] private float talkRange = 3.4f;
 
@@ -238,7 +243,16 @@ namespace IsoRPG.Quests
             Destroy(go.GetComponent<Collider>());
 
             var renderer = go.GetComponent<Renderer>();
-            var material = new Material(renderer.sharedMaterial) { color = color };
+            // Материал берём ГОТОВЫМ ассетом, а не копируем у примитива.
+            //
+            // Копия живёт только в памяти, и её шейдер попадает в сборку
+            // лишь по счастливой случайности: Unity включает туда шейдеры,
+            // которые видит в сценах. Не попал — знак становится розовым,
+            // и выглядит это как поломка модели, а не как отсутствие
+            // шейдера.
+            var material = markerMaterial != null
+                ? new Material(markerMaterial) { color = color }
+                : new Material(renderer.sharedMaterial) { color = color };
 
             // Знак светится сам: в вечерней сцене обычный материал уходит в
             // тень вместе со всем остальным, а метка обязана быть видна.

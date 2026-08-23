@@ -84,6 +84,51 @@ namespace IsoRPG.Quests
             return inventory.CountOf(quest.requiredItem);
         }
 
+        /// <summary>Взятое и сданное — для сохранения.</summary>
+        public List<IsoRPG.Save.SavedQuest> CaptureState()
+        {
+            var result = new List<IsoRPG.Save.SavedQuest>();
+
+            foreach (var quest in known)
+            {
+                if (quest == null) continue;
+
+                result.Add(new IsoRPG.Save.SavedQuest
+                {
+                    quest = quest.name,
+                    state = (int)StateOf(quest),
+                });
+            }
+
+            return result;
+        }
+
+        public void RestoreState(List<IsoRPG.Save.SavedQuest> saved)
+        {
+            known.Clear();
+            states.Clear();
+
+            var database = IsoRPG.Save.GameDatabase.Instance;
+            if (saved == null || database == null) return;
+
+            foreach (var entry in saved)
+            {
+                var quest = database.Quest(entry.quest);
+                if (quest == null) continue;
+
+                var state = (QuestState)entry.state;
+
+                // Доступный квест не запоминаем: он и так предлагается всем,
+                // у кого его нет. В журнале ему до взятия делать нечего.
+                if (state == QuestState.Available) continue;
+
+                known.Add(quest);
+                states[quest] = state;
+            }
+
+            Changed?.Invoke();
+        }
+
         public void Accept(QuestDefinition quest)
         {
             if (quest == null || StateOf(quest) != QuestState.Available) return;

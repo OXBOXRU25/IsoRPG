@@ -60,10 +60,18 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static readonly Rect CryptArea = new Rect(16f, -14f, 54f, 46f);
 
-        private static bool InsideCrypt(Vector3 pos) => CryptArea.Contains(new Vector2(pos.x, pos.z));
+        /// <summary>Прогалина под лагерем разбойников: там своя поляна.</summary>
+        private static readonly Rect CampArea = new Rect(-80f, -64f, 36f, 36f);
+
+        private static bool InsideCrypt(Vector3 pos)
+        {
+            var flat = new Vector2(pos.x, pos.z);
+
+            return CryptArea.Contains(flat) || CampArea.Contains(flat);
+        }
 
         private const float ForestInner = 35f;
-        private const float ForestOuter = 52f;
+        private const float ForestOuter = 96f;
 
         public static void Build(Transform parent)
         {
@@ -408,7 +416,9 @@ namespace IsoRPG.EditorTools
             // Прогалины важнее самих деревьев: по ним ходят и через них видно.
             // Рощ больше пропорционально площади: та же плотность на
             // выросшем кольце, иначе лес поредеет и станет похож на парк.
-            for (int grove = 0; grove < 38; grove++)
+            // Рощ больше: кольцо выросло вдвое, и прежним числом лес
+            // превратился бы в редкий парк.
+            for (int grove = 0; grove < 74; grove++)
             {
                 float angle = Random.Range(0f, Mathf.PI * 2f);
                 float radius = Random.Range(ForestInner, ForestOuter);

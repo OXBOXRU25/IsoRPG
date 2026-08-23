@@ -141,6 +141,16 @@ namespace IsoRPG.Combat
                 var materials = new List<Material>(original) { silhouette };
                 renderer.sharedMaterials = materials.ToArray();
             }
+
+            // Мы только что переписали материалы персонажа — а вместе с ними
+            // стёрли чужую прозрачность. Просим скрытность вернуть свою.
+            //
+            // Два компонента, правящих одни и те же материалы, обречены друг
+            // друга затирать; вопрос только в том, кто из них последний. Здесь
+            // порядок задан явно: силуэт решает, ЧТО рисовать, скрытность —
+            // насколько прозрачно.
+            var stealth = GetComponent<StealthState>();
+            if (stealth != null) stealth.RefreshVisual();
         }
     }
 }

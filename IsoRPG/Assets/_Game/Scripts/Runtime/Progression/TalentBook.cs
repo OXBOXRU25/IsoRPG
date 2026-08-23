@@ -132,6 +132,53 @@ namespace IsoRPG.Progression
             return true;
         }
 
+        /// <summary>Что вложено — для сохранения.</summary>
+        public List<IsoRPG.Save.SavedTalent> CaptureState()
+        {
+            var result = new List<IsoRPG.Save.SavedTalent>();
+
+            foreach (var pair in ranks)
+            {
+                if (pair.Key == null || pair.Value <= 0) continue;
+
+                result.Add(new IsoRPG.Save.SavedTalent
+                {
+                    talent = pair.Key.name,
+                    rank = pair.Value,
+                });
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Вернуть вложенное напрямую, минуя проверки доступности.
+        ///
+        /// Проверки нужны, когда игрок тратит очко: они следят за ярусами и
+        /// остатком. При загрузке всё это проверено когда-то, а порядок
+        /// восстановления произвольный — идти через Learn значило бы
+        /// отказывать в талантах верхних ярусов, пока не лягут нижние.
+        /// </summary>
+        public void RestoreState(List<IsoRPG.Save.SavedTalent> saved)
+        {
+            ranks.Clear();
+
+            var database = IsoRPG.Save.GameDatabase.Instance;
+
+            if (saved != null && database != null)
+            {
+                foreach (var entry in saved)
+                {
+                    var talent = database.Talent(entry.talent);
+                    if (talent == null) continue;
+
+                    ranks[talent] = Mathf.Clamp(entry.rank, 0, talent.maxRank);
+                }
+            }
+
+            Changed?.Invoke();
+        }
+
         /// <summary>
         /// Сбросить всё. Без этого дерево — билет в один конец, а на этапе,
         /// когда баланс ещё щупают руками, это просто вредно.

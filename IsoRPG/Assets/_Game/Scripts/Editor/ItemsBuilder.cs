@@ -269,6 +269,39 @@ namespace IsoRPG.EditorTools
                 };
             });
 
+            // Разбойники-люди. Золота у них больше, чем у нежити: живые
+            // грабят и носят добычу при себе, а у скелета в карманах кости.
+            CreateLoot("LT_Bandit_Human", table =>
+            {
+                table.minGold = 14;
+                table.maxGold = 48;
+                table.goldChance = 0.85f;
+                table.entries = new[]
+                {
+                    Entry(pelt, 0.45f, 1, 2),
+                    Entry(buckle, 0.4f, 1, 2),
+                    Entry(apple, 0.5f, 1, 2),
+                    Entry(dart, 0.3f, 1, 3),
+                    Entry(banditDagger, 0.14f, 1, 1),
+                    Entry(cloak, 0.12f, 1, 1),
+                };
+            });
+
+            CreateLoot("LT_Bandit_Chief", table =>
+            {
+                table.minGold = 60;
+                table.maxGold = 140;
+                table.goldChance = 1f;
+                table.entries = new[]
+                {
+                    Entry(apple, 0.9f, 2, 3),
+                    Entry(leatherChest, 0.35f, 1, 1),
+                    Entry(signet, 0.3f, 1, 1),
+                    Entry(necklace, 0.25f, 1, 1),
+                    Entry(banditDagger, 0.4f, 1, 1),
+                };
+            });
+
             // Сундук владыки. Золота много, вещей мало: главная награда в
             // нём и так лежит гарантированно, а мусор рядом с эпической
             // вещью обесценивает сам момент открытия.

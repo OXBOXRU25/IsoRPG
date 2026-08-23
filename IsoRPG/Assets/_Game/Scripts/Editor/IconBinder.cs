@@ -54,6 +54,20 @@ namespace IsoRPG.EditorTools
 
         // ------------------------------------------------------------------
 
+        /// <summary>Чем подменить недостающую иконку. Пусто — подменять нечем.</summary>
+        private static Sprite Stand(string itemName)
+        {
+            string replacement = itemName switch
+            {
+                "I_ThiefSignet" => "I_SwiftRing",
+                _ => null,
+            };
+
+            if (replacement == null) return null;
+
+            return AssetDatabase.LoadAssetAtPath<Sprite>(ItemIcons + "/" + replacement + ".png");
+        }
+
         private static int BindItems()
         {
             int bound = 0;
@@ -65,6 +79,14 @@ namespace IsoRPG.EditorTools
                 if (item == null) continue;
 
                 var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(ItemIcons + "/" + item.name + ".png");
+
+                // Временная подмена, пока своей картинки нет.
+                //
+                // Предмет без иконки рисуется цветным квадратом, и в сумке это
+                // читается как пропажа, а не как «художник ещё не дошёл».
+                // Чужая иконка того же вида честнее: видно кольцо, пусть и не
+                // то самое. Убрать эту таблицу, когда картинки будут у всех.
+                if (sprite == null) sprite = Stand(item.name);
                 if (sprite == null || item.icon == sprite) continue;
 
                 item.icon = sprite;

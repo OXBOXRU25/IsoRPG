@@ -43,6 +43,21 @@ namespace IsoRPG.Items
 
         public void Setup(ItemDefinition requiredKey) => key = requiredKey;
 
+        /// <summary>Чем сундук помечен в сохранении. Имя объекта уникально.</summary>
+        private string Key => name;
+
+        private void Start()
+        {
+            // Открытый сундук должен остаться открытым и пустым: иначе
+            // достаточно перезайти в игру, чтобы получить вторую награду.
+            if (IsoRPG.Save.SaveService.Instance != null &&
+                IsoRPG.Save.SaveService.Instance.IsChestOpened(Key))
+            {
+                open = true;
+                if (lid != null) lid.localRotation = lidClosed * Quaternion.Euler(-lidAngle, 0f, 0f);
+            }
+        }
+
         private void Awake()
         {
             lid = FindLid(transform);
@@ -81,6 +96,9 @@ namespace IsoRPG.Items
             open = true;
 
             if (lid != null) lid.localRotation = lidClosed * Quaternion.Euler(-lidAngle, 0f, 0f);
+
+            if (IsoRPG.Save.SaveService.Instance != null)
+                IsoRPG.Save.SaveService.Instance.MarkChestOpened(Key);
 
             IsoRPG.Audio.Sfx.Play(IsoRPG.Audio.Sfx.Bank?.equip, transform.position, 0.6f, 0.06f);
             CombatLog.Add("Сундук открыт.", LogKind.Loot);

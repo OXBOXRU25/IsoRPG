@@ -133,9 +133,22 @@ namespace IsoRPG.Items
             // слушателем смерти: порядок подписок Unity не задаёт, и
             // предмет, добавленный после раскладки мешка, в него не попал
             // бы вовсе.
-            if (guaranteed != null && !guaranteedGiven)
+            // Ключ события — имя предмета: он и так уникален, а второго
+            // такого источника в мире нет.
+            string rewardKey = guaranteed != null ? guaranteed.name : "";
+
+            bool alreadyGiven = guaranteedGiven ||
+                (IsoRPG.Save.SaveService.Instance != null &&
+                 IsoRPG.Save.SaveService.Instance.IsRewardClaimed(rewardKey));
+
+            if (guaranteed != null && !alreadyGiven)
             {
                 guaranteedGiven = true;
+
+                // Помечаем в сохранении, иначе награда вернётся при
+                // следующем запуске вместе с возрождённым боссом.
+                if (IsoRPG.Save.SaveService.Instance != null)
+                    IsoRPG.Save.SaveService.Instance.MarkRewardClaimed(rewardKey);
                 contents.Add(new ItemStack(guaranteed, 1));
 
                 if (!string.IsNullOrEmpty(guaranteedNote))

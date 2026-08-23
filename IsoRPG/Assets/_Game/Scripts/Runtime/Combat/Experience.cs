@@ -56,6 +56,19 @@ namespace IsoRPG.Combat
             return Mathf.RoundToInt(80f * Mathf.Pow(Mathf.Max(1, forLevel), 1.6f));
         }
 
+        /// <summary>Вернуть уровень и опыт из сохранения, без наград за подъём.</summary>
+        public void RestoreState(int savedLevel, int savedExperience)
+        {
+            level = Mathf.Clamp(savedLevel, 1, LevelDifficulty.MaxPlayerLevel);
+            current = Mathf.Max(0, savedExperience);
+
+            SyncLevelToStats();
+
+            // Событие подъёма НЕ шлём: оно лечит, играет джингл и выдаёт очко
+            // талантов. При загрузке всё это уже случилось когда-то.
+            Changed?.Invoke(current, ToNextLevel);
+        }
+
         public void AddExperience(int amount)
         {
             if (amount <= 0 || IsMaxLevel) return;

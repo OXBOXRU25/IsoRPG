@@ -87,6 +87,8 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
+            CleanBuildFolder(folder);
+
             string archive = Path.Combine(BuildRoot, ExecutableName + ".zip");
             Zip(folder, archive);
 
@@ -98,6 +100,24 @@ namespace IsoRPG.EditorTools
                       "время " + summary.totalTime.TotalSeconds.ToString("0") + " с.");
 
             EditorUtility.RevealInFinder(archive);
+        }
+
+        /// <summary>
+        /// Выкидывает из готовой сборки то, что игроку не нужно.
+        ///
+        /// Unity кладёт рядом с игрой отладочные данные компилятора Burst и
+        /// прямо пишет в имени папки «DoNotShip». Работе они не мешают, но
+        /// уезжать к игрокам им незачем.
+        /// </summary>
+        private static void CleanBuildFolder(string folder)
+        {
+            foreach (string path in Directory.GetDirectories(folder))
+            {
+                if (!path.EndsWith("_DoNotShip", StringComparison.OrdinalIgnoreCase)) continue;
+
+                Directory.Delete(path, true);
+                Debug.Log("[IsoRPG] Из сборки убрано: " + Path.GetFileName(path));
+            }
         }
 
         private static string nl => Environment.NewLine;

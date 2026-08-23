@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using UnityEditor;
+using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
@@ -169,15 +170,72 @@ namespace IsoRPG.EditorTools
 
             // Затемнение снизу: кнопка должна читаться на любой картинке, а
             // светлые плиты внизу заставки съедают тёмный текст.
+            //
+            // ГРАДИЕНТОМ, а не сплошным прямоугольником. Ровная заливка на
+            // 42% высоты давала резкую границу поперёк всего экрана, и она
+            // читалась как полоса, прочерченная по картинке. Плавное
+            // затухание к середине незаметно вовсе.
             var shade = new GameObject("Shade", typeof(Image));
             var shadeRect = (RectTransform)shade.transform;
             shadeRect.SetParent(root, false);
             shadeRect.anchorMin = new Vector2(0f, 0f);
-            shadeRect.anchorMax = new Vector2(1f, 0.42f);
+            shadeRect.anchorMax = new Vector2(1f, 0.55f);
             shadeRect.offsetMin = Vector2.zero;
             shadeRect.offsetMax = Vector2.zero;
 
-            shade.GetComponent<Image>().color = new Color(0.02f, 0.02f, 0.04f, 0.45f);
+            var shadeImage = shade.GetComponent<Image>();
+            shadeImage.sprite = BuildGradientSprite();
+            shadeImage.type = Image.Type.Simple;
+            shadeImage.color = Color.white;
+            shadeImage.raycastTarget = false;
+        }
+
+        /// <summary>
+        /// Полоса, плавно темнеющая книзу. Собирается кодом и кладётся
+        /// ассетом: рисовать её в редакторе изображений ради шестидесяти
+        /// пикселей — лишняя зависимость, а градиент в Unity без спрайта
+        /// не сделать.
+        /// </summary>
+        private static Sprite BuildGradientSprite()
+        {
+            const string path = "Assets/_Game/Art/UI/MenuShade.png";
+            const int height = 128;
+
+            var existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (existing != null) return existing;
+
+            var texture = new Texture2D(1, height, TextureFormat.RGBA32, false);
+
+            for (int y = 0; y < height; y++)
+            {
+                // Снизу плотнее, кверху в ноль. Квадрат кривой убирает
+                // видимую границу: линейное затухание глаз всё равно ловит
+                // как край.
+                float up = y / (float)(height - 1);
+                float alpha = (1f - up) * (1f - up) * 0.62f;
+
+                texture.SetPixel(0, y, new Color(0.02f, 0.02f, 0.04f, alpha));
+            }
+
+            texture.Apply();
+
+            System.IO.File.WriteAllBytes(path, texture.EncodeToPNG());
+            Object.DestroyImmediate(texture);
+
+            AssetDatabase.ImportAsset(path);
+
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer != null)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.alphaIsTransparency = true;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.wrapMode = TextureWrapMode.Clamp;
+                importer.SaveAndReimport();
+            }
+
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
         /// <summary>
@@ -256,11 +314,22 @@ namespace IsoRPG.EditorTools
 
             var start = MakeButton(root, "StartButton", "НАЧАТЬ ИГРУ", ButtonColor, ButtonText, font,
                                    new Vector2(0f, 210f), new Vector2(320f, 62f), 22);
-            start.onClick.AddListener(menu.StartGame);
 
             var quit = MakeButton(root, "QuitButton", "ВЫХОД", QuitColor, QuitText, font,
                                   new Vector2(0f, 132f), new Vector2(220f, 44f), 16);
-            quit.onClick.AddListener(menu.Quit);
+
+            // ПОСТОЯННЫЕ подписки, а не обычный AddListener.
+            //
+            // Обычный слушатель живёт в памяти и в сцену не записывается.
+            // Сборщик отрабатывает в редакторе, сцена сохраняется — и
+            // сохраняется с пустыми обработчиками. В редакторе это незаметно,
+            // потому что сцена ещё в памяти; в собранной игре обе кнопки
+            // оказываются мёртвыми, и выглядит это как «меню не работает».
+            //
+            // Постоянная подписка пишется в сцену как ссылка на объект и имя
+            // метода — ровно то, что делает рука в инспекторе.
+            UnityEventTools.AddPersistentListener(start.onClick, menu.StartGame);
+            UnityEventTools.AddPersistentListener(quit.onClick, menu.Quit);
         }
 
         private static void BuildCredits(RectTransform root)

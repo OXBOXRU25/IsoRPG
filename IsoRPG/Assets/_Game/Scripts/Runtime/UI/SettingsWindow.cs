@@ -30,6 +30,9 @@ namespace IsoRPG.UI
         private static readonly Color FillColor = new Color32(0x8A, 0x6A, 0x3A, 0xFF);
         private static readonly Color HandleColor = new Color32(0xD8, 0xC8, 0xA8, 0xFF);
 
+        /// <summary>Выход из игры: приглушённо-красный, но не кричащий.</summary>
+        private static readonly Color DangerColor = new Color32(0x4A, 0x26, 0x22, 0xFF);
+
         private const float Width = 340f;
 
         private Font font;
@@ -119,6 +122,31 @@ namespace IsoRPG.UI
         }
 
         // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Вернуться в главное меню.
+        ///
+        /// Настройки сохраняем перед уходом: сцена выгружается вместе с этим
+        /// окном, и записывать их будет уже некому.
+        /// </summary>
+        private void ToMainMenu()
+        {
+            PlayerPrefs.Save();
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        }
+
+        private void QuitGame()
+        {
+            PlayerPrefs.Save();
+
+#if UNITY_EDITOR
+            // В редакторе выхода нет: останавливаем проигрывание, иначе
+            // кнопка выглядит сломанной при проверке.
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
 
         /// <summary>
         /// Закрывает все открытые окна. True — что-то было открыто, значит
@@ -246,6 +274,15 @@ namespace IsoRPG.UI
             MakeGap(8f);
 
             MakeButton("Закрыть", Close);
+            MakeGap(4f);
+
+            // Две разные двери, и путать их нельзя: одна возвращает в меню,
+            // другая закрывает игру совсем. Поэтому у выхода из игры свой
+            // цвет — тревожный, чтобы палец не промахнулся мимо безобидной.
+            MakeButton("В главное меню", ToMainMenu);
+            MakeGap(4f);
+
+            MakeButton("Выйти из игры", QuitGame, DangerColor);
 
             window = go;
             window.SetActive(false);
@@ -329,6 +366,9 @@ namespace IsoRPG.UI
         }
 
         private void MakeButton(string caption, UnityEngine.Events.UnityAction onClick)
+            => MakeButton(caption, onClick, TrackColor);
+
+        private void MakeButton(string caption, UnityEngine.Events.UnityAction onClick, Color plateColor)
         {
             var go = new GameObject("Button", typeof(Image), typeof(Button), typeof(LayoutElement));
             var rect = (RectTransform)go.transform;
@@ -340,7 +380,7 @@ namespace IsoRPG.UI
             element.preferredHeight = 34f;
             element.minHeight = 34f;
 
-            go.GetComponent<Image>().color = TrackColor;
+            go.GetComponent<Image>().color = plateColor;
 
             var button = go.GetComponent<Button>();
             button.onClick.AddListener(onClick);

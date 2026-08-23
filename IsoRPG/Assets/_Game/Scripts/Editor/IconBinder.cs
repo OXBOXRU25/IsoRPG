@@ -148,11 +148,27 @@ namespace IsoRPG.EditorTools
                     dirty = true;
                 }
 
-                if (importer.maxTextureSize > 256)
+                // Потолок размера — только для иконок.
+                //
+                // В интерфейсе иконка не больше 64 пикселей даже на экране
+                // двойной плотности, и 256 там запас вчетверо. Но под то же
+                // правило попадали логотип и заставка: ужатые до 256 и
+                // растянутые обратно на пол-экрана, они выглядели мыльными.
+                // Крупным картинкам оставляем их размер.
+                bool isIcon = path.Contains("/Icons/");
+                int cap = isIcon ? 256 : 2048;
+
+                if (importer.maxTextureSize != cap)
                 {
-                    // В интерфейсе иконка не больше 64 пикселей даже на
-                    // экране двойной плотности. 256 — запас вчетверо.
-                    importer.maxTextureSize = 256;
+                    importer.maxTextureSize = cap;
+                    dirty = true;
+                }
+
+                // Мипмапы интерфейсу не нужны: спрайт всегда рисуется в
+                // плоскости экрана, а уменьшенные копии только мылят его.
+                if (importer.mipmapEnabled)
+                {
+                    importer.mipmapEnabled = false;
                     dirty = true;
                 }
 

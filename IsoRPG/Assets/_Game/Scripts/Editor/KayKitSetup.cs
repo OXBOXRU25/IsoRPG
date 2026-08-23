@@ -21,10 +21,24 @@ namespace IsoRPG.EditorTools
         private const string CharactersFolder = "Assets/_Game/Art/KayKit/Characters";
 
         /// <summary>
+        /// Окружение. Масштабируется тем же коэффициентом, что и персонажи:
+        /// набор нарисован в одной мерке, и стоит ужать только людей, как
+        /// двери станут велики, а деревья превратятся в секвойи.
+        /// </summary>
+        private static readonly string[] EnvironmentFolders =
+        {
+            "Assets/_Game/Art/KayKit/Dungeon",
+            "Assets/_Game/Art/KayKit/Nature",
+        };
+
+        /// <summary>
         /// Целевой рост персонажа в метрах. Взят от нашей прежней модели,
         /// чтобы не пересчитывать навигацию, высоты коллайдеров и скорости.
         /// </summary>
         private const float TargetHeight = 1.9f;
+
+        /// <summary>Коэффициент, которым ужали персонажей. Им же идёт окружение.</summary>
+        private static float lastScaleFactor;
 
         /// <summary>
         /// Клипы, которые обязаны зацикливаться: всё, что играет, пока
@@ -60,12 +74,13 @@ namespace IsoRPG.EditorTools
 
             int loops = PrepareAnimations();
             int scaled = PrepareCharacters();
+            int env = PrepareEnvironment();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             Debug.Log("[IsoRPG] KayKit подготовлен: зациклено клипов " + loops +
-                      ", приведено к росту " + TargetHeight + " м моделей " + scaled + ".");
+                      ", персонажей " + scaled + ", объектов окружения " + env + ".");
         }
 
         // ------------------------------------------------------------------
@@ -142,6 +157,7 @@ namespace IsoRPG.EditorTools
 
             // Самого высокого приводим чуть выше цели: он должен возвышаться.
             float factor = (TargetHeight * 1.15f) / tallest;
+            lastScaleFactor = factor;
 
             foreach (var guid in AssetDatabase.FindAssets("t:Model", new[] { CharactersFolder }))
             {
@@ -159,6 +175,48 @@ namespace IsoRPG.EditorTools
 
             Debug.Log("[IsoRPG] Самый высокий в наборе: " + tallest.ToString("0.00") +
                       " м, коэффициент " + factor.ToString("0.000") + ".");
+
+            return changed;
+        }
+
+        /// <summary>
+        /// Приводит окружение к тому же масштабу, что и персонажей.
+        ///
+        /// Коэффициент берём тот же самый, что вычислен по самому высокому
+        /// персонажу набора. Если масштабы разойдутся, это будет видно сразу
+        /// (дверные проёмы перестанут соответствовать росту), но искать
+        /// причину придётся долго — выглядеть будет как «модели кривые».
+        /// </summary>
+        private static int PrepareEnvironment()
+        {
+            float factor = lastScaleFactor;
+
+            if (factor <= 0.01f)
+            {
+                Debug.LogWarning("[IsoRPG] Масштаб персонажей неизвестен — окружение не тронуто.");
+                return 0;
+            }
+
+            int changed = 0;
+
+            foreach (var folder in EnvironmentFolders)
+            {
+                if (!AssetDatabase.IsValidFolder(folder)) continue;
+
+                foreach (var guid in AssetDatabase.FindAssets("t:Model", new[] { folder }))
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    var importer = AssetImporter.GetAtPath(path) as ModelImporter;
+                    if (importer == null) continue;
+
+                    if (Mathf.Abs(importer.globalScale - factor) > 0.001f)
+                    {
+                        importer.globalScale = factor;
+                        importer.SaveAndReimport();
+                        changed++;
+                    }
+                }
+            }
 
             return changed;
         }

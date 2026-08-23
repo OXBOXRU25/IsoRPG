@@ -107,8 +107,10 @@ namespace IsoRPG.Combat
             var brain = GetComponent<MonsterBrain>();
             if (brain != null) brain.enabled = true;
 
-            var combat = GetComponent<MeleeCombatant>();
-            if (combat != null) combat.enabled = true;
+            // Включаем любого бойца, а не только ближнего: у лучника другой
+            // компонент, и с конкретным типом он оставался бы выключенным
+            // после возрождения — живой монстр, который не дерётся.
+            if (GetComponent<ICombatant>() is MonoBehaviour combat) combat.enabled = true;
 
             var targets = GetComponent<TargetSelector>();
             if (targets != null) targets.enabled = true;

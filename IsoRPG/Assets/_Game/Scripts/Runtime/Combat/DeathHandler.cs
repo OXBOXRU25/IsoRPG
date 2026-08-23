@@ -63,18 +63,29 @@ namespace IsoRPG.Combat
 
             // Останавливаем и отключаем всё, что заставляет тело действовать.
             var agent = GetComponent<NavMeshAgent>();
-            if (agent != null && agent.isOnNavMesh)
+            if (agent != null)
             {
-                agent.ResetPath();
-                agent.isStopped = true;
+                // Путь сбрасываем только пока агент на сетке — иначе Unity
+                // ругается. А выключаем в любом случае: агент, слетевший с
+                // навигации, всё равно продолжает тянуть тело.
+                if (agent.isOnNavMesh)
+                {
+                    agent.ResetPath();
+                    agent.isStopped = true;
+                }
+
                 agent.enabled = false;
             }
 
             var brain = GetComponent<MonsterBrain>();
             if (brain != null) brain.enabled = false;
 
-            var combat = GetComponent<MeleeCombatant>();
-            if (combat != null) combat.enabled = false;
+            // Выключаем ЛЮБОГО бойца, а не только ближнего. Раньше здесь
+            // стоял конкретный тип, и когда появился лучник, его боевой
+            // компонент продолжил работать после смерти: труп послушно
+            // отходил на комфортную дистанцию. Ни ошибки, ни предупреждения —
+            // просто ползающее тело.
+            if (GetComponent<ICombatant>() is MonoBehaviour combat) combat.enabled = false;
 
             var targets = GetComponent<TargetSelector>();
             if (targets != null)

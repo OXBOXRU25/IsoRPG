@@ -197,7 +197,7 @@ namespace IsoRPG.EditorTools
 
             AddOneShot(root, move, clips, set.attack, "Attack", "Attack", name);
             AddOneShot(root, move, clips, set.stealth, "StealthKill", "StealthKill", name);
-            AddDeath(root, clips, set.death, name);
+            AddDeath(root, move, clips, set.death, name);
 
             EditorUtility.SetDirty(controller);
             return controller;
@@ -263,7 +263,8 @@ namespace IsoRPG.EditorTools
             interrupt.duration = 0.1f;
         }
 
-        private static void AddDeath(AnimatorStateMachine root, Dictionary<string, AnimationClip> clips,
+        private static void AddDeath(AnimatorStateMachine root, AnimatorState returnTo,
+                                     Dictionary<string, AnimationClip> clips,
                                      string key, string owner)
         {
             if (!clips.TryGetValue(key, out var clip))
@@ -280,6 +281,15 @@ namespace IsoRPG.EditorTools
             toDeath.hasExitTime = false;
             toDeath.duration = 0.1f;
             toDeath.canTransitionToSelf = false;
+
+            // Выход из смерти. Без него флаг снимается, а аниматор остаётся
+            // лежать: возрождённый монстр ходит, дерётся и получает урон,
+            // выглядя при этом трупом. Ошибка тем и коварна, что логика
+            // работает полностью — не работает только картинка.
+            var fromDeath = state.AddTransition(returnTo);
+            fromDeath.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dead");
+            fromDeath.hasExitTime = false;
+            fromDeath.duration = 0.15f;
         }
 
         private static bool BuildPrefab(string modelName, AnimatorController controller, string prefabName)

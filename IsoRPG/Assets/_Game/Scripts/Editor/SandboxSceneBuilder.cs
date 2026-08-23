@@ -72,7 +72,10 @@ namespace IsoRPG.EditorTools
 
             CreateLighting();
             GameObject ground = CreateGround();
-            CreateObstacles();
+            // Окружение вместо серых коробок. Коробки были нужны, пока
+            // проверялось, что персонаж обходит препятствия; теперь ту же
+            // роль играют стены руин и стволы деревьев.
+            EnvironmentBuilder.Build(null);
 
             // Навигацию печём ДО создания персонажа: NavMeshAgent, поставленный
             // туда, где сетки ещё нет, ругается в консоль и не двигается.
@@ -94,9 +97,9 @@ namespace IsoRPG.EditorTools
             // меню раньше, чем закончится компиляция. Со стороны выглядит как
             // «собралось, но не работает», и искать причину можно долго.
             int lootCount = Object.FindObjectsByType<IsoRPG.Items.LootSource>(
-                FindObjectsSortMode.None).Length;
+                FindObjectsInactive.Include).Length;
             int gearCount = Object.FindObjectsByType<IsoRPG.Items.StartingGear>(
-                FindObjectsSortMode.None).Length;
+                FindObjectsInactive.Include).Length;
 
             Debug.Log($"[IsoRPG] Песочница собрана: {ScenePath}\n" +
                       $"  монстров с добычей: {lootCount}\n" +
@@ -153,71 +156,6 @@ namespace IsoRPG.EditorTools
 
             ApplyMaterial(ground, "M_Ground", GroundColor, smoothness: 0f);
             return ground;
-        }
-
-        private static void CreateObstacles()
-        {
-            var root = new GameObject("Obstacles");
-
-            // Расставлены вручную, а не случайно: нужно видеть, что персонаж
-            // именно обходит препятствие, а не проходит сквозь или застревает.
-            var spots = new (Vector3 pos, Vector3 scale, float rotY)[]
-            {
-                (new Vector3(  6f, 0f,   4f), new Vector3(3f, 2.4f, 3f),  15f),
-                (new Vector3( -5f, 0f,   7f), new Vector3(5f, 1.6f, 2f), -25f),
-                (new Vector3( -8f, 0f,  -5f), new Vector3(2f, 3.2f, 2f),  40f),
-                (new Vector3(  9f, 0f,  -7f), new Vector3(4f, 2f,   4f),  -8f),
-                (new Vector3(  0f, 0f, -12f), new Vector3(7f, 1.8f, 2f),   0f),
-                (new Vector3( 14f, 0f,   1f), new Vector3(2.5f, 4f, 2.5f), 22f),
-            };
-
-            var material = GetOrCreateMaterial("M_Rock", RockColor, smoothness: 0.08f);
-
-            foreach (var (pos, scale, rotY) in spots)
-            {
-                var rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                rock.name = "Rock";
-                rock.transform.SetParent(root.transform);
-                rock.transform.position = pos + Vector3.up * (scale.y * 0.5f);
-                rock.transform.localScale = scale;
-                rock.transform.rotation = Quaternion.Euler(0f, rotY, 0f);
-                rock.GetComponent<Renderer>().sharedMaterial = material;
-            }
-
-            CreateGridAlignedStructures(root.transform, material);
-        }
-
-        /// <summary>
-        /// Постройки, строго выровненные по осям мира.
-        ///
-        /// Без них нельзя судить об угле поворота камеры: у повёрнутых под
-        /// случайными углами камней грани видны при любом Yaw, и разница между
-        /// 81° и 90° не проявляется вообще. А на выровненном доме при Yaw,
-        /// кратном 90, видно ровно две грани вместо трёх — и объём пропадает.
-        /// </summary>
-        private static void CreateGridAlignedStructures(Transform parent, Material material)
-        {
-            var root = new GameObject("GridAligned");
-            root.transform.SetParent(parent);
-
-            var boxes = new (Vector3 pos, Vector3 scale)[]
-            {
-                (new Vector3(-14f, 0f,  10f), new Vector3(6f, 4f, 6f)),   // «дом»
-                (new Vector3( -6f, 0f,  16f), new Vector3(4f, 3f, 4f)),   // «сарай»
-                (new Vector3(  4f, 0f,  14f), new Vector3(10f, 1f, 1f)),  // «забор» вдоль X
-                (new Vector3( 12f, 0f,   9f), new Vector3(1f, 1f, 8f)),   // «забор» вдоль Z
-            };
-
-            foreach (var (pos, scale) in boxes)
-            {
-                var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                box.name = "Structure";
-                box.transform.SetParent(root.transform);
-                box.transform.position = pos + Vector3.up * (scale.y * 0.5f);
-                box.transform.localScale = scale;
-                box.transform.rotation = Quaternion.identity; // строго по осям — в этом весь смысл
-                box.GetComponent<Renderer>().sharedMaterial = material;
-            }
         }
 
         private static GameObject CreateDestinationMarker()

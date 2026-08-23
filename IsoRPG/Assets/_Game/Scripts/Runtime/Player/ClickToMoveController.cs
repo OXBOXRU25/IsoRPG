@@ -33,7 +33,13 @@ namespace IsoRPG.Player
 
         [Header("Отметка места назначения")]
         [Tooltip("Необязательно. Объект, который вспыхивает в точке клика.")]
+        // Компилятор не видит, что поле заполняется: его задаёт сборщик
+        // сцены через сериализацию, а не код. Для C# это «никогда не
+        // присваивается», отсюда ложное предупреждение — глушим его точечно,
+        // а не по всему проекту, иначе вместе с ним пропадут настоящие.
+#pragma warning disable 0649
         [SerializeField] private GameObject destinationMarker;
+#pragma warning restore 0649
 
         [SerializeField] private float markerLifetime = 0.6f;
 

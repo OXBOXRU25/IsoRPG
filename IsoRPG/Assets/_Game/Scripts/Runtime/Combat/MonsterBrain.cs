@@ -42,7 +42,10 @@ namespace IsoRPG.Combat
         private TargetSelector targets;
         private Health health;
         private NavMeshAgent agent;
-        private MeleeCombatant combat;
+        // Тип бойца намеренно не уточняется: мозг решает, кого бить, а
+        // как именно — дело компонента. Лучник и мечник ведут себя
+        // по-разному, но выбирают цель одинаково.
+        private ICombatant combat;
         private Targetable self;
 
         private Vector3 homePosition;
@@ -56,7 +59,7 @@ namespace IsoRPG.Combat
             targets = GetComponent<TargetSelector>();
             health = GetComponent<Health>();
             agent = GetComponent<NavMeshAgent>();
-            combat = GetComponent<MeleeCombatant>();
+            combat = GetComponent<ICombatant>();
             self = GetComponent<Targetable>();
 
             homePosition = transform.position;

@@ -86,6 +86,10 @@ namespace IsoRPG.Combat
             animDriver = GetComponent<CharacterAnimatorDriver>();
             weapon = GetComponent<WeaponStats>();
             stealth = GetComponent<StealthState>();
+
+            // Панель скрытности собираем заново при каждом запуске: в файле
+            // сцены лежит только список приёмов, а не готовая панель.
+            BuildStealthBar();
         }
 
         private void Update()
@@ -357,21 +361,36 @@ namespace IsoRPG.Combat
             abilities.Clear();
             abilities.AddRange(list);
 
-            stealthBar.Clear();
-            if (stealthList != null) stealthBar.AddRange(stealthList);
+            stealthAbilities.Clear();
+            if (stealthList != null) stealthAbilities.AddRange(stealthList);
 
-            // Саму скрытность дописываем в конец панели скрытности: выходить
-            // из режима надо той же кнопкой, которой вошёл, иначе игрок
-            // оказывается запертым в тени до первого удара.
-            if (stealthBar.Count > 0)
+            BuildStealthBar();
+        }
+
+        /// <summary>
+        /// Собирает готовую панель скрытности из сохранённого списка.
+        ///
+        /// Вызывается и при сборке сцены, и при запуске игры — потому что
+        /// между ними список проходит через файл сцены, а туда попадают
+        /// только сериализуемые поля. Готовая панель к ним не относится: она
+        /// вычисляется из списка, а не хранится.
+        /// </summary>
+        private void BuildStealthBar()
+        {
+            stealthBar.Clear();
+            stealthBar.AddRange(stealthAbilities);
+
+            // Саму скрытность дописываем в конец: выходить из режима надо той
+            // же кнопкой, которой вошёл, иначе игрок оказывается запертым в
+            // тени до первого удара.
+            if (stealthBar.Count == 0) return;
+
+            foreach (var ability in abilities)
             {
-                foreach (var ability in abilities)
+                if (ability != null && ability.togglesStealth && !stealthBar.Contains(ability))
                 {
-                    if (ability != null && ability.togglesStealth && !stealthBar.Contains(ability))
-                    {
-                        stealthBar.Add(ability);
-                        break;
-                    }
+                    stealthBar.Add(ability);
+                    break;
                 }
             }
         }

@@ -12,7 +12,7 @@ namespace IsoRPG.Combat
     /// Игрок в это время думает о способностях, а не о кликанье.
     /// </summary>
     [RequireComponent(typeof(TargetSelector))]
-    public sealed class MeleeCombatant : MonoBehaviour
+    public sealed class MeleeCombatant : MonoBehaviour, ICombatant
     {
         [Header("Удар")]
         [Tooltip("Дальность удара сверх радиусов тел. Кинжал — короткая.")]

@@ -40,6 +40,7 @@ namespace IsoRPG.EditorTools
             "Sneaking", "Crouching", "Crawling",
             "Melee_Unarmed_Idle", "Melee_2H_Idle", "Melee_Blocking",
             "Skeletons_Idle", "Skeletons_Walking",
+            "Ranged_Bow_Idle", "Ranged_Bow_Aiming_Idle",
             "Sit_Chair_Idle", "Sit_Floor_Idle", "Lie_Idle",
             "Fishing_Idle",
             "Chopping", "Digging", "Hammering", "Pickaxing", "Sawing",

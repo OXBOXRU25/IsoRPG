@@ -62,12 +62,27 @@ namespace IsoRPG.EditorTools
             death = "Skeletons_Death",
         };
 
+        /// <summary>
+        /// Лучник. Отличается не только атакой: у него и покой другой —
+        /// с натянутым луком, а не с опущенными руками. Без этого скелет
+        /// держит лук как палку и машет им в бою.
+        /// </summary>
+        private static readonly AnimSet ArcherSet = new AnimSet
+        {
+            idle = "Ranged_Bow_Idle",
+            walk = "Skeletons_Walking",
+            run = "Running_A",
+            attack = "Ranged_Bow_Draw",
+            stealth = "Ranged_Bow_Release",
+            death = "Skeletons_Death",
+        };
+
         /// <summary>Кого собираем: модель, набор анимаций, имя префаба.</summary>
         private static readonly (string model, string set, string prefab)[] Roster =
         {
             ("Rogue_Hooded",     "Rogue",    "Player"),
             ("Skeleton_Warrior", "Skeleton", "Skeleton_Warrior"),
-            ("Skeleton_Rogue",   "Skeleton", "Skeleton_Rogue"),
+            ("Skeleton_Rogue",   "Archer",   "Skeleton_Rogue"),
             ("Skeleton_Minion",  "Skeleton", "Skeleton_Minion"),
         };
 
@@ -94,6 +109,7 @@ namespace IsoRPG.EditorTools
 
             var rogue = BuildController("AC_Rogue", RogueSet, clips);
             var skeleton = BuildController("AC_Skeleton", SkeletonSet, clips);
+            var archer = BuildController("AC_SkeletonArcher", ArcherSet, clips);
 
             // Контроллеры должны лечь в базу до того, как их попросит префаб:
             // ассет, созданный и загруженный в одном кадре, отдаётся пустой
@@ -105,7 +121,9 @@ namespace IsoRPG.EditorTools
 
             foreach (var (model, set, prefab) in Roster)
             {
-                var controller = set == "Rogue" ? rogue : skeleton;
+                var controller = set == "Rogue" ? rogue
+                               : set == "Archer" ? archer
+                               : skeleton;
                 if (BuildPrefab(model, controller, prefab)) made++;
             }
 

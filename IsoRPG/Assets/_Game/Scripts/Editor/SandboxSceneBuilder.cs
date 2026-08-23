@@ -416,16 +416,25 @@ namespace IsoRPG.EditorTools
             // уровень был костылём той поры, когда модель была одна на всех:
             // ни в WoW, ни в Albion габарит не значит силу — он значит, кто
             // перед тобой. Уровень читается из полоски и цифры.
-            var spots = new (Vector3 pos, string name, int hp, int level, int armor, string loot, string prefab)[]
+            // Оружие — не украшение, а подсказка о противнике. Щит виден
+            // раньше, чем полоска здоровья: по нему понятно, что бить будешь
+            // долго. Лук говорит, что подходить придётся под выстрелами.
+            var spots = new (Vector3 pos, string name, int hp, int level, int armor,
+                             string loot, string prefab, string rightHand, string leftHand, bool ranged)[]
             {
-                (new Vector3(  6f, 0f,   6f), "Скелет-прислужник",  45, 1, 10, "LT_Bandit",  "Skeleton_Minion"),
-                (new Vector3(-10f, 0f,  -6f), "Скелет-воин",       110, 3, 45, "LT_Thug",    "Skeleton_Warrior"),
-                (new Vector3( 16f, 0f,  -8f), "Костяной разбойник", 70, 2, 20, "LT_Drifter", "Skeleton_Rogue"),
+                (new Vector3(  6f, 0f,   6f), "Скелет-прислужник",  45, 1, 10, "LT_Bandit",  "Skeleton_Minion",
+                 "Skeleton_Blade", "Skeleton_Shield_Small_A", false),
+
+                (new Vector3(-10f, 0f,  -6f), "Скелет-воин",       110, 3, 45, "LT_Thug",    "Skeleton_Warrior",
+                 "Skeleton_Axe", "Skeleton_Shield_Large_A", false),
+
+                (new Vector3( 16f, 0f,  -8f), "Костяной лучник",    70, 2, 20, "LT_Drifter", "Skeleton_Rogue",
+                 "bow_withString", null, true),
             };
 
             var material = GetOrCreateMaterial("M_Dummy", DummyColor, smoothness: 0.1f);
 
-            foreach (var (pos, name, hp, level, armor, loot, prefab) in spots)
+            foreach (var (pos, name, hp, level, armor, loot, prefab, rightHand, leftHand, ranged) in spots)
             {
                 // Корень стоит НА земле, а не в центре капсулы: навигационный
                 // агент ищет сетку под своей точкой, и поднятый на метр монстр
@@ -464,7 +473,16 @@ namespace IsoRPG.EditorTools
                 var selector = monster.AddComponent<TargetSelector>();
                 selector.SetFaction(Faction.Hostile);
 
-                monster.AddComponent<MeleeCombatant>();
+                if (ranged)
+                {
+                    var archer = monster.AddComponent<RangedCombatant>();
+                    archer.Setup(LoadWeapon("arrow_bow"));
+                    EditorUtility.SetDirty(archer);
+                }
+                else
+                {
+                    monster.AddComponent<MeleeCombatant>();
+                }
                 monster.AddComponent<MonsterBrain>();
 
                 // Тот же водитель анимаций, что у игрока: он зависит только от
@@ -472,6 +490,10 @@ namespace IsoRPG.EditorTools
                 // есть. Ходьба, удар и смерть заработают сами — боевой код уже
                 // дёргает его через проверку на null.
                 monster.AddComponent<CharacterAnimatorDriver>();
+
+                var arms = monster.AddComponent<HandAttachments>();
+                arms.Setup(LoadWeapon(rightHand), LoadWeapon(leftHand));
+                EditorUtility.SetDirty(arms);
                 var lootSource = monster.AddComponent<IsoRPG.Items.LootSource>();
                 var lootTable = ItemsBuilder.LoadTable(loot);
 
@@ -489,6 +511,22 @@ namespace IsoRPG.EditorTools
                 monster.AddComponent<DeathHandler>();
                 monster.AddComponent<OverheadHealthBar>();
             }
+        }
+
+        /// <summary>
+        /// Модель оружия из набора. Пустое имя — рука свободна, это законно.
+        /// </summary>
+        private static GameObject LoadWeapon(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName)) return null;
+
+            string path = "Assets/_Game/Art/KayKit/Weapons/" + fileName + ".fbx";
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+
+            if (model == null)
+                Debug.LogWarning("[IsoRPG] Не найдена модель оружия " + path + " — рука останется пустой.");
+
+            return model;
         }
 
         /// <summary>

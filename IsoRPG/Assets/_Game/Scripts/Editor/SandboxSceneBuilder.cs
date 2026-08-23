@@ -35,6 +35,22 @@ namespace IsoRPG.EditorTools
         [MenuItem("Tools/IsoRPG/Собрать песочницу", priority = 0)]
         public static void Build()
         {
+            // В режиме Play создавать сцены нельзя: сборка проходит в памяти,
+            // выглядит успешной, а при выходе из Play всё откатывается к
+            // файлу на диске. Самый коварный вид «работает, но не работает».
+            if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                EditorUtility.DisplayDialog(
+                    "Сначала выйди из режима Play",
+                    "Пока игра запущена, сцену собрать нельзя — Unity не даёт " +
+                    "создавать сцены на диске.\n\n" +
+                    "Останови игру кнопкой Play и собери заново.",
+                    "Понятно");
+
+                Debug.LogWarning("[IsoRPG] Сборка отменена: нельзя собирать сцену в режиме Play.");
+                return;
+            }
+
             if (!EditorUtility.DisplayDialog(
                     "Собрать песочницу",
                     "Будет создана новая сцена Sandbox со всем содержимым.\n\n" +
@@ -43,6 +59,14 @@ namespace IsoRPG.EditorTools
             {
                 return;
             }
+
+            // Ассеты создаём ДО сборки сцены и с полным обновлением базы:
+            // созданный и тут же загруженный в том же кадре ассет приходит
+            // пустой ссылкой, и монстры остаются без добычи молча.
+            RogueAbilitiesBuilder.Build();
+            ItemsBuilder.Build();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -58,12 +82,27 @@ namespace IsoRPG.EditorTools
             GameObject player = CreatePlayer(marker);
             CreateDummies();
             CreateCamera(player.transform);
+            CreateEventSystem();
 
             EnsureFolder(Path.GetDirectoryName(ScenePath));
             EditorSceneManager.SaveScene(scene, ScenePath);
 
             EditorSceneManager.MarkSceneDirty(scene);
-            Debug.Log("[IsoRPG] Песочница собрана: " + ScenePath + ". Жми Play.");
+
+            // Отчёт о том, что реально собралось. Нужен потому, что Unity
+            // может выполнить СТАРУЮ версию этого метода, если нажать пункт
+            // меню раньше, чем закончится компиляция. Со стороны выглядит как
+            // «собралось, но не работает», и искать причину можно долго.
+            int lootCount = Object.FindObjectsByType<IsoRPG.Items.LootSource>(
+                FindObjectsSortMode.None).Length;
+            int gearCount = Object.FindObjectsByType<IsoRPG.Items.StartingGear>(
+                FindObjectsSortMode.None).Length;
+
+            Debug.Log($"[IsoRPG] Песочница собрана: {ScenePath}\n" +
+                      $"  монстров с добычей: {lootCount}\n" +
+                      $"  стартовое снаряжение: {gearCount}\n" +
+                      $"  Если числа нулевые — код не успел скомпилироваться. " +
+                      $"Дождись полоски внизу справа и собери заново.");
         }
 
         // ------------------------------------------------------------------
@@ -274,6 +313,32 @@ namespace IsoRPG.EditorTools
             player.AddComponent<Experience>();
             player.AddComponent<StealthState>();
 
+            // Сумка и экипировка. Порядок важен: Equipment в Awake ищет
+            // Inventory, поэтому сумка должна появиться раньше.
+            player.AddComponent<IsoRPG.Items.Inventory>();
+            player.AddComponent<IsoRPG.Items.Equipment>();
+
+            // Автоподбор добычи: клик по трупу оказался ненадёжным,
+            // потому что тело теряет коллайдер при смерти.
+            player.AddComponent<IsoRPG.Items.LootCollector>();
+
+            // Стартовое снаряжение приходит через сумку и надевание — тем же
+            // путём, что и добыча. Прописать оружие напрямую нельзя: экипировка
+            // при старте увидит пустые руки и заменит его на «Кулаки».
+            var gear = player.AddComponent<IsoRPG.Items.StartingGear>();
+            var startingItems = new System.Collections.Generic.List<IsoRPG.Items.ItemDefinition>();
+
+            var starterDagger = ItemsBuilder.LoadItem("I_RustyDagger");
+            if (starterDagger != null) startingItems.Add(starterDagger);
+            else Debug.LogError("[IsoRPG] Не найден стартовый кинжал — игрок останется с кулаками.");
+
+            gear.Setup(startingItems, 0);
+            EditorUtility.SetDirty(gear);
+
+            // Отладочные клавиши. В готовой сборке компонента быть не должно —
+            // выключается галочкой в инспекторе.
+            player.AddComponent<DebugTools>();
+
             var playerDefense = player.AddComponent<DefenseStats>();
             playerDefense.Setup(1, 0);
 
@@ -301,6 +366,8 @@ namespace IsoRPG.EditorTools
             // Боевой интерфейс висит на игроке: ему нужны и здоровье игрока,
             // и его выбранная цель, а оба живут здесь же.
             player.AddComponent<CombatHud>();
+            player.AddComponent<CombatLogHud>();
+            player.AddComponent<IsoRPG.Items.InventoryHud>();
 
             return player;
         }
@@ -321,16 +388,21 @@ namespace IsoRPG.EditorTools
             // одного монстра невозможно.
             // Три разных противника, чтобы было видно работу брони и уровней:
             // лёгкий, бронированный и средний.
-            var spots = new (Vector3 pos, string name, int hp, int level, int armor)[]
+            // Числа для удобства проверки, а не для баланса. Бой должен
+            // укладываться в несколько ударов, иначе каждая проверка новой
+            // механики превращается в минуту долбёжки.
+            //
+            // Настоящий баланс подберём, когда механики устоятся.
+            var spots = new (Vector3 pos, string name, int hp, int level, int armor, string loot)[]
             {
-                (new Vector3(  6f, 0f,   6f), "Бандит",    120, 1,  40),
-                (new Vector3(-10f, 0f,  -6f), "Головорез", 260, 3, 150),
-                (new Vector3( 16f, 0f,  -8f), "Бродяга",   180, 2,  70),
+                (new Vector3(  6f, 0f,   6f), "Бандит",     45, 1,  10, "LT_Bandit"),
+                (new Vector3(-10f, 0f,  -6f), "Головорез", 110, 3,  45, "LT_Thug"),
+                (new Vector3( 16f, 0f,  -8f), "Бродяга",    70, 2,  20, "LT_Drifter"),
             };
 
             var material = GetOrCreateMaterial("M_Dummy", DummyColor, smoothness: 0.1f);
 
-            foreach (var (pos, name, hp, level, armor) in spots)
+            foreach (var (pos, name, hp, level, armor, loot) in spots)
             {
                 // Корень стоит НА земле, а не в центре капсулы: навигационный
                 // агент ищет сетку под своей точкой, и поднятый на метр монстр
@@ -375,6 +447,19 @@ namespace IsoRPG.EditorTools
 
                 monster.AddComponent<MeleeCombatant>();
                 monster.AddComponent<MonsterBrain>();
+                var lootSource = monster.AddComponent<IsoRPG.Items.LootSource>();
+                var lootTable = ItemsBuilder.LoadTable(loot);
+
+                // Молчаливо оставить монстра без добычи — худший исход:
+                // выглядит как невезение с шансами, а на деле поломка.
+                if (lootTable == null)
+                    Debug.LogError("[IsoRPG] Не найдена таблица добычи " + loot +
+                                   " — монстр останется без дропа.");
+
+                lootSource.Setup(lootTable);
+                EditorUtility.SetDirty(lootSource);
+
+                monster.AddComponent<Respawner>();
                 monster.AddComponent<StunReceiver>();
                 monster.AddComponent<DeathHandler>();
                 monster.AddComponent<OverheadHealthBar>();
@@ -448,6 +533,22 @@ namespace IsoRPG.EditorTools
 
             var rig = go.AddComponent<IsoCameraRig>();
             rig.SetTarget(target);
+        }
+
+        /// <summary>
+        /// Система событий интерфейса. Без неё кнопки в окнах не нажимаются
+        /// вообще — они рисуются, но кликов не получают.
+        ///
+        /// Модуль ввода берём под новую систему: проект собран на ней, и
+        /// старый StandaloneInputModule здесь просто не работает.
+        /// </summary>
+        private static void CreateEventSystem()
+        {
+            if (Object.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() != null) return;
+
+            var go = new GameObject("EventSystem",
+                typeof(UnityEngine.EventSystems.EventSystem),
+                typeof(UnityEngine.InputSystem.UI.InputSystemUIInputModule));
         }
 
         // ------------------------------------------------------------------

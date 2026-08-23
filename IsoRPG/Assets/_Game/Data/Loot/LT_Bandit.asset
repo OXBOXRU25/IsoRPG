@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ee94e83f11477d40b257ab29d38fc93, type: 3}
+  m_Name: LT_Bandit
+  m_EditorClassIdentifier: Assembly-CSharp::IsoRPG.Items.LootTable
+  minGold: 1
+  maxGold: 18
+  goldChance: 1
+  entries:
+  - item: {fileID: 11400000, guid: 69df98c3d363c28439b8dae176eeb6b0, type: 2}
+    chance: 0.55
+    minCount: 1
+    maxCount: 2
+  - item: {fileID: 11400000, guid: 739cdda07cc89c247be818d78ce62223, type: 2}
+    chance: 0.3
+    minCount: 1
+    maxCount: 1
+  - item: {fileID: 11400000, guid: e6bc62e53f1d731469a8cacd5fd2409f, type: 2}
+    chance: 0.12
+    minCount: 1
+    maxCount: 1
+  - item: {fileID: 11400000, guid: 6f8c1858f650a8141be3f3d5662c8ca8, type: 2}
+    chance: 0.05
+    minCount: 1
+    maxCount: 1

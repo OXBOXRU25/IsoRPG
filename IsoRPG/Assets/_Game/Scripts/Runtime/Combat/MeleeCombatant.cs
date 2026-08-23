@@ -141,6 +141,23 @@ namespace IsoRPG.Combat
             if (Time.time >= nextAttackTime) Attack(target);
         }
 
+        /// <summary>
+        /// Записать удар в боевой лог.
+        ///
+        /// Лог ведётся с точки зрения игрока, поэтому драки монстров между
+        /// собой в него не попадают — иначе он забьётся чужими сообщениями,
+        /// и своё в них будет не найти.
+        /// </summary>
+        private void ReportToLog(Targetable victim, int amount, HitResult result)
+        {
+            bool weArePlayer = self != null && self.Faction == Faction.Player;
+            bool victimIsPlayer = victim.Faction == Faction.Player;
+
+            if (weArePlayer) CombatLog.DamageDealt(victim.DisplayName, amount, result);
+            else if (victimIsPlayer)
+                CombatLog.DamageTaken(self != null ? self.DisplayName : "Противник", amount);
+        }
+
         private float AttackDistanceTo(Targetable target)
         {
             float ownRadius = self != null ? self.BodyRadius : 0.5f;
@@ -233,6 +250,7 @@ namespace IsoRPG.Combat
                 // Показываем то, что дошло после брони, а не то, чем замахивались.
                 int actual = pendingVictim.Health.TakeDamage(dealt, gameObject);
                 DamagePopup.Show(pendingVictim.OverheadPoint, actual, result);
+                ReportToLog(pendingVictim, actual, result);
             }
 
             pendingVictim = null;

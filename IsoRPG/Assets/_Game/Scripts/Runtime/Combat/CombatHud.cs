@@ -555,6 +555,8 @@ namespace IsoRPG.Combat
         {
             // Уровень пишем рядом с именем игрока — там же, где он у цели.
             if (playerNameText != null) playerNameText.text = "Разбойник  ур. " + level;
+
+            CombatLog.LevelUp(level);
         }
 
         private void OnComboChanged(int points, int max)

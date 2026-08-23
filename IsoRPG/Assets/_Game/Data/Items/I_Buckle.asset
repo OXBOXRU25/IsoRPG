@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 298e8662f91282e4b8286aa2997a887e, type: 3}
+  m_Name: I_Buckle
+  m_EditorClassIdentifier: Assembly-CSharp::IsoRPG.Items.ItemDefinition
+  displayName: "\u041F\u043E\u0433\u043D\u0443\u0442\u0430\u044F \u043F\u0440\u044F\u0436\u043A\u0430"
+  description: "\u041D\u0438\u0447\u0435\u0433\u043E \u043D\u0435 \u0441\u0442\u043E\u0438\u0442,
+    \u043D\u043E \u043A\u0442\u043E-\u0442\u043E \u0436\u0435 \u0435\u0451 \u043A\u0443\u043F\u0438\u0442."
+  rarity: 0
+  iconColor: {r: 0.5411765, g: 0.50980395, b: 0.4392157, a: 1}
+  slot: 0
+  requiredLevel: 1
+  stackable: 1
+  maxStack: 20
+  weaponDamage: 0
+  attackInterval: 1.4
+  armor: 0
+  strength: 0
+  agility: 0
+  stamina: 0
+  vendorPrice: 1

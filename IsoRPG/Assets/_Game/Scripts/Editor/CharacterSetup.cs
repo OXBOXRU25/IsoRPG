@@ -58,6 +58,14 @@ namespace IsoRPG.EditorTools
         [MenuItem("Tools/IsoRPG/Собрать персонажа", priority = 10)]
         public static void Build()
         {
+            // В режиме Play ассеты не пересобираются: изменения уйдут в
+            // никуда при остановке игры.
+            if (EditorApplication.isPlaying)
+            {
+                Debug.LogWarning("[IsoRPG] Останови игру — в режиме Play персонаж не пересобирается.");
+                return;
+            }
+
             string modelPath = FindCharacterModel();
             if (modelPath == null)
             {

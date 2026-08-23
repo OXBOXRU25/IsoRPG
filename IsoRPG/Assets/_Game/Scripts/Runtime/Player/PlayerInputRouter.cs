@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using IsoRPG.Combat;
+using IsoRPG.Items;
 
 namespace IsoRPG.Player
 {
@@ -20,9 +21,15 @@ namespace IsoRPG.Player
 
         [SerializeField] private float rayDistance = 500f;
 
+        [Tooltip("На каком расстоянии можно обыскать труп.")]
+        [SerializeField] private float lootRange = 2.5f;
+
+        private static readonly Color GoldColor = new Color32(0xE8, 0xC3, 0x5A, 0xFF);
+
         private TargetSelector targets;
         private ClickToMoveController movement;
         private MeleeCombatant combat;
+        private Inventory inventory;
         private Camera cam;
 
         private void Awake()
@@ -30,6 +37,7 @@ namespace IsoRPG.Player
             targets = GetComponent<TargetSelector>();
             movement = GetComponent<ClickToMoveController>();
             combat = GetComponent<MeleeCombatant>();
+            inventory = GetComponent<Inventory>();
             cam = Camera.main;
         }
 
@@ -42,6 +50,14 @@ namespace IsoRPG.Player
             bool held = mouse.leftButton.isPressed;
 
             if (!pressed && !held) return;
+
+            // Клик по окну интерфейса не должен уходить в игру: иначе
+            // нажатие на ячейку сумки заодно отправляет персонажа бежать
+            // куда-то за окно.
+            if (UnityEngine.EventSystems.EventSystem.current != null
+                && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+                return;
+
             if (cam == null) cam = Camera.main;
             if (cam == null) return;
 
@@ -62,6 +78,45 @@ namespace IsoRPG.Player
             }
         }
 
+        /// <summary>
+        /// Обыскать труп. Работает только вблизи — иначе игрок собирал бы
+        /// добычу с другого конца карты, и вся ценность подхода пропадает.
+        /// </summary>
+        private void TryLoot(LootSource loot)
+        {
+            float distance = Vector3.Distance(transform.position, loot.transform.position);
+
+            if (distance > lootRange)
+            {
+                // Не дотянулись — подходим. Добычу возьмём следующим кликом:
+                // автоматический подбор по прибытии сюрпризом не нужен.
+                if (movement != null) movement.MoveTo(loot.transform.position);
+                CombatLog.Add("Слишком далеко, подхожу...", LogKind.System);
+                return;
+            }
+
+            if (inventory == null)
+            {
+                Debug.LogWarning("[IsoRPG] У игрока нет сумки — подбирать некуда.");
+                return;
+            }
+
+            if (loot.TakeAll(inventory, out int gold, out var items))
+            {
+                if (gold > 0)
+                {
+                    LootPopup.Show(loot.transform.position, gold + " золота", GoldColor);
+                    CombatLog.GainedGold(gold);
+                }
+
+                foreach (var stack in items)
+                {
+                    LootPopup.Show(loot.transform.position, stack.ToString(), stack.Item.RarityColor);
+                    CombatLog.Looted(stack.ToString(), stack.Item.RarityColor);
+                }
+            }
+        }
+
         private bool TryPickTarget(Vector2 screenPosition)
         {
             Ray ray = cam.ScreenPointToRay(screenPosition);
@@ -76,6 +131,17 @@ namespace IsoRPG.Player
 
             foreach (var hit in hits)
             {
+                // Труп с добычей — обыскиваем, а не выбираем целью.
+                // Проверяем раньше живых: мёртвый в цель всё равно не берётся,
+                // а клик по нему должен что-то делать, а не проваливаться.
+                var loot = hit.collider.GetComponentInParent<LootSource>();
+                if (loot != null && loot.HasLoot)
+                {
+                    Debug.Log($"[IsoRPG] Клик по добыче: {loot.name}, золота {loot.Gold}");
+                    TryLoot(loot);
+                    return true;
+                }
+
                 var targetable = hit.collider.GetComponentInParent<Targetable>();
                 if (targetable == null) continue;
                 if (targetable.gameObject == gameObject) continue;   // сам себя не выбираем

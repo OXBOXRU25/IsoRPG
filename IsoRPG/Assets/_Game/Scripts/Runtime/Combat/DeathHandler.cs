@@ -30,6 +30,22 @@ namespace IsoRPG.Combat
 
         private void Awake() => health = GetComponent<Health>();
 
+        /// <summary>
+        /// Не убирать тело. Зовётся возрождением: оно поднимет этот же объект,
+        /// и удалять его нельзя.
+        /// </summary>
+        public void KeepBody() => removeAfter = 0f;
+
+        /// <summary>Сбросить состояние смерти — объект снова живой.</summary>
+        public void ResetDeath()
+        {
+            dead = false;
+            deathTime = 0f;
+
+            var driver = GetComponent<CharacterAnimatorDriver>();
+            if (driver != null) driver.SetDead(false);
+        }
+
         private void OnEnable() => health.Died += OnDied;
         private void OnDisable() => health.Died -= OnDied;
 
@@ -68,10 +84,25 @@ namespace IsoRPG.Combat
             }
 
             // Коллайдеры выключаем, чтобы по трупу нельзя было кликнуть и
-            // взять его в цель. Позже сюда же встанет окно лута — тогда
-            // коллайдер вернём, но уже для другой роли.
-            foreach (var collider in GetComponentsInChildren<Collider>())
-                collider.enabled = false;
+            // взять его в цель.
+            //
+            // Но если на трупе есть добыча — оставляем: теперь коллайдер
+            // работает в другой роли, как «нажми, чтобы обыскать». Выбор цели
+            // при этом не мешает, потому что мёртвых в цель не берут.
+            var loot = GetComponent<IsoRPG.Items.LootSource>();
+            bool keepClickable = loot != null && loot.HasLoot;
+
+            if (!keepClickable)
+            {
+                foreach (var collider in GetComponentsInChildren<Collider>())
+                    collider.enabled = false;
+            }
+            else
+            {
+                // Тело с добычей не убираем, пока не обыщут.
+                loot.LootTaken += OnLootTaken;
+                removeAfter = 0f;
+            }
         }
 
         /// <summary>
@@ -97,8 +128,25 @@ namespace IsoRPG.Combat
             killerExp.AddExperience(reward);
 
             var self = GetComponent<Targetable>();
+
+            CombatLog.Killed(self != null ? self.DisplayName : "Противник");
+            CombatLog.GainedExperience(reward);
+
             Vector3 point = self != null ? self.OverheadPoint : transform.position + Vector3.up * 2f;
             ExperiencePopup.Show(point, reward);
+        }
+
+        /// <summary>Добычу забрали — теперь тело можно убирать как обычно.</summary>
+        private void OnLootTaken()
+        {
+            foreach (var collider in GetComponentsInChildren<Collider>())
+                collider.enabled = false;
+
+            // Отсчёт начинаем заново, от момента обыска: иначе тело исчезло
+            // бы мгновенно, потому что смерть была давно.
+            deathTime = Time.time;
+            removeAfter = 4f;
+            sinkDelay = 1.5f;
         }
 
         private void Update()

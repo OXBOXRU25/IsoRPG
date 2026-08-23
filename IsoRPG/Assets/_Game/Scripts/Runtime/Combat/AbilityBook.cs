@@ -250,6 +250,13 @@ namespace IsoRPG.Combat
                 // Показываем то, что дошло после брони, а не то, чем замахивались.
                 int actual = pendingVictim.Health.TakeDamage(damage, gameObject);
                 DamagePopup.Show(pendingVictim.OverheadPoint, actual, result);
+
+                // В логе пишем название приёма — иначе не отличить, чем
+                // именно ударили, а это половина смысла лога.
+                CombatLog.Add(
+                    $"{pendingAbility.displayName} по {pendingVictim.DisplayName}: {actual}" +
+                    (result == HitResult.Crit ? " (крит)" : result == HitResult.Miss ? " (вскользь)" : ""),
+                    result == HitResult.Crit ? LogKind.Crit : LogKind.DamageDealt);
             }
 
             // Оглушение накладываем после урона: если удар добил цель,
@@ -259,7 +266,11 @@ namespace IsoRPG.Combat
             if (stun > 0f && pendingVictim.IsAlive)
             {
                 var receiver = pendingVictim.GetComponent<StunReceiver>();
-                if (receiver != null) receiver.Apply(stun);
+                if (receiver != null)
+                {
+                    receiver.Apply(stun);
+                    CombatLog.Stunned(pendingVictim.DisplayName, stun);
+                }
             }
 
             pendingAbility = null;

@@ -102,6 +102,13 @@ namespace IsoRPG.Combat
             return defense.ApplyArmor(adjusted, attackerLevel);
         }
 
+        /// <summary>Вернуть к жизни с полным здоровьем. Нужно возрождению монстров.</summary>
+        public void Revive()
+        {
+            current = maxHealth;
+            Changed?.Invoke(current, maxHealth);
+        }
+
         public void Heal(int amount)
         {
             if (!IsAlive || amount <= 0) return;

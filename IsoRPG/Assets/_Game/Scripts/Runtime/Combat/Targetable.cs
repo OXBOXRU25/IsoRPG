@@ -71,6 +71,14 @@ namespace IsoRPG.Combat
         /// </summary>
         public void SetOverheadHeight(float value) => overheadHeight = value;
 
+        [Tooltip("Портрет для панели. Пусто — рисуется однотонная плашка.")]
+        [SerializeField] private Sprite portrait;
+
+        /// <summary>Портрет существа. Ставится сборщиком сцены.</summary>
+        public Sprite Portrait => portrait;
+
+        public void SetPortrait(Sprite value) => portrait = value;
+
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {

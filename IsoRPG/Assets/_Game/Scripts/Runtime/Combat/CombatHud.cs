@@ -43,6 +43,9 @@ namespace IsoRPG.Combat
         private const float BarsLeft = InnerPad * 2f + PortraitSize;
 
         // Панель способностей
+        /// <summary>Общая плашка под иконками способностей.</summary>
+        private static readonly Color SlotPlate = new Color32(0x2E, 0x2A, 0x22, 0xF0);
+
         private const float SlotSize = 48f;
         private const float SlotGap = 6f;
 
@@ -69,6 +72,9 @@ namespace IsoRPG.Combat
         private RectTransform playerHealthFill;
         private Text playerHealthText;
         private Text playerNameText;
+        private AbilityTooltip tooltip;
+        private Image playerPortrait;
+        private Image targetPortrait;
         private RectTransform playerEnergyFill;
         private Text playerEnergyText;
 
@@ -152,6 +158,15 @@ namespace IsoRPG.Combat
             }
 
             if (abilities != null) abilities.BarChanged += OnBarChanged;
+
+            // Портрет игрока не меняется за игру, поэтому ставится один раз.
+            var self = GetComponent<Targetable>();
+
+            if (self != null && playerPortrait != null && self.Portrait != null)
+            {
+                playerPortrait.sprite = self.Portrait;
+                playerPortrait.enabled = true;
+            }
         }
 
         /// <summary>
@@ -161,6 +176,17 @@ namespace IsoRPG.Combat
         /// и показать это надо так же: игрок должен видеть ровно то, чем
         /// может воспользоваться сейчас.
         /// </summary>
+        /// <summary>Показать подсказку о приёме. Зовётся кнопкой при наведении.</summary>
+        public void ShowAbilityTooltip(AbilityDefinition ability, Vector2 screenPoint)
+        {
+            if (tooltip != null) tooltip.Show(ability, screenPoint);
+        }
+
+        public void HideAbilityTooltip()
+        {
+            if (tooltip != null) tooltip.Hide();
+        }
+
         private void OnBarChanged()
         {
             if (hudRoot == null) return;
@@ -224,7 +250,7 @@ namespace IsoRPG.Combat
             var player = CreatePanel(root, "PlayerPanel",
                 new Vector2(ScreenMargin, -ScreenMargin));
 
-            CreatePortrait(player);
+            playerPortrait = CreatePortrait(player);
 
             playerNameText = CreateText(player, "Name", "Разбойник", 14, TextColor,
                 new Vector2(BarsLeft, nameY), new Vector2(barsWidth, 16f));
@@ -248,7 +274,7 @@ namespace IsoRPG.Combat
                 new Vector2(ScreenMargin + PanelWidth + PanelGap, -ScreenMargin));
             targetPanel = target.gameObject;
 
-            CreatePortrait(target);
+            targetPortrait = CreatePortrait(target);
 
             targetNameText = CreateText(target, "Name", "", 14, TextColor,
                 new Vector2(BarsLeft, nameY), new Vector2(barsWidth, 16f));
@@ -261,6 +287,11 @@ namespace IsoRPG.Combat
             BuildComboDots(target, new Vector2(BarsLeft, secondY - 2f), barsWidth);
 
             targetPanel.SetActive(false);
+
+            // Подсказка создаётся один раз на всю панель: она одна, а
+            // кнопок много, и держать по подсказке на кнопку значило бы
+            // строить шесть одинаковых окон.
+            if (tooltip == null) tooltip = gameObject.AddComponent<AbilityTooltip>();
 
             BuildAbilityBar(root);
             BuildExperienceBar(root);
@@ -390,9 +421,37 @@ namespace IsoRPG.Combat
                 slotRect.anchoredPosition = new Vector2(x, 0f);
                 slotRect.sizeDelta = new Vector2(SlotSize, SlotSize);
 
+                // Плашка у всех одинаковая, а рисунок сверху свой. Разные
+                // цвета фона у соседних кнопок читаются как хаос: глаз
+                // считает цвет признаком, ищет в нём смысл и не находит.
                 var icon = slotGo.GetComponent<Image>();
-                icon.color = ability.iconColor;
+                icon.color = ability.icon != null ? SlotPlate : ability.iconColor;
                 icon.raycastTarget = false;
+
+                if (ability.icon != null)
+                {
+                    var art = new GameObject("Art", typeof(Image));
+                    var artRect = (RectTransform)art.transform;
+                    artRect.SetParent(slotRect, false);
+                    artRect.anchorMin = Vector2.zero;
+                    artRect.anchorMax = Vector2.one;
+
+                    // Небольшой отступ: рисунок впритык к краю плашки
+                    // выглядит обрезанным.
+                    // Без отступа: рисунок уже нарисован с полями внутри
+                    // себя, и второй отступ делает иконку мелкой вдвое.
+                    artRect.offsetMin = Vector2.zero;
+                    artRect.offsetMax = Vector2.zero;
+
+                    var artImage = art.GetComponent<Image>();
+                    artImage.sprite = ability.icon;
+
+                    // Рисунок не ловит указатель: события должна получать
+                    // кнопка под ним, иначе наведение теряется на границе
+                    // между слоями.
+                    artImage.raycastTarget = false;
+                    artImage.preserveAspect = true;
+                }
 
                 // Тёмная плашка отката поверх иконки. Пока не идёт откат —
                 // прозрачная, поэтому её просто не видно.
@@ -414,9 +473,11 @@ namespace IsoRPG.Combat
                 var key = CreateText(slotRect, "Key", ability.hotkeyLabel, 11, TextDim,
                     new Vector2(3f, -2f), new Vector2(14f, 12f));
 
-                var nameLabel = CreateText(slotRect, "Name", ability.displayName, 10, TextColor,
-                    new Vector2(0f, -SlotSize - 2f), new Vector2(SlotSize, 12f));
-                nameLabel.alignment = TextAnchor.UpperCenter;
+                // Названия под кнопками нет: шесть подписей мелким кеглем
+                // читаются как забор, а нужны они ровно один раз — когда
+                // игрок разбирается, что это. Для этого есть наведение.
+                var hover = slotGo.AddComponent<AbilityTooltipTrigger>();
+                hover.Setup(ability, this);
 
                 slots.Add(new AbilitySlot
                 {
@@ -469,7 +530,7 @@ namespace IsoRPG.Combat
         /// и это отдельная работа. Но место под него занято сразу: иначе, когда
         /// портрет появится, всю панель придётся перекомпоновывать.
         /// </summary>
-        private void CreatePortrait(RectTransform parent)
+        private Image CreatePortrait(RectTransform parent)
         {
             var go = new GameObject("Portrait", typeof(Image));
             var rect = (RectTransform)go.transform;
@@ -483,6 +544,24 @@ namespace IsoRPG.Combat
             var image = go.GetComponent<Image>();
             image.color = PortraitColor;
             image.raycastTarget = false;
+
+            // Рисунок отдельным слоем поверх плашки: плашка остаётся рамкой,
+            // а портрет может отсутствовать — тогда видно просто плашку, а не
+            // пустое место.
+            var art = new GameObject("Art", typeof(Image));
+            var artRect = (RectTransform)art.transform;
+            artRect.SetParent(rect, false);
+            artRect.anchorMin = Vector2.zero;
+            artRect.anchorMax = Vector2.one;
+            artRect.offsetMin = new Vector2(2f, 2f);
+            artRect.offsetMax = new Vector2(-2f, -2f);
+
+            var artImage = art.GetComponent<Image>();
+            artImage.raycastTarget = false;
+            artImage.preserveAspect = true;
+            artImage.enabled = false;
+
+            return artImage;
         }
 
         private struct Bar
@@ -652,6 +731,14 @@ namespace IsoRPG.Combat
             }
 
             if (targetPanel != null) targetPanel.SetActive(true);
+
+            // Портрет цели меняется вместе с целью: панель одна, а
+            // существ много.
+            if (targetPortrait != null)
+            {
+                targetPortrait.sprite = target.Portrait;
+                targetPortrait.enabled = target.Portrait != null;
+            }
 
             if (targetNameText != null)
             {

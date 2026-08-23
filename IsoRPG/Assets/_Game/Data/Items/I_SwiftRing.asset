@@ -17,15 +17,18 @@ MonoBehaviour:
     \u041F\u0430\u043B\u044C\u0446\u044B \u0441\u0430\u043C\u0438 \u0442\u044F\u043D\u0443\u0442\u0441\u044F
     \u043A \u043A\u0438\u043D\u0436\u0430\u043B\u0443."
   rarity: 3
+  icon: {fileID: 21300000, guid: bc86438267358754ab7ef9ae1121d1ee, type: 3}
   iconColor: {r: 0.3137255, g: 0.5647059, b: 0.8784314, a: 1}
   slot: 8
   requiredLevel: 2
   stackable: 0
   maxStack: 20
   weaponDamage: 0
+  dualWieldable: 0
   attackInterval: 1.4
   armor: 0
   strength: 0
   agility: 6
   stamina: 0
+  worldModel: {fileID: 0}
   vendorPrice: 90

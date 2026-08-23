@@ -17,6 +17,9 @@ namespace IsoRPG.Items
     {
         private static readonly Color PanelColor = new Color32(0x1C, 0x1A, 0x16, 0xF0);
         private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0xFF);
+        /// <summary>Тёмная подложка внутри цветной рамки редкости.</summary>
+        private static readonly Color CellBackdrop = new Color32(0x22, 0x1F, 0x1A, 0xFF);
+
         private static readonly Color SlotEmpty = new Color32(0x2A, 0x27, 0x21, 0xFF);
         private static readonly Color TextColor = new Color32(0xE8, 0xE2, 0xD4, 0xFF);
         private static readonly Color GoldColor = new Color32(0xE8, 0xC3, 0x5A, 0xFF);
@@ -41,6 +44,9 @@ namespace IsoRPG.Items
 
         private readonly List<Image> cellIcons = new List<Image>();
         private readonly List<Text> cellCounts = new List<Text>();
+
+        /// <summary>Рисунки предметов поверх цветных плашек редкости.</summary>
+        private readonly List<Image> cellArt = new List<Image>();
 
         private void Awake()
         {
@@ -231,6 +237,44 @@ namespace IsoRPG.Items
             icon.color = SlotEmpty;
             cellIcons.Add(icon);
 
+            // Тёмная подложка поверх цветной ячейки, с отступом. Цвет
+            // редкости остаётся видимым только по краю — получается рамка,
+            // а не заливка.
+            //
+            // Заливка не годится: рисунок предмета обведён тёмным контуром,
+            // и на ярком фоне этот контур читается как грязная кайма. На
+            // тёмной подложке он становится тем, чем задуман, — границей
+            // предмета.
+            var backdrop = new GameObject("Backdrop", typeof(Image));
+            var backdropRect = (RectTransform)backdrop.transform;
+            backdropRect.SetParent((RectTransform)go.transform, false);
+            backdropRect.anchorMin = Vector2.zero;
+            backdropRect.anchorMax = Vector2.one;
+            // Рамка тонкая: у рисунка предмета есть собственная тёмная
+            // обводка, и толстая цветная рамка рядом с ней читается как
+            // вторая обводка — глаз видит две границы вместо одной.
+            backdropRect.offsetMin = new Vector2(1.5f, 1.5f);
+            backdropRect.offsetMax = new Vector2(-1.5f, -1.5f);
+
+            var backdropImage = backdrop.GetComponent<Image>();
+            backdropImage.color = CellBackdrop;
+            backdropImage.raycastTarget = false;
+
+            var art = new GameObject("Art", typeof(Image));
+            var artRect = (RectTransform)art.transform;
+            artRect.SetParent((RectTransform)go.transform, false);
+            artRect.anchorMin = Vector2.zero;
+            artRect.anchorMax = Vector2.one;
+            artRect.offsetMin = new Vector2(2f, 2f);
+            artRect.offsetMax = new Vector2(-2f, -2f);
+
+            var artImage = art.GetComponent<Image>();
+            artImage.raycastTarget = false;
+            artImage.preserveAspect = true;
+            artImage.enabled = false;
+
+            cellArt.Add(artImage);
+
             var count = CreateText(rect, "Count", "", 11, TextColor);
             var countRect = (RectTransform)count.transform;
             countRect.anchorMin = new Vector2(1f, 0f);
@@ -268,13 +312,23 @@ namespace IsoRPG.Items
                 {
                     cellIcons[i].color = SlotEmpty;
                     cellCounts[i].text = "";
+
+                    if (cellArt != null && i < cellArt.Count) cellArt[i].enabled = false;
                     continue;
                 }
 
                 // Цвет ячейки по редкости: игрок видит ценность, не читая
-                // названий. Это и есть смысл цветовой шкалы.
+                // названий. Это и есть смысл цветовой шкалы. Рисунок предмета
+                // ложится поверх — так одно говорит ЧТО это, другое СКОЛЬКО
+                // оно стоит, и они не мешают друг другу.
                 cellIcons[i].color = stack.Item.RarityColor;
                 cellCounts[i].text = stack.Count > 1 ? stack.Count.ToString() : "";
+
+                if (cellArt != null && i < cellArt.Count)
+                {
+                    cellArt[i].sprite = stack.Item.icon;
+                    cellArt[i].enabled = stack.Item.icon != null;
+                }
             }
 
             if (goldText != null) goldText.text = inventory.Gold + " золота";

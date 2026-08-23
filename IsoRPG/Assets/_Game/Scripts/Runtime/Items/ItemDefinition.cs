@@ -50,6 +50,9 @@ namespace IsoRPG.Items
 
         public ItemRarity rarity = ItemRarity.Common;
 
+        [Tooltip("Картинка предмета. Пусто — рисуется цветной квадрат.")]
+        public Sprite icon;
+
         [Tooltip("Цвет значка, пока нет настоящих иконок.")]
         public Color iconColor = new Color32(0x8A, 0x8A, 0x8A, 0xFF);
 
@@ -101,12 +104,19 @@ namespace IsoRPG.Items
         /// <summary>Цвет названия по редкости. Канон жанра, менять нельзя.</summary>
         public Color RarityColor => rarity switch
         {
-            ItemRarity.Junk => new Color32(0x9A, 0x9A, 0x96, 0xFF),
-            ItemRarity.Common => new Color32(0xF0, 0xF0, 0xEC, 0xFF),
-            ItemRarity.Uncommon => new Color32(0x4E, 0xC8, 0x3C, 0xFF),
-            ItemRarity.Rare => new Color32(0x40, 0x80, 0xE0, 0xFF),
-            ItemRarity.Epic => new Color32(0xA0, 0x50, 0xD0, 0xFF),
-            _ => new Color32(0xE8, 0x8A, 0x20, 0xFF)
+            // Приглушённая шкала. Яркий белый у обычных вещей перетягивал
+            // внимание сильнее, чем фиолетовый у эпических: в сумке лежат
+            // десятки обычных предметов и один-два ценных, и кричать должны
+            // редкие, а не мусор.
+            //
+            // Порядок насыщенности теперь совпадает с порядком ценности —
+            // чем реже вещь, тем ярче рамка.
+            ItemRarity.Junk => new Color32(0x6A, 0x68, 0x62, 0xFF),
+            ItemRarity.Common => new Color32(0x8E, 0x8C, 0x84, 0xFF),
+            ItemRarity.Uncommon => new Color32(0x4E, 0xA8, 0x3C, 0xFF),
+            ItemRarity.Rare => new Color32(0x3C, 0x74, 0xCC, 0xFF),
+            ItemRarity.Epic => new Color32(0x9A, 0x4C, 0xC8, 0xFF),
+            _ => new Color32(0xE0, 0x84, 0x1E, 0xFF)
         };
 
         /// <summary>Короткая строка для подсказки: «Кинжал, урон 12, +3 ловкости».</summary>

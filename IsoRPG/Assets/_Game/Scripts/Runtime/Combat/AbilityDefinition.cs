@@ -40,6 +40,9 @@ namespace IsoRPG.Combat
         [Tooltip("Клавиша на панели способностей.")]
         public string hotkeyLabel = "1";
 
+        [Tooltip("Картинка способности. Пусто — рисуется цветной квадрат.")]
+        public Sprite icon;
+
         [Tooltip("Цвет иконки, пока нет настоящих картинок.")]
         public Color iconColor = new Color32(0x8A, 0x6A, 0x3A, 0xFF);
 

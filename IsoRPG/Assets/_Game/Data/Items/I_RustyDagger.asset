@@ -16,6 +16,7 @@ MonoBehaviour:
   description: "\u0412\u0438\u0434\u0430\u043B \u043B\u0443\u0447\u0448\u0438\u0435
     \u0434\u043D\u0438. \u041D\u043E \u043A\u043E\u043B\u0435\u0442."
   rarity: 1
+  icon: {fileID: 21300000, guid: 756bc1c5698d3474991a70c49694f8a6, type: 3}
   iconColor: {r: 0.6039216, g: 0.5411765, b: 0.4627451, a: 1}
   slot: 1
   requiredLevel: 1

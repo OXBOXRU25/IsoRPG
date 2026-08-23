@@ -344,7 +344,8 @@ namespace IsoRPG.EditorTools
             player.AddComponent<CombatHud>();
             player.AddComponent<CombatLogHud>();
             player.AddComponent<IsoRPG.Items.InventoryHud>();
-            player.AddComponent<IsoRPG.Items.CharacterHud>();
+            var characterHud = player.AddComponent<IsoRPG.Items.CharacterHud>();
+            SetupSlotHints(characterHud);
 
             // Оружие в руках. Ставится после экипировки: компонент читает её
             // состояние сразу при включении.
@@ -352,6 +353,14 @@ namespace IsoRPG.EditorTools
 
             // Слой ставим в самом конце сборки персонажа: к этому моменту
             // модель и оружие уже на месте, и слой достанется всему разом.
+            // Портрет игрока: он же модель, которой играем.
+            var playerTargetable = player.GetComponent<Targetable>();
+            if (playerTargetable != null)
+            {
+                playerTargetable.SetPortrait(PortraitRenderer.Load("Rogue_Hooded"));
+                EditorUtility.SetDirty(playerTargetable);
+            }
+
             ApplySilhouetteLayer(player);
             player.AddComponent<IsoRPG.Audio.FootstepPlayer>();
 
@@ -440,6 +449,10 @@ namespace IsoRPG.EditorTools
                 var targetable = monster.AddComponent<Targetable>();
                 targetable.Setup(name, Faction.Hostile);
                 targetable.SetOverheadHeight(2.2f);
+
+                // Портрет берётся по имени модели: один источник для того,
+                // что игрок видит в мире и на панели цели.
+                targetable.SetPortrait(PortraitRenderer.Load(prefab));
 
                 var health = monster.AddComponent<Health>();
                 health.Setup(hp);
@@ -537,6 +550,40 @@ namespace IsoRPG.EditorTools
             var visual = go.AddComponent<SilhouetteVisual>();
             visual.Setup(material);
             EditorUtility.SetDirty(visual);
+        }
+
+        /// <summary>
+        /// Раздаёт окну персонажа силуэты пустых слотов.
+        ///
+        /// Пустой квадрат ничего не говорит игроку, а силуэт шлема или сапога
+        /// объясняет назначение слота без единого слова и без обучения.
+        /// </summary>
+        private static void SetupSlotHints(IsoRPG.Items.CharacterHud hud)
+        {
+            var pairs = new (IsoRPG.Items.EquipSlot slot, string file)[]
+            {
+                (IsoRPG.Items.EquipSlot.Head, "Slot_Head"),
+                (IsoRPG.Items.EquipSlot.Chest, "Slot_Chest"),
+                (IsoRPG.Items.EquipSlot.Hands, "Slot_Hands"),
+                (IsoRPG.Items.EquipSlot.Legs, "Slot_Legs"),
+                (IsoRPG.Items.EquipSlot.Feet, "Slot_Feet"),
+                (IsoRPG.Items.EquipSlot.MainHand, "Slot_MainHand"),
+                (IsoRPG.Items.EquipSlot.OffHand, "Slot_OffHand"),
+                (IsoRPG.Items.EquipSlot.Ring, "Slot_Ring"),
+            };
+
+            foreach (var (slot, file) in pairs)
+            {
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+                    "Assets/_Game/Art/UI/Icons/Slots/" + file + ".png");
+
+                if (sprite == null)
+                    Debug.LogWarning("[IsoRPG] Нет силуэта слота " + file);
+
+                hud.SetupSlotHints(slot, sprite);
+            }
+
+            EditorUtility.SetDirty(hud);
         }
 
         /// <summary>Модель из набора подземелья: кучки золота, мешочки.</summary>

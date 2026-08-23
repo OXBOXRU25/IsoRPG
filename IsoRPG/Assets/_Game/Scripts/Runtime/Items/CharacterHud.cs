@@ -17,6 +17,9 @@ namespace IsoRPG.Items
     {
         private static readonly Color PanelColor = new Color32(0x1C, 0x1A, 0x16, 0xF0);
         private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0xFF);
+        /// <summary>Силуэт пустого слота: заметен, но не спорит с вещами.</summary>
+        private static readonly Color HintColor = new Color(1f, 1f, 1f, 0.28f);
+
         private static readonly Color SlotEmpty = new Color32(0x2A, 0x27, 0x21, 0xFF);
         private static readonly Color TextColor = new Color32(0xE8, 0xE2, 0xD4, 0xFF);
         private static readonly Color TextDim = new Color32(0xA8, 0xA0, 0x90, 0xFF);
@@ -65,6 +68,15 @@ namespace IsoRPG.Items
 
         private readonly Dictionary<EquipSlot, Image> slotIcons = new Dictionary<EquipSlot, Image>();
         private readonly Dictionary<EquipSlot, Text> slotLabels = new Dictionary<EquipSlot, Text>();
+
+        /// <summary>Рисунок надетой вещи поверх плашки слота.</summary>
+        private readonly Dictionary<EquipSlot, Image> slotArt = new Dictionary<EquipSlot, Image>();
+
+        /// <summary>Подсказки пустых слотов: силуэт шлема, сапог, кольца.</summary>
+        private readonly Dictionary<EquipSlot, Sprite> slotHints = new Dictionary<EquipSlot, Sprite>();
+
+        /// <summary>Задаётся сборщиком сцены: какой силуэт какому слоту.</summary>
+        public void SetupSlotHints(EquipSlot slot, Sprite hint) => slotHints[slot] = hint;
 
         private void Awake()
         {
@@ -184,6 +196,23 @@ namespace IsoRPG.Items
             icon.color = SlotEmpty;
             slotIcons[slot] = icon;
 
+            // Картинка отдельным слоем: плашка остаётся цветом редкости, а
+            // рисунок сверху не перекрашивается вместе с ней.
+            var art = new GameObject("Art", typeof(Image));
+            var artRect = (RectTransform)art.transform;
+            artRect.SetParent(iconRect, false);
+            artRect.anchorMin = Vector2.zero;
+            artRect.anchorMax = Vector2.one;
+            artRect.offsetMin = new Vector2(1.5f, 1.5f);
+            artRect.offsetMax = new Vector2(-1.5f, -1.5f);
+
+            var artImage = art.GetComponent<Image>();
+            artImage.raycastTarget = false;
+            artImage.preserveAspect = true;
+            artImage.enabled = false;
+
+            slotArt[slot] = artImage;
+
             var captured = slot;
             iconGo.GetComponent<Button>().onClick.AddListener(() =>
             {
@@ -209,12 +238,31 @@ namespace IsoRPG.Items
                     slotIcons[slot].color = SlotEmpty;
                     slotLabels[slot].text = SlotNames[slot];
                     slotLabels[slot].color = TextDim;
+
+                    // В пустом слоте показываем приглушённый силуэт того, что
+                    // сюда надевается. Пустой квадрат ничего не сообщает, а
+                    // силуэт объясняет назначение без единого слова.
+                    if (slotArt.TryGetValue(slot, out var emptyArt))
+                    {
+                        bool hasHint = slotHints.TryGetValue(slot, out var hint) && hint != null;
+
+                        emptyArt.sprite = hasHint ? hint : null;
+                        emptyArt.color = HintColor;
+                        emptyArt.enabled = hasHint;
+                    }
                 }
                 else
                 {
                     slotIcons[slot].color = stack.Item.RarityColor;
                     slotLabels[slot].text = stack.Item.displayName;
                     slotLabels[slot].color = stack.Item.RarityColor;
+
+                    if (slotArt.TryGetValue(slot, out var wornArt))
+                    {
+                        wornArt.sprite = stack.Item.icon;
+                        wornArt.color = Color.white;
+                        wornArt.enabled = stack.Item.icon != null;
+                    }
                 }
             }
 

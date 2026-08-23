@@ -368,6 +368,7 @@ namespace IsoRPG.EditorTools
             player.AddComponent<CombatHud>();
             player.AddComponent<CombatLogHud>();
             player.AddComponent<IsoRPG.Items.InventoryHud>();
+            player.AddComponent<IsoRPG.Items.CharacterHud>();
 
             return player;
         }

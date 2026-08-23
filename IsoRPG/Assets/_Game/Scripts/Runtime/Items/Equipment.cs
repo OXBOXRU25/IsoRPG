@@ -83,8 +83,9 @@ namespace IsoRPG.Items
             var taken = inventory.TakeFrom(inventorySlot, 1);
             if (taken.IsEmpty) return false;
 
-            var previous = GetSlot(item.slot);
-            worn[item.slot] = taken;
+            var target = ChooseHand(item);
+            var previous = GetSlot(target);
+            worn[target] = taken;
 
             // Снятое кладём в освободившуюся ячейку. Она точно свободна,
             // если оттуда взяли последний предмет; иначе ищем любую.
@@ -94,6 +95,24 @@ namespace IsoRPG.Items
             Recalculate();
             Changed?.Invoke();
             return true;
+        }
+
+        /// <summary>
+        /// В какую руку кладём предмет.
+        ///
+        /// Парное оружие идёт в свободную руку, а не выбивает уже надетое:
+        /// второй кинжал у разбойника — это второй кинжал, а не замена
+        /// первому. Всё остальное ложится в свой слот без вариантов.
+        /// </summary>
+        private EquipSlot ChooseHand(ItemDefinition item)
+        {
+            if (item.slot != EquipSlot.MainHand || !item.dualWieldable)
+                return item.slot;
+
+            if (!GetSlot(EquipSlot.MainHand).IsEmpty && GetSlot(EquipSlot.OffHand).IsEmpty)
+                return EquipSlot.OffHand;
+
+            return EquipSlot.MainHand;
         }
 
         /// <summary>Снять предмет в сумку.</summary>

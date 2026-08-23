@@ -18,6 +18,9 @@ namespace IsoRPG.Combat
         [Tooltip("Способности по порядку. Первая на клавише 1, вторая на 2 и так далее.")]
         [SerializeField] private List<AbilityDefinition> abilities = new List<AbilityDefinition>();
 
+        [Tooltip("Панель скрытности. Подменяет обычную, пока персонаж в тени.")]
+        [SerializeField] private List<AbilityDefinition> stealthAbilities = new List<AbilityDefinition>();
+
         [Tooltip("Глобальный откат, если оружия нет. У игрока берётся от скорости оружия: следующий приём начинается, когда закончился замах предыдущего.")]
         [SerializeField] private float globalCooldown = 1.3f;
 
@@ -37,7 +40,23 @@ namespace IsoRPG.Combat
         private int pendingCombo;
         private float pendingImpactTime = -1f;
 
-        public IReadOnlyList<AbilityDefinition> Abilities => abilities;
+        /// <summary>
+        /// Панель, действующая прямо сейчас.
+        ///
+        /// Скрытность — не просто состояние, а отдельный режим со своими
+        /// приёмами: в тени доступно другое, чем в открытом бою. Поэтому
+        /// подменяется вся панель целиком, а не добавляются кнопки сбоку.
+        /// Так у игрока не может быть выбора, которого у него нет.
+        /// </summary>
+        public IReadOnlyList<AbilityDefinition> Abilities => ActiveBar;
+
+        private List<AbilityDefinition> ActiveBar =>
+            InStealth && stealthBar.Count > 0 ? stealthBar : abilities;
+
+        private bool InStealth => stealth != null && stealth.IsStealthed;
+
+        /// <summary>Панель сменилась — интерфейсу пора перерисоваться.</summary>
+        public event Action BarChanged;
         /// <summary>
         /// Глобальный откат. Равен ритму оружия: следующий приём начинается
         /// тогда, когда закончился замах предыдущего — без пауз стояния.
@@ -49,6 +68,14 @@ namespace IsoRPG.Combat
 
         /// <summary>Применить не вышло: способность и причина. Пригодится для подсказок игроку.</summary>
         public event Action<AbilityDefinition, string> Failed;
+
+        /// <summary>
+        /// Готовая панель скрытности: приёмы из тени плюс сама скрытность,
+        /// чтобы из режима можно было выйти той же кнопкой, которой вошёл.
+        /// </summary>
+        private readonly List<AbilityDefinition> stealthBar = new List<AbilityDefinition>();
+
+        private bool wasStealthed;
 
         private void Awake()
         {
@@ -64,7 +91,25 @@ namespace IsoRPG.Combat
         private void Update()
         {
             ResolvePendingImpact();
+            WatchStealth();
             ReadHotkeys();
+        }
+
+        /// <summary>
+        /// Замечает вход и выход из скрытности и объявляет смену панели.
+        ///
+        /// Опрос вместо подписки на событие сознательно: скрытность
+        /// сбрасывается из нескольких мест — приёмом, уроном, движением, —
+        /// и каждое из них пришлось бы помнить о панели. Одна проверка в
+        /// кадре стоит дешевле, чем правило, которое легко забыть.
+        /// </summary>
+        private void WatchStealth()
+        {
+            bool now = InStealth;
+            if (now == wasStealthed) return;
+
+            wasStealthed = now;
+            BarChanged?.Invoke();
         }
 
         private void ReadHotkeys()
@@ -72,16 +117,35 @@ namespace IsoRPG.Combat
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
 
-            // Три приёма на 1-2-3, скрытность на 0 — она особняком и по
-            // смыслу, и по месту на клавиатуре.
-            var keys = new[]
-            {
-                Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit0
-            };
+            // Клавиша берётся из самой способности, а не из её места в списке.
+            // Пока панель была одна, разницы не было; с подменяемой панелью
+            // порядок перестал совпадать с раскладкой, и привязка по индексу
+            // начала бы вызывать не то, что нарисовано на кнопке.
+            var bar = ActiveBar;
 
-            for (int i = 0; i < abilities.Count && i < keys.Length; i++)
+            for (int i = 0; i < bar.Count; i++)
             {
-                if (keyboard[keys[i]].wasPressedThisFrame) TryUse(abilities[i]);
+                var ability = bar[i];
+                if (ability == null) continue;
+
+                var key = KeyFor(ability.hotkeyLabel);
+                if (key == Key.None) continue;
+
+                if (keyboard[key].wasPressedThisFrame) TryUse(ability);
+            }
+        }
+
+        private static Key KeyFor(string label)
+        {
+            switch (label)
+            {
+                case "1": return Key.Digit1;
+                case "2": return Key.Digit2;
+                case "3": return Key.Digit3;
+                case "4": return Key.Digit4;
+                case "5": return Key.Digit5;
+                case "0": return Key.Digit0;
+                default:  return Key.None;
             }
         }
 
@@ -281,8 +345,35 @@ namespace IsoRPG.Combat
         /// <summary>Задать набор способностей из кода. Нужно сборщику сцены.</summary>
         public void Setup(IEnumerable<AbilityDefinition> list)
         {
+            Setup(list, null);
+        }
+
+        /// <summary>
+        /// Задаёт обе панели: обычную и ту, что действует в скрытности.
+        /// </summary>
+        public void Setup(IEnumerable<AbilityDefinition> list,
+                          IEnumerable<AbilityDefinition> stealthList)
+        {
             abilities.Clear();
             abilities.AddRange(list);
+
+            stealthBar.Clear();
+            if (stealthList != null) stealthBar.AddRange(stealthList);
+
+            // Саму скрытность дописываем в конец панели скрытности: выходить
+            // из режима надо той же кнопкой, которой вошёл, иначе игрок
+            // оказывается запертым в тени до первого удара.
+            if (stealthBar.Count > 0)
+            {
+                foreach (var ability in abilities)
+                {
+                    if (ability != null && ability.togglesStealth && !stealthBar.Contains(ability))
+                    {
+                        stealthBar.Add(ability);
+                        break;
+                    }
+                }
+            }
         }
     }
 }

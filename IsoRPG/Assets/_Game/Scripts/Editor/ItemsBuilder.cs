@@ -33,6 +33,7 @@ namespace IsoRPG.EditorTools
                 item.slot = EquipSlot.MainHand;
                 item.weaponDamage = 8;
                 item.attackInterval = 1.3f;
+                item.dualWieldable = true;
                 item.vendorPrice = 4;
                 item.worldModel = LoadModel("dagger");
             });
@@ -46,6 +47,7 @@ namespace IsoRPG.EditorTools
                 item.slot = EquipSlot.MainHand;
                 item.weaponDamage = 14;
                 item.attackInterval = 1.3f;
+                item.dualWieldable = true;
                 item.agility = 3;
                 item.vendorPrice = 25;
                 item.worldModel = LoadModel("dagger");
@@ -228,9 +230,27 @@ namespace IsoRPG.EditorTools
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 var item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
 
-                if (item == null || !item.IsWeapon || item.worldModel != null) continue;
+                if (item == null || !item.IsWeapon) continue;
 
-                item.worldModel = LoadModel(ModelFor(item));
+                bool changed = false;
+
+                if (item.worldModel == null)
+                {
+                    item.worldModel = LoadModel(ModelFor(item));
+                    changed = true;
+                }
+
+                // Кинжалы у нас парные по замыслу класса. Флаг появился
+                // позже самих предметов, поэтому дозаполняем так же, как
+                // модель: трогаем только то, чего нет.
+                if (!item.dualWieldable && item.name.ToLower().Contains("dagger"))
+                {
+                    item.dualWieldable = true;
+                    changed = true;
+                }
+
+                if (!changed) continue;
+
                 EditorUtility.SetDirty(item);
                 filled++;
             }

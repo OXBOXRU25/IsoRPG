@@ -329,7 +329,15 @@ namespace IsoRPG.EditorTools
             var startingItems = new System.Collections.Generic.List<IsoRPG.Items.ItemDefinition>();
 
             var starterDagger = ItemsBuilder.LoadItem("I_RustyDagger");
-            if (starterDagger != null) startingItems.Add(starterDagger);
+
+            if (starterDagger != null)
+            {
+                // Два клинка: класс дерётся парой, и анимация удара
+                // рассчитана на две руки. С одним кинжалом левая рука машет
+                // пустой, и удар читается как размахивание.
+                startingItems.Add(starterDagger);
+                startingItems.Add(starterDagger);
+            }
             else Debug.LogError("[IsoRPG] Не найден стартовый кинжал — игрок останется с кулаками.");
 
             gear.Setup(startingItems, 0);
@@ -352,7 +360,7 @@ namespace IsoRPG.EditorTools
             }
 
             var book = player.AddComponent<AbilityBook>();
-            book.Setup(abilityAssets);
+            book.Setup(abilityAssets, RogueAbilitiesBuilder.LoadStealth());
 
             // Смерть игрока обрабатываем тем же компонентом, но тело не
             // убираем: пока нет воскрешения, исчезнувший игрок означал бы
@@ -373,6 +381,12 @@ namespace IsoRPG.EditorTools
             // Оружие в руках. Ставится после экипировки: компонент читает её
             // состояние сразу при включении.
             player.AddComponent<IsoRPG.Items.WeaponVisual>();
+
+            // Полоска над головой у игрока тоже. Панель вверху экрана
+            // отвечает на вопрос «сколько у меня осталось», а полоска над
+            // персонажем — на другой: «попали по мне только что или нет».
+            // В бою взгляд держится на персонаже, а не на углу экрана.
+            player.AddComponent<OverheadHealthBar>();
 
             return player;
         }

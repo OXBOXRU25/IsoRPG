@@ -70,6 +70,9 @@ namespace IsoRPG.Items
         [Tooltip("Урон оружия. Ноль — предмет не оружие.")]
         public int weaponDamage = 0;
 
+        [Tooltip("Можно взять во вторую руку. Кинжалы и одноручные клинки — да, двуручники — нет.")]
+        public bool dualWieldable = false;
+
         [Tooltip("Секунд между ударами. Задаёт весь ритм боя, включая скорость анимации.")]
         public float attackInterval = 1.4f;
 

@@ -85,6 +85,11 @@ namespace IsoRPG.Combat
         private readonly System.Collections.Generic.List<Image> comboDots =
             new System.Collections.Generic.List<Image>();
 
+        /// <summary>Корень интерфейса и текущая панель — нужны, чтобы
+        /// пересобрать её при смене режима.</summary>
+        private RectTransform hudRoot;
+        private GameObject abilityBarObject;
+
         private readonly System.Collections.Generic.List<AbilitySlot> slots =
             new System.Collections.Generic.List<AbilitySlot>();
 
@@ -145,10 +150,32 @@ namespace IsoRPG.Combat
                 targets.TargetChanged += OnTargetChanged;
                 OnTargetChanged(targets.Current);
             }
+
+            if (abilities != null) abilities.BarChanged += OnBarChanged;
+        }
+
+        /// <summary>
+        /// Панель сменилась — пересобираем кнопки.
+        ///
+        /// Вход в скрытность меняет не одну кнопку, а весь набор доступного,
+        /// и показать это надо так же: игрок должен видеть ровно то, чем
+        /// может воспользоваться сейчас.
+        /// </summary>
+        private void OnBarChanged()
+        {
+            if (hudRoot == null) return;
+
+            BuildAbilityBar(hudRoot);
+
+            // Состояния кнопок (откаты, нехватка энергии) обновляются каждый
+            // кадр — достаточно дать им один проход сразу, чтобы новая панель
+            // не мигнула активной, если приём на самом деле не готов.
+            UpdateCooldowns();
         }
 
         private void OnDisable()
         {
+            if (abilities != null) abilities.BarChanged -= OnBarChanged;
             if (playerHealth != null) playerHealth.Changed -= OnPlayerHealthChanged;
             if (playerEnergy != null) playerEnergy.Changed -= OnEnergyChanged;
             if (combo != null) combo.Changed -= OnComboChanged;
@@ -322,13 +349,25 @@ namespace IsoRPG.Combat
         /// </summary>
         private void BuildAbilityBar(RectTransform root)
         {
+            hudRoot = root;
             slots.Clear();
+
+            // Старую панель убираем целиком, а не правим на месте: приёмов
+            // в наборах разное число, и переиспользование кнопок оставило бы
+            // висеть лишние.
+            if (abilityBarObject != null)
+            {
+                Destroy(abilityBarObject);
+                abilityBarObject = null;
+            }
+
             if (abilities == null || abilities.Abilities.Count == 0) return;
 
             int count = abilities.Abilities.Count;
             float totalWidth = count * SlotSize + (count - 1) * SlotGap;
 
             var bar = new GameObject("AbilityBar", typeof(RectTransform));
+            abilityBarObject = bar;
             var barRect = (RectTransform)bar.transform;
             barRect.SetParent(root, false);
             barRect.anchorMin = new Vector2(0.5f, 0f);

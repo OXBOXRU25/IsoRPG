@@ -23,6 +23,7 @@ MonoBehaviour:
   stackable: 0
   maxStack: 20
   weaponDamage: 14
+  dualWieldable: 1
   attackInterval: 1.3
   armor: 0
   strength: 0

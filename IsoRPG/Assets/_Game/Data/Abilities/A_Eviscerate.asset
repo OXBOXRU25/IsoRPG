@@ -24,6 +24,7 @@ MonoBehaviour:
   comboRole: 2
   comboGain: 1
   dealsDamage: 1
+  weaponMultiplier: 1
   bonusDamage: 5
   finisherDamage:
   - min: 40

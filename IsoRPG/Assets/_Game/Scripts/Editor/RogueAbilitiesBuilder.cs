@@ -40,6 +40,67 @@ namespace IsoRPG.EditorTools
                 ability.impactDelay = 0.4f;
             });
 
+            // --- Приёмы из скрытности --------------------------------
+            //
+            // Смысл скрытности в том, что она даёт не преимущество в бою, а
+            // ПЕРВЫЙ ХОД. Оба приёма доступны только до драки, оба сразу
+            // наполняют серию — то есть открывают бой с позиции, до которой
+            // в честной схватке пришлось бы добираться тремя ударами.
+
+            Create("A_Ambush", ability =>
+            {
+                ability.displayName = "Внезапный удар";
+                ability.description = "Удар в спину из скрытности. 250% урона оружия и ещё сотня сверху. Даёт комбо-очко.";
+                ability.hotkeyLabel = "1";
+                ability.iconColor = new Color32(0x8A, 0x3A, 0x5A, 0xFF);
+                ability.energyCost = 60;
+                ability.cooldown = 0f;
+                ability.comboRole = ComboRole.Generator;
+                ability.comboGain = 1;
+                ability.dealsDamage = true;
+                ability.weaponMultiplier = 2.5f;
+                ability.bonusDamage = 100;
+                ability.reach = 0.9f;
+                ability.impactDelay = 0.35f;
+
+                // Требование зайти со спины — то, что делает приём приёмом, а
+                // не просто сильным ударом. В открытом бою выполнить почти
+                // невозможно, из скрытности — естественно.
+                ability.requiresStealth = true;
+                ability.requiresBehindTarget = true;
+                ability.behindAngle = 120f;
+                ability.breaksStealth = true;
+
+                // Отдельная анимация добивания: обычный замах на таком уроне
+                // выглядит несоразмерно тому, что произошло.
+                ability.animationTrigger = "StealthKill";
+            });
+
+            Create("A_CheapShot", ability =>
+            {
+                ability.displayName = "Подлый трюк";
+                ability.description = "Оглушает цель на четыре секунды. Урона не наносит, но сразу даёт два комбо-очка.";
+                ability.hotkeyLabel = "2";
+                ability.iconColor = new Color32(0x6A, 0x5A, 0x8A, 0xFF);
+                ability.energyCost = 40;
+                ability.cooldown = 0f;
+                ability.comboRole = ComboRole.Generator;
+                ability.comboGain = 2;
+
+                // Урона нет вовсе: приём платит не им, а временем. Четыре
+                // секунды неподвижной цели — это два-три свободных удара.
+                ability.dealsDamage = false;
+                ability.stunBase = 4f;
+                ability.stunPerCombo = 0f;
+                ability.reach = 0.9f;
+                ability.impactDelay = 0.3f;
+
+                ability.requiresStealth = true;
+                ability.requiresBehindTarget = false;
+                ability.breaksStealth = true;
+                ability.animationTrigger = "Attack";
+            });
+
             Create("A_KidneyShot", ability =>
             {
                 // Финишер, который платит не уроном, а контролем. Отсюда выбор
@@ -132,12 +193,48 @@ namespace IsoRPG.EditorTools
         };
 
         /// <summary>
+        /// Панель скрытности. Подменяет обычную целиком, поэтому нумерация
+        /// здесь тоже начинается с единицы: рука не должна переучиваться,
+        /// меняется только то, что под пальцем.
+        /// </summary>
+        private static readonly string[] StealthNames =
+        {
+            "A_Ambush",           // 1  в спину
+            "A_CheapShot",        // 2  оглушение
+        };
+
+        /// <summary>
         /// Загрузить готовые способности по порядку. Недостающие создаёт.
         ///
         /// Раньше здесь была ловушка: если хоть один ассет находился, список
         /// считался готовым, и переименованная способность молча пропадала
         /// с панели. Проверять надо каждую, а не факт непустого списка.
         /// </summary>
+        /// <summary>Приёмы, доступные только из тени.</summary>
+        public static List<AbilityDefinition> LoadStealth()
+        {
+            var result = new List<AbilityDefinition>();
+
+            foreach (string name in StealthNames)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<AbilityDefinition>(Folder + "/" + name + ".asset");
+
+                // Молчать нельзя: без приёма панель скрытности соберётся
+                // короче, и снаружи это выглядит как «способность не
+                // работает», а не как «ассета нет».
+                if (asset == null)
+                {
+                    Debug.LogWarning("[IsoRPG] Нет способности " + name +
+                                     " — пересоздай их через Tools/IsoRPG.");
+                    continue;
+                }
+
+                result.Add(asset);
+            }
+
+            return result;
+        }
+
         public static List<AbilityDefinition> Load()
         {
             var result = new List<AbilityDefinition>();

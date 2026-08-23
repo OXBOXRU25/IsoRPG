@@ -24,6 +24,7 @@ MonoBehaviour:
   comboRole: 2
   comboGain: 1
   dealsDamage: 0
+  weaponMultiplier: 1
   bonusDamage: 5
   finisherDamage: []
   stunBase: 1

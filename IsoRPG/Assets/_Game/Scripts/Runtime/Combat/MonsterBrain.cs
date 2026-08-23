@@ -24,6 +24,17 @@ namespace IsoRPG.Combat
         [Tooltip("Как часто осматриваться, в секундах. Каждый кадр не нужно — это лишняя нагрузка при десятках монстров.")]
         [SerializeField] private float scanInterval = 0.25f;
 
+        [Header("Прогулка")]
+        [Tooltip("Как далеко от дома монстр отходит, гуляя. Ноль — стоит на месте.")]
+        [SerializeField] private float patrolRadius = 4.5f;
+
+        [Tooltip("Сколько стоит на месте между переходами, от и до.")]
+        [SerializeField] private float patrolPauseMin = 2f;
+        [SerializeField] private float patrolPauseMax = 6f;
+
+        [Tooltip("Скорость прогулки. Заметно ниже боевой: гуляют шагом, гонятся бегом.")]
+        [SerializeField] private float patrolSpeed = 1.3f;
+
         [Header("Возвращение")]
         [Tooltip("Восстанавливать здоровье, вернувшись домой. Как в WoW: сорвался с поводка — лечится.")]
         [SerializeField] private bool healOnReturn = true;
@@ -35,6 +46,8 @@ namespace IsoRPG.Combat
         private Targetable self;
 
         private Vector3 homePosition;
+        private float chaseSpeed;
+        private float nextPatrolTime;
         private float nextScanTime;
         private bool returningHome;
 
@@ -47,6 +60,10 @@ namespace IsoRPG.Combat
             self = GetComponent<Targetable>();
 
             homePosition = transform.position;
+
+            // Боевую скорость запоминаем до того, как её подменит прогулка.
+            // Иначе после первого же патруля монстр начнёт гоняться шагом.
+            chaseSpeed = agent != null ? agent.speed : 3.4f;
         }
 
         private void OnEnable()
@@ -111,6 +128,10 @@ namespace IsoRPG.Combat
             var found = FindNearestEnemy();
             if (found != null)
             {
+                // Возвращаем боевую скорость: гнаться прогулочным шагом —
+                // это не погоня, а сопровождение.
+                if (agent != null) agent.speed = chaseSpeed;
+
                 targets.Select(found);
                 if (combat != null) combat.EngageTarget();
             }
@@ -118,6 +139,10 @@ namespace IsoRPG.Combat
             {
                 targets.Clear();
                 GoHome();
+            }
+            else
+            {
+                Patrol();
             }
         }
 
@@ -165,6 +190,42 @@ namespace IsoRPG.Combat
             if (combat != null) combat.EngageTarget();
         }
 
+        /// <summary>
+        /// Прогулка вокруг дома, пока никого нет рядом.
+        ///
+        /// Нужна не для красоты: неподвижный противник читается как декорация,
+        /// и мир вокруг кажется выключенным. Достаточно медленного шага
+        /// туда-сюда, чтобы место стало обитаемым.
+        ///
+        /// Ходим вокруг ДОМА, а не вокруг текущей точки: иначе монстр
+        /// случайными шагами уползает всё дальше и однажды оказывается в
+        /// соседнем лагере.
+        /// </summary>
+        private void Patrol()
+        {
+            if (agent == null || !agent.isOnNavMesh || patrolRadius <= 0.01f) return;
+
+            // Путь ещё считается или ещё идём — не мешаем.
+            if (agent.pathPending) return;
+            if (agent.remainingDistance > agent.stoppingDistance + 0.3f) return;
+
+            // Пришли. Стоим положенную паузу: монстр, ходящий без остановок,
+            // выглядит заведённой игрушкой.
+            if (Time.time < nextPatrolTime) return;
+
+            Vector2 offset = Random.insideUnitCircle * patrolRadius;
+            Vector3 wanted = homePosition + new Vector3(offset.x, 0f, offset.y);
+
+            // Точку проверяем по навигационной сетке: случайная может попасть
+            // в стену или за край земли, и тогда монстр упрётся и застрянет.
+            if (NavMesh.SamplePosition(wanted, out var hit, patrolRadius, NavMesh.AllAreas))
+            {
+                agent.speed = patrolSpeed;
+                agent.SetDestination(hit.position);
+                nextPatrolTime = Time.time + Random.Range(patrolPauseMin, patrolPauseMax);
+            }
+        }
+
         private void GoHome()
         {
             targets.Clear();
@@ -184,6 +245,7 @@ namespace IsoRPG.Combat
                 return;
             }
 
+            agent.speed = chaseSpeed;
             agent.SetDestination(homePosition);
         }
 

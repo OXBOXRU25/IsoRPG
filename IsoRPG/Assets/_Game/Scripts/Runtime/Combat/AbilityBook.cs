@@ -302,6 +302,24 @@ namespace IsoRPG.Combat
                 animDriver.PlayAttack();
         }
 
+        /// <summary>
+        /// Прибавка от талантов. Книга ищется лениво и один раз: у монстров
+        /// её нет вовсе, и дёргать GetComponent на каждый удар ради
+        /// гарантированного нуля незачем.
+        /// </summary>
+        private float TalentBonus(IsoRPG.Progression.TalentEffect effect)
+        {
+            if (!talentsChecked)
+            {
+                talents = GetComponent<IsoRPG.Progression.TalentBook>();
+                talentsChecked = true;
+            }
+
+            return talents != null ? talents.Bonus(effect) : 0f;
+        }
+
+        private IsoRPG.Progression.TalentBook talents;
+        private bool talentsChecked;
         private void ResolvePendingImpact()
         {
             if (pendingImpactTime < 0f || Time.time < pendingImpactTime) return;
@@ -313,7 +331,22 @@ namespace IsoRPG.Combat
             if (pendingAbility.dealsDamage && pendingVictim.Health != null)
             {
                 int weaponDamage = weapon != null ? weapon.WeaponDamage : 10;
-                int damage = pendingAbility.RollDamage(weaponDamage, pendingCombo, out HitResult result);
+
+                // Урон приёма собирает три прибавки: общую, для приёмов и
+                // отдельную для тех, что бьют из скрытности. Последняя и есть
+                // смысл ветки скрытности: она платит за подход, а не за бой.
+                float multiplier = 1f
+                    + TalentBonus(IsoRPG.Progression.TalentEffect.Damage)
+                    + TalentBonus(IsoRPG.Progression.TalentEffect.AbilityDamage);
+
+                if (pendingAbility.requiresStealth)
+                    multiplier += TalentBonus(IsoRPG.Progression.TalentEffect.StealthDamage);
+
+                int damage = pendingAbility.RollDamage(
+                    weaponDamage, pendingCombo,
+                    TalentBonus(IsoRPG.Progression.TalentEffect.CritChance),
+                    TalentBonus(IsoRPG.Progression.TalentEffect.CritMultiplier),
+                    multiplier, out HitResult result);
 
                 // Показываем то, что дошло после брони, а не то, чем замахивались.
                 int actual = pendingVictim.Health.TakeDamage(damage, gameObject);

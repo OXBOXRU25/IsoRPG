@@ -72,7 +72,6 @@ namespace IsoRPG.Combat
         private RectTransform playerHealthFill;
         private Text playerHealthText;
         private Text playerNameText;
-        private AbilityTooltip tooltip;
         private Image playerPortrait;
         private Image targetPortrait;
         private RectTransform playerEnergyFill;
@@ -148,7 +147,7 @@ namespace IsoRPG.Combat
                 playerExperience.Changed += OnExperienceChanged;
                 playerExperience.LevelUp += OnLevelUp;
                 OnExperienceChanged(playerExperience.Current, playerExperience.ToNextLevel);
-                OnLevelUp(playerExperience.Level);
+                ShowPlayerLevel(playerExperience.Level);
             }
 
             if (targets != null)
@@ -176,17 +175,6 @@ namespace IsoRPG.Combat
         /// и показать это надо так же: игрок должен видеть ровно то, чем
         /// может воспользоваться сейчас.
         /// </summary>
-        /// <summary>Показать подсказку о приёме. Зовётся кнопкой при наведении.</summary>
-        public void ShowAbilityTooltip(AbilityDefinition ability, Vector2 screenPoint)
-        {
-            if (tooltip != null) tooltip.Show(ability, screenPoint);
-        }
-
-        public void HideAbilityTooltip()
-        {
-            if (tooltip != null) tooltip.Hide();
-        }
-
         private void OnBarChanged()
         {
             if (hudRoot == null) return;
@@ -287,11 +275,6 @@ namespace IsoRPG.Combat
             BuildComboDots(target, new Vector2(BarsLeft, secondY - 2f), barsWidth);
 
             targetPanel.SetActive(false);
-
-            // Подсказка создаётся один раз на всю панель: она одна, а
-            // кнопок много, и держать по подсказке на кнопку значило бы
-            // строить шесть одинаковых окон.
-            if (tooltip == null) tooltip = gameObject.AddComponent<AbilityTooltip>();
 
             BuildAbilityBar(root);
             BuildExperienceBar(root);
@@ -426,7 +409,11 @@ namespace IsoRPG.Combat
                 // считает цвет признаком, ищет в нём смысл и не находит.
                 var icon = slotGo.GetComponent<Image>();
                 icon.color = ability.icon != null ? SlotPlate : ability.iconColor;
-                icon.raycastTarget = false;
+
+                // Ловит указатель: это единственный слой кнопки, который
+                // может, — рисунок, откат и тексты выключены нарочно,
+                // чтобы наведение не терялось на границе между ними.
+                icon.raycastTarget = true;
 
                 if (ability.icon != null)
                 {
@@ -476,8 +463,26 @@ namespace IsoRPG.Combat
                 // Названия под кнопками нет: шесть подписей мелким кеглем
                 // читаются как забор, а нужны они ровно один раз — когда
                 // игрок разбирается, что это. Для этого есть наведение.
-                var hover = slotGo.AddComponent<AbilityTooltipTrigger>();
-                hover.Setup(ability, this);
+                var hover = slotGo.AddComponent<IsoRPG.UI.AbilityHoverTrigger>();
+                hover.Setup(ability, GetComponent<WeaponStats>());
+
+                // И нажимается мышью: кнопка, которая только показывает
+                // подсказку, но не работает по клику, читается как
+                // сломанная. Клавиша остаётся быстрым путём.
+                var press = slotGo.AddComponent<Button>();
+                press.targetGraphic = icon;
+                press.transition = Selectable.Transition.ColorTint;
+
+                var pressColors = press.colors;
+                pressColors.normalColor = Color.white;
+                pressColors.highlightedColor = new Color(1.12f, 1.12f, 1.12f, 1f);
+                pressColors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+                pressColors.selectedColor = Color.white;
+                pressColors.fadeDuration = 0.06f;
+                press.colors = pressColors;
+
+                var pressed = ability;
+                press.onClick.AddListener(() => abilities.TryUse(pressed));
 
                 slots.Add(new AbilitySlot
                 {
@@ -669,10 +674,19 @@ namespace IsoRPG.Combat
                 expText.text = needed > 0 ? current + " / " + needed : "максимальный уровень";
         }
 
+        /// <summary>
+        /// Показать уровень рядом с именем. Отдельно от события: при
+        /// старте подпись нужна, а праздновать там нечего — прямой вызов
+        /// обработчика играл джингл повышения при каждом запуске игры.
+        /// </summary>
+        private void ShowPlayerLevel(int level)
+        {
+            if (playerNameText != null) playerNameText.text = "Разбойник  ур. " + level;
+        }
+
         private void OnLevelUp(int level)
         {
-            // Уровень пишем рядом с именем игрока — там же, где он у цели.
-            if (playerNameText != null) playerNameText.text = "Разбойник  ур. " + level;
+            ShowPlayerLevel(level);
 
             CombatLog.LevelUp(level);
             IsoRPG.Audio.Sfx.LevelUp();

@@ -77,6 +77,21 @@ namespace IsoRPG.EditorTools
             death = "Skeletons_Death",
         };
 
+        /// <summary>
+        /// Костяной маг. Бьёт не палкой, а заклинанием: у набора есть
+        /// полный цикл магии, и посох в руках без него читается как
+        /// дубина, которой почему-то машут издалека.
+        /// </summary>
+        private static readonly AnimSet MageSet = new AnimSet
+        {
+            idle = "Skeletons_Idle",
+            walk = "Skeletons_Walking",
+            run = "Running_A",
+            attack = "Ranged_Magic_Shoot",
+            stealth = "Ranged_Magic_Spellcasting",
+            death = "Skeletons_Death",
+        };
+
         /// <summary>Кого собираем: модель, набор анимаций, имя префаба.</summary>
         private static readonly (string model, string set, string prefab)[] Roster =
         {
@@ -84,6 +99,7 @@ namespace IsoRPG.EditorTools
             ("Skeleton_Warrior", "Skeleton", "Skeleton_Warrior"),
             ("Skeleton_Rogue",   "Archer",   "Skeleton_Rogue"),
             ("Skeleton_Minion",  "Skeleton", "Skeleton_Minion"),
+            ("Skeleton_Mage",    "Mage",     "Skeleton_Mage"),
         };
 
         [MenuItem("Tools/IsoRPG/Собрать персонажей KayKit", priority = 13)]
@@ -110,6 +126,7 @@ namespace IsoRPG.EditorTools
             var rogue = BuildController("AC_Rogue", RogueSet, clips);
             var skeleton = BuildController("AC_Skeleton", SkeletonSet, clips);
             var archer = BuildController("AC_SkeletonArcher", ArcherSet, clips);
+            var mage = BuildController("AC_SkeletonMage", MageSet, clips);
 
             // Контроллеры должны лечь в базу до того, как их попросит префаб:
             // ассет, созданный и загруженный в одном кадре, отдаётся пустой
@@ -123,6 +140,7 @@ namespace IsoRPG.EditorTools
             {
                 var controller = set == "Rogue" ? rogue
                                : set == "Archer" ? archer
+                               : set == "Mage" ? mage
                                : skeleton;
                 if (BuildPrefab(model, controller, prefab)) made++;
             }
@@ -168,6 +186,8 @@ namespace IsoRPG.EditorTools
             controller.AddParameter("Attack", AnimatorControllerParameterType.Trigger);
             controller.AddParameter("StealthKill", AnimatorControllerParameterType.Trigger);
             controller.AddParameter("Dead", AnimatorControllerParameterType.Bool);
+            controller.AddParameter("Eating", AnimatorControllerParameterType.Bool);
+            controller.AddParameter("Jump", AnimatorControllerParameterType.Trigger);
 
             controller.AddParameter(new AnimatorControllerParameter
             {
@@ -198,6 +218,8 @@ namespace IsoRPG.EditorTools
             AddOneShot(root, move, clips, set.attack, "Attack", "Attack", name);
             AddOneShot(root, move, clips, set.stealth, "StealthKill", "StealthKill", name);
             AddDeath(root, move, clips, set.death, name);
+            AddSitting(root, move, clips);
+            AddJump(root, move, clips);
 
             EditorUtility.SetDirty(controller);
             return controller;
@@ -261,6 +283,91 @@ namespace IsoRPG.EditorTools
             interrupt.hasExitTime = true;
             interrupt.exitTime = InterruptGuard;
             interrupt.duration = 0.1f;
+        }
+
+        /// <summary>
+        /// Прыжок по пробелу. Жест, а не механика: даёт ровно то, что
+        /// человек ожидает получить, нажав пробел, и ничего сверх.
+        /// </summary>
+        private static void AddJump(AnimatorStateMachine root, AnimatorState returnTo,
+                                    Dictionary<string, AnimationClip> clips)
+        {
+            if (!clips.TryGetValue("Jump_Full_Short", out var clip)) return;
+
+            var state = root.AddState("Jump");
+            state.motion = clip;
+
+            var toJump = root.AddAnyStateTransition(state);
+            toJump.AddCondition(AnimatorConditionMode.If, 0f, "Jump");
+            toJump.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dead");
+            toJump.hasExitTime = false;
+            toJump.duration = 0.05f;
+            toJump.canTransitionToSelf = false;
+
+            // Возврат по времени, а не по условию: прыжок кончается сам.
+            var back = state.AddTransition(returnTo);
+            back.hasExitTime = true;
+            back.exitTime = 0.85f;
+            back.duration = 0.1f;
+        }
+
+        /// <summary>
+        /// Сесть, сидеть, встать. Нужно еде: восемнадцать секунд лечения
+        /// у персонажа, стоящего столбом, выглядят как зависшая игра.
+        ///
+        /// Три клипа вместо одного: без вставания персонаж телепортируется
+        /// из позы сидя в позу стоя, и это заметнее, чем кажется, — глаз
+        /// ловит подмену позы даже за один кадр.
+        /// </summary>
+        private static void AddSitting(AnimatorStateMachine root, AnimatorState returnTo,
+                                       Dictionary<string, AnimationClip> clips)
+        {
+            if (!clips.TryGetValue("Sit_Floor_Down", out var down)) return;
+            if (!clips.TryGetValue("Sit_Floor_Idle", out var idle)) return;
+            if (!clips.TryGetValue("Sit_Floor_StandUp", out var up)) return;
+
+            var sitDown = root.AddState("SitDown");
+            sitDown.motion = down;
+
+            var sitIdle = root.AddState("SitIdle");
+            sitIdle.motion = idle;
+
+            var standUp = root.AddState("StandUp");
+            standUp.motion = up;
+
+            // Садимся ИЗ ДВИЖЕНИЯ, а не из любого состояния.
+            //
+            // Переход из AnyState выглядел удобнее и был неверен: условие
+            // «ест» остаётся истинным всё время еды, поэтому из позы сидя нас
+            // тут же выбрасывало обратно в начало усаживания — и персонаж
+            // дёргался вставая-садясь, пока не доест. Правило общее: AnyState
+            // годится для разового сигнала, а не для флага, который держится.
+            var toSit = returnTo.AddTransition(sitDown);
+            toSit.AddCondition(AnimatorConditionMode.If, 0f, "Eating");
+            toSit.hasExitTime = false;
+            toSit.duration = 0.15f;
+
+            var settle = sitDown.AddTransition(sitIdle);
+            settle.hasExitTime = true;
+            settle.exitTime = 0.9f;
+            settle.duration = 0.1f;
+
+            // Встаём и из сидения, и из процесса усаживания: прерваться
+            // можно в любой момент, а не только досидев до позы.
+            var riseFromIdle = sitIdle.AddTransition(standUp);
+            riseFromIdle.AddCondition(AnimatorConditionMode.IfNot, 0f, "Eating");
+            riseFromIdle.hasExitTime = false;
+            riseFromIdle.duration = 0.1f;
+
+            var riseFromDown = sitDown.AddTransition(standUp);
+            riseFromDown.AddCondition(AnimatorConditionMode.IfNot, 0f, "Eating");
+            riseFromDown.hasExitTime = false;
+            riseFromDown.duration = 0.1f;
+
+            var back = standUp.AddTransition(returnTo);
+            back.hasExitTime = true;
+            back.exitTime = 0.8f;
+            back.duration = 0.12f;
         }
 
         private static void AddDeath(AnimatorStateMachine root, AnimatorState returnTo,

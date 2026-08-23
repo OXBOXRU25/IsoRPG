@@ -83,21 +83,8 @@ namespace IsoRPG.Player
                 CombatLog.Add("Возрождено монстров: " + revived, LogKind.System);
             }
 
-            // J — показать содержимое сумки в консоль, пока нет окна инвентаря
-            if (keyboard.jKey.wasPressedThisFrame && inventory != null)
-            {
-                var text = new System.Text.StringBuilder();
-                text.AppendLine("[Отладка] Сумка (" + inventory.UsedSlots + " из " +
-                                inventory.Capacity + "), золота " + inventory.Gold + ":");
-
-                foreach (var stack in inventory.All())
-                {
-                    if (stack.IsEmpty) continue;
-                    text.AppendLine("  " + stack + "  (" + stack.Item.ShortStats() + ")");
-                }
-
-                Debug.Log(text.ToString());
-            }
+            // Вывод сумки в консоль по J жил здесь, пока не было окна
+            // инвентаря. Окно есть, а клавиша ушла журналу заданий.
         }
     }
 }

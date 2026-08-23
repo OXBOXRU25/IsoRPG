@@ -39,23 +39,23 @@ namespace IsoRPG.EditorTools
         /// </summary>
         public static readonly string[] Map =
         {
-            "     ,,,,,,,,,,      ",
-            "    ,,#WTDDTW#,,     ",
-            "   ,,#l.......s#,,   ",
-            "   ,#T..o...o..T#,   ",
-            "   ,W...........W,   ",
-            "  ,,D.....l.....D,,  ",
-            "   ,W...........W,   ",
-            "   ,#T..o...o..T#,   ",
-            "   ,,#s.......k#,,   ",
-            "    ,,#W#DD#W#,,,,,  ",
-            "     ,,,#..#,,,,,,,  ",
-            "      ,,#..#####,,,  ",
-            "      ,,#......W#,,  ",
-            "     ,,,D..c...b#,,  ",
-            "      ,,#h.l..k.#,   ",
-            "      ,,#WW#DD#W#,   ",
-            "       ,,,,,,,,,,,   ",
+            "     ,,,,,,,,,,                 ",
+            "    ,,#WTDDTW#,,                ",
+            "   ,,#lC.....Cs#,,,,,,,,,,,,,,,,",
+            "   ,#T..o...o..T#,,,,,,#########",
+            "   ,W.m.......m.W,,,,,,#T.....T#",
+            "  ,,D.....l.....D,,,,,,,D......#",
+            "   ,W.h.......h.W,,,,,,#..x....#",
+            "   ,#T..o...o..T#,,,,,,#..o.o..#",
+            "   ,,#skS.....bk#,,,,,,#T.x...T#",
+            "    ,,#W#DD#W#,,,,,,,,,#########",
+            "     ,,,#..#,,,,,,,,,,,,,,,,,,,,",
+            "      ,,#..#####,,,             ",
+            "      ,,#B..S..W#,,             ",
+            "     ,,,D..c.mC.#,,             ",
+            "      ,,#h.l..K.#,              ",
+            "      ,,#WW#DD#W#,              ",
+            "       ,,,,,,,,,,,              ",
         };
 
         private const string WallModel = "wall";
@@ -70,10 +70,108 @@ namespace IsoRPG.EditorTools
         private const string FloorDirt = "floor_dirt_large";
 
         /// <summary>Есть ли на клетке пол.</summary>
+        /// <summary>Размер клетки плана в метрах. Совпадает с плиткой набора.</summary>
+        public const float Cell = 4f;
+
+        /// <summary>
+        /// Где на самом деле находится середина главного зала.
+        ///
+        /// Считается из карты, а не пишется числом: карта уже однажды выросла
+        /// вправо, и все координаты, записанные руками, разом стали врать —
+        /// игрок с торговцем оказались внутри восточной стены.
+        /// </summary>
+        public static Vector3 HallCentre => CellToWorld(10, 5);
+
+        /// <summary>Середина склепа: там стоит владыка.</summary>
+        public static Vector3 CryptCentre => CellToWorld(26, 6);
+
+        public static Vector3 CellToWorld(int col, int row)
+        {
+            int rows = Map.Length;
+            int cols = 0;
+            foreach (var line in Map) cols = Mathf.Max(cols, line.Length);
+
+            float offsetX = -(cols - 1) * Cell * 0.5f;
+            float offsetZ = (rows - 1) * Cell * 0.5f;
+
+            return new Vector3(offsetX + col * Cell, 0f, offsetZ - row * Cell);
+        }
+
         public static bool HasFloor(char c) => c != ' ';
 
-        public static string FloorFor(char c) =>
-            c == ',' || c == 'x' ? FloorDirt : FloorStone;
+        /// <summary>
+        /// Каменные плиты руин: целые, треснувшие, заросшие, с осыпью.
+        ///
+        /// Одна плитка на весь пол читается как кафель, а не как развалины.
+        /// Разнобой стоит ничего — модели уже лежат в наборе — и делает
+        /// половину работы по превращению «постройки» в «руины».
+        /// </summary>
+        /// <summary>
+        /// Только ПОЛНОРАЗМЕРНЫЕ плиты.
+        ///
+        /// Мелкие варианты набора («small») занимают четверть клетки, и
+        /// подмешанные в общий пол оставляли вокруг себя дыры в земле. Ошибка
+        /// обидная тем, что сами плитки выглядели хорошо — а рядом с ними
+        /// зияла пустота.
+        ///
+        /// Разнообразие даёт не подмена плиты, а накладка поверх неё.
+        /// </summary>
+        private static readonly string[] StoneFloors =
+        {
+            FloorStone, FloorStone, FloorStone, FloorStone,
+            "floor_tile_large_rocks",
+        };
+
+        private static readonly string[] DirtFloors =
+        {
+            FloorDirt, FloorDirt, FloorDirt,
+            "floor_dirt_large_rocky",
+        };
+
+        /// <summary>
+        /// Мелкие плиты, которые кладутся СВЕРХУ на целую: трещины, сорняки,
+        /// осыпь. Дыр не оставляют — под ними полноценный пол.
+        /// </summary>
+        private static readonly string[] FloorPatches =
+        {
+            "floor_tile_small_weeds_A",
+            "floor_tile_small_weeds_B",
+            "floor_tile_small_broken_A",
+            "floor_tile_small_broken_B",
+            "floor_tile_small_decorated",
+        };
+
+        /// <summary>Накладка для клетки. Пусто — плита остаётся чистой.</summary>
+        public static string PatchFor(int col, int row)
+        {
+            int hash = (col * 40503) ^ (row * 12289);
+            if (hash < 0) hash = -hash;
+
+            // Примерно каждая пятая клетка: сплошной ковёр из трещин читается
+            // как узор, а не как разрушение.
+            if (hash % 5 != 0) return null;
+
+            return FloorPatches[(hash / 5) % FloorPatches.Length];
+        }
+
+        /// <summary>
+        /// Плитка под клеткой. Вариант выбирается по КООРДИНАТАМ, а не
+        /// случайно в момент постройки: иначе одна и та же карта каждый раз
+        /// выглядит иначе, и сравнить два прогона невозможно.
+        /// </summary>
+        public static string FloorFor(char c, int col, int row)
+        {
+            var pool = (c == ',' || c == 'x') ? DirtFloors : StoneFloors;
+
+            // Простая перемешка координат: соседние клетки получают разные
+            // варианты, а вся карта остаётся одинаковой от сборки к сборке.
+            int hash = (col * 73856093) ^ (row * 19349663);
+            if (hash < 0) hash = -hash;
+
+            return pool[hash % pool.Length];
+        }
+
+        public static string FloorFor(char c) => FloorFor(c, 0, 0);
 
         /// <summary>Стена, если клетка — стена. Иначе пусто.</summary>
         public static string WallFor(char c)
@@ -109,6 +207,15 @@ namespace IsoRPG.EditorTools
                 case 'l': return "table_long_broken";
                 case 's': return "shelf_small_candles";
                 case 'h': return "stool";
+
+                // Жилая утварь малой комнаты. Кровать и накрытый стол делают
+                // из склада жильё: видно, что тут не только хранили, но и
+                // ночевали.
+                case 'B': return "bed_decorated";
+                case 'm': return "table_medium_tablecloth";
+                case 'C': return "chair";
+                case 'S': return "shelves";
+                case 'K': return "keg_decorated";
                 default:  return null;
             }
         }

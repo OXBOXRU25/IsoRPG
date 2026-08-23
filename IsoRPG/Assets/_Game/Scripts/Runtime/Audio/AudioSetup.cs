@@ -33,8 +33,27 @@ namespace IsoRPG.Audio
             playlist = tracks;
         }
 
+        /// <summary>
+        /// Громкость музыки, 0..1. Ноль — не пауза, а тишина: остановленный
+        /// плейлист начал бы следующий трек с начала, стоит вернуть звук.
+        /// </summary>
+        public float MusicVolume
+        {
+            get => musicVolume;
+            set
+            {
+                musicVolume = Mathf.Clamp01(value);
+                if (musicSource != null) musicSource.volume = musicVolume;
+            }
+        }
+
+        /// <summary>Единственный в сцене. Нужен окну настроек.</summary>
+        public static AudioSetup Instance { get; private set; }
+
         private void Awake()
         {
+            Instance = this;
+
             if (bank != null) Sfx.SetBank(bank);
             else Debug.LogWarning("[IsoRPG] Банк звуков не задан — игра будет беззвучной.");
 

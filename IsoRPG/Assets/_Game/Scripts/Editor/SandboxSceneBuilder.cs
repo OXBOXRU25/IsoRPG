@@ -24,13 +24,13 @@ namespace IsoRPG.EditorTools
 
         // Палитра снята с референсов Albion Online (см. PROJECT.md).
         // Принцип оттуда же: один доминирующий тон плюс контрастный акцент.
-        private static readonly Color GroundColor = new Color32(0x7C, 0x7A, 0x52, 0xFF); // приглушённая олива
+        private static readonly Color GroundColor = new Color32(0x5E, 0x7C, 0x3E, 0xFF); // трава, приглушённая
         private static readonly Color RockColor = new Color32(0x8A, 0x8F, 0x94, 0xFF);   // холодный камень
         private static readonly Color PlayerColor = new Color32(0xC4, 0x62, 0x3A, 0xFF); // тёплый акцент
         private static readonly Color MarkerColor = new Color32(0xE8, 0xC3, 0x5A, 0xFF); // отметка клика
         private static readonly Color DummyColor = new Color32(0x6E, 0x4A, 0x4A, 0xFF);  // манекен: тёплый тёмный, не путается с камнем
 
-        private const float GroundSize = 80f;
+        private const float GroundSize = 130f;
 
         [MenuItem("Tools/IsoRPG/Собрать песочницу", priority = 0)]
         public static void Build()
@@ -86,6 +86,7 @@ namespace IsoRPG.EditorTools
             GameObject marker = CreateDestinationMarker();
             GameObject player = CreatePlayer(marker);
             CreateDummies();
+            CreateBossRoom();
             CreateQuestGiver();
             CreateCamera(player.transform);
             CreateEventSystem();
@@ -214,7 +215,15 @@ namespace IsoRPG.EditorTools
         private static GameObject CreatePlayer(GameObject marker)
         {
             var player = new GameObject("Player");
-            player.transform.position = Vector3.zero;
+
+            // Центр главного зала, а не центр координат.
+            //
+            // Карта руин выросла вправо под склеп, и её середина уехала
+            // на двадцать с лишним метров: прежний ноль оказался вплотную
+            // к восточной стене. Такие координаты надо брать от планировки,
+            // а не от начала координат, иначе они врут при каждой правке
+            // карты.
+            player.transform.position = RuinsLayout.HallCentre + new Vector3(2f, 0f, -3f);
 
             // Визуал — отдельным дочерним объектом и БЕЗ коллайдера: иначе луч
             // клика попадает в самого персонажа, и он идёт сам в себя.
@@ -343,6 +352,8 @@ namespace IsoRPG.EditorTools
             // и его выбранная цель, а оба живут здесь же.
             player.AddComponent<CombatHud>();
             player.AddComponent<CombatLogHud>();
+            SetupPreview(player.AddComponent<IsoRPG.Items.CharacterPreview>());
+
             player.AddComponent<IsoRPG.Items.InventoryHud>();
             var characterHud = player.AddComponent<IsoRPG.Items.CharacterHud>();
             SetupSlotHints(characterHud);
@@ -364,6 +375,12 @@ namespace IsoRPG.EditorTools
             ApplySilhouetteLayer(player);
             player.AddComponent<IsoRPG.Audio.FootstepPlayer>();
 
+            // Уровень восстанавливает здоровье, еда лечит сидя, пробел
+            // подбрасывает. Всё на игроке: им нужны его здоровье и модель.
+            player.AddComponent<LevelUpRestore>();
+            player.AddComponent<IsoRPG.Items.FoodConsumer>();
+            player.AddComponent<JumpGesture>();
+
             // Окно добычи. На игроке, потому что ему нужны и сумка, и
             // положение персонажа: окно закрывается, когда игрок отходит.
             player.AddComponent<IsoRPG.Items.LootWindow>();
@@ -375,11 +392,53 @@ namespace IsoRPG.EditorTools
             player.AddComponent<IsoRPG.Quests.QuestTracker>();
             player.AddComponent<IsoRPG.Quests.DialogueWindow>();
 
+            // Подсказка одна на всю игру и ставится первой: остальные
+            // окна обращаются к ней при наведении.
+            player.AddComponent<IsoRPG.UI.Tooltip>();
+            player.AddComponent<IsoRPG.UI.QuestJournal>();
+
+            // Таланты: книга держит вложенное и раздаёт прибавки бою,
+            // окно только показывает. Книга первой — окно её ищет.
+            var talents = player.AddComponent<IsoRPG.Progression.TalentBook>();
+            var tree = TalentsBuilder.LoadAll();
+
+            // Пусто — значит ассетов ещё нет. Создаём сами: иначе дерево
+            // молча соберётся пустым, и виноват будет порядок пунктов меню.
+            if (tree.Count == 0)
+            {
+                TalentsBuilder.Build();
+                tree = TalentsBuilder.LoadAll();
+            }
+
+            talents.Setup(tree);
+            EditorUtility.SetDirty(talents);
+
+            player.AddComponent<IsoRPG.Progression.TalentStats>();
+            player.AddComponent<IsoRPG.UI.TalentWindow>();
+            player.AddComponent<IsoRPG.UI.SettingsWindow>();
+
+            SetupHudBar(player.AddComponent<IsoRPG.UI.HudBar>());
+
             // Полоска над головой у игрока тоже. Панель вверху экрана
             // отвечает на вопрос «сколько у меня осталось», а полоска над
             // персонажем — на другой: «попали по мне только что или нет».
             // В бою взгляд держится на персонаже, а не на углу экрана.
             player.AddComponent<OverheadHealthBar>();
+
+            // Смерть и возвращение. Возрождатель тот же, что у монстров, но
+            // по команде: игрок встаёт кнопкой, а не сам через полминуты.
+            var playerRespawn = player.AddComponent<Respawner>();
+            playerRespawn.SetManualOnly(true);
+            EditorUtility.SetDirty(playerRespawn);
+
+            // Импорт настраиваем до загрузки: текстура, не размеченная как
+            // спрайт, не находится по пути — молча, без единой ошибки.
+            IconBinder.PrepareSprites("Assets/_Game/Art/UI");
+
+            var deathScreen = player.AddComponent<IsoRPG.UI.DeathScreen>();
+            deathScreen.SetupArt(AssetDatabase.LoadAssetAtPath<Sprite>(
+                "Assets/_Game/Art/UI/DeathScreen.png"));
+            EditorUtility.SetDirty(deathScreen);
 
             return player;
         }
@@ -423,6 +482,14 @@ namespace IsoRPG.EditorTools
                  "Skeleton_Axe", "Skeleton_Shield_Large_A", false),
 
                 (new Vector3( 16f, 0f,  -8f), "Костяной лучник",    70, 2, 20, "LT_Drifter", "Skeleton_Rogue",
+                 "bow_withString", null, true),
+
+                // Свита в склепе. Стоят по бокам от владыки: игрок входит и
+                // сразу видит троих, а не открывает их по одному.
+                (RuinsLayout.CryptCentre + new Vector3(-6f, 0f, -4f), "Страж склепа",      130, 3, 50, "LT_Thug",    "Skeleton_Warrior",
+                 "Skeleton_Axe", "Skeleton_Shield_Large_B", false),
+
+                (RuinsLayout.CryptCentre + new Vector3( 6f, 0f, -4f), "Лучник склепа",      85, 3, 25, "LT_Drifter", "Skeleton_Rogue",
                  "bow_withString", null, true),
             };
 
@@ -570,6 +637,11 @@ namespace IsoRPG.EditorTools
                 (IsoRPG.Items.EquipSlot.MainHand, "Slot_MainHand"),
                 (IsoRPG.Items.EquipSlot.OffHand, "Slot_OffHand"),
                 (IsoRPG.Items.EquipSlot.Ring, "Slot_Ring"),
+
+                // Второе кольцо носит тот же силуэт: это тот же слот по сути,
+                // и рисовать «кольцо номер два» было бы странно.
+                (IsoRPG.Items.EquipSlot.Ring2, "Slot_Ring"),
+                (IsoRPG.Items.EquipSlot.Necklace, "Slot_Necklace"),
             };
 
             foreach (var (slot, file) in pairs)
@@ -584,6 +656,218 @@ namespace IsoRPG.EditorTools
             }
 
             EditorUtility.SetDirty(hud);
+        }
+
+        /// <summary>
+        /// Иконки кнопок нижнего ряда. Не найденная иконка не ломает ряд:
+        /// кнопка останется квадратом и продолжит открывать своё окно.
+        /// </summary>
+        private static void SetupHudBar(IsoRPG.UI.HudBar bar)
+        {
+            // Импорт настраивается до загрузки: текстура, не размеченная
+            // как спрайт, не находится по пути — молча, без единой ошибки.
+            IconBinder.PrepareSprites("Assets/_Game/Art/UI/Icons/Buttons");
+
+            bar.SetupIcons(
+                LoadButtonIcon("UI_Bag"),
+                LoadButtonIcon("UI_Character"),
+                LoadButtonIcon("UI_Journal"),
+                LoadButtonIcon("UI_Talents"),
+                LoadButtonIcon("UI_Settings"));
+
+            EditorUtility.SetDirty(bar);
+        }
+
+        private static Sprite LoadButtonIcon(string fileName)
+        {
+            string path = "Assets/_Game/Art/UI/Icons/Buttons/" + fileName + ".png";
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+
+            if (sprite == null) Debug.LogWarning("[IsoRPG] Нет иконки кнопки " + path);
+
+            return sprite;
+        }
+
+        /// <summary>
+        /// Витрине нужны те же модель и контроллер, что и герою: она
+        /// показывает его самого, а не похожего персонажа.
+        /// </summary>
+        private static void SetupPreview(IsoRPG.Items.CharacterPreview preview)
+        {
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/_Game/Prefabs/Player.prefab");
+
+            var controller = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
+                "Assets/_Game/Art/KayKit/Controllers/AC_Rogue.controller");
+
+            if (model == null)
+            {
+                Debug.LogWarning("[IsoRPG] Нет Player.prefab — окно снаряжения будет без модели.");
+                return;
+            }
+
+            preview.Setup(model, controller);
+            EditorUtility.SetDirty(preview);
+        }
+
+        /// <summary>
+        /// Костяной владыка и его сундук.
+        ///
+        /// Отдельно от прочих монстров, потому что отличается не числами, а
+        /// устройством: своя таблица добычи, гарантированный ключ, магическая
+        /// атака вместо удара. Затолкать это в общий список кортежей значило
+        /// бы завести в нём пять полей ради одного существа.
+        ///
+        /// Баланс задуман так: игрок первого уровня с ржавым кинжалом сюда
+        /// приходит и умирает — и это правильный ответ игры. Пройденный квест
+        /// даёт Клык Тени и уровень, и с ними бой становится трудным, но
+        /// выигрышным. Никаких запретов и невидимых стен: только числа.
+        /// </summary>
+        private static void CreateBossRoom()
+        {
+            var root = GameObject.Find("Monsters");
+            if (root == null) root = new GameObject("Monsters");
+
+            CreateBoss(root.transform, GetOrCreateMaterial("M_Dummy", DummyColor, smoothness: 0.1f));
+        }
+
+        private static void CreateBoss(Transform root, Material material)
+        {
+            var at = RuinsLayout.CryptCentre;
+
+            var boss = new GameObject("Костяной владыка");
+            boss.transform.SetParent(root);
+            boss.transform.position = at;
+
+            CreateMonsterVisual(boss.transform, "Skeleton_Mage", material);
+
+            var body = boss.AddComponent<CapsuleCollider>();
+            body.center = Vector3.up;
+            body.height = 2f;
+            body.radius = 0.5f;
+
+            var targetable = boss.AddComponent<Targetable>();
+            targetable.Setup("Костяной владыка", Faction.Hostile);
+            targetable.SetPortrait(PortraitRenderer.Load("Skeleton_Mage"));
+            EditorUtility.SetDirty(targetable);
+
+            var health = boss.AddComponent<Health>();
+            health.Setup(420);
+            EditorUtility.SetDirty(health);
+
+            var defense = boss.AddComponent<DefenseStats>();
+            defense.Setup(4, 60);
+            EditorUtility.SetDirty(defense);
+
+            var agent = boss.AddComponent<NavMeshAgent>();
+            agent.speed = 2.6f;
+            agent.angularSpeed = 520f;
+            agent.acceleration = 30f;
+            agent.stoppingDistance = 0.1f;
+            agent.radius = 0.4f;
+
+            var selector = boss.AddComponent<TargetSelector>();
+            selector.SetFaction(Faction.Hostile);
+
+            // Бьёт заклинанием: посох в руках без магии читается как дубина,
+            // которой почему-то машут издалека.
+            var caster = boss.AddComponent<RangedCombatant>();
+            caster.Setup(SpellBoltBuilder.Load());
+            EditorUtility.SetDirty(caster);
+
+            boss.AddComponent<MonsterBrain>();
+            boss.AddComponent<CharacterAnimatorDriver>();
+
+            var arms = boss.AddComponent<HandAttachments>();
+            arms.Setup(LoadWeapon("Skeleton_Staff"), null);
+            EditorUtility.SetDirty(arms);
+
+            var loot = boss.AddComponent<IsoRPG.Items.LootSource>();
+            loot.Setup(ItemsBuilder.LoadTable("LT_Thug"));
+
+            // Ключ падает наверняка и только раз: он не награда, а следующий
+            // шаг. Второй такой же ключ не открыл бы ничего.
+            loot.SetupUnique(ItemsBuilder.LoadItem("I_CryptKey"),
+                             "С пояса владыки свалился тяжёлый ключ.");
+
+            loot.SetupModels(
+                LoadDungeonModel("box_small"),
+                AssetDatabase.LoadAssetAtPath<Material>(
+                    "Assets/_Game/Art/Materials/M_Silhouette_Ally.mat"));
+            EditorUtility.SetDirty(loot);
+
+            boss.AddComponent<DeathHandler>();
+            boss.AddComponent<StunReceiver>();
+            boss.AddComponent<OverheadHealthBar>();
+
+            var respawn = boss.AddComponent<Respawner>();
+            EditorUtility.SetDirty(respawn);
+
+            ApplySilhouetteLayer(boss);
+
+            CreateChest(root, RuinsLayout.CryptCentre + new Vector3(0f, 0f, 6f));
+        }
+
+        /// <summary>Сундук в глубине склепа. Заперт ключом с владыки.</summary>
+        private static void CreateChest(Transform root, Vector3 at)
+        {
+            var model = LoadDungeonModel("chest_gold");
+
+            var chest = model != null
+                ? (GameObject)PrefabUtility.InstantiatePrefab(model)
+                : GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+            chest.name = "Сундук владыки";
+            chest.transform.SetParent(root);
+            chest.transform.position = at;
+            chest.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+
+            // Коллайдер на корне: по нему кликают. Модель набора своего не
+            // несёт, а без него сундук нельзя ни выбрать, ни открыть.
+            var box = chest.AddComponent<BoxCollider>();
+            box.center = new Vector3(0f, 0.35f, 0f);
+            box.size = new Vector3(1.1f, 0.8f, 0.8f);
+
+            var loot = chest.AddComponent<IsoRPG.Items.LootSource>();
+            loot.Setup(ItemsBuilder.LoadTable("LT_Chest"));
+            loot.SetupUnique(ItemsBuilder.LoadItem("I_RingOfTheBoneLord"),
+                             "В сундуке лежит перстень с фиолетовым камнем.");
+            loot.SetupModels(
+                LoadDungeonModel("box_small"),
+                AssetDatabase.LoadAssetAtPath<Material>(
+                    "Assets/_Game/Art/Materials/M_Silhouette_Ally.mat"));
+            EditorUtility.SetDirty(loot);
+
+            // Россыпь монет вокруг: подсказка «тут награда» ещё до того, как
+            // игрок разглядит знак над крышкой. Небрежно, врассыпную — ровный
+            // круг читался бы как выложенный кем-то узор.
+            var coins = new[] { "coin_stack_small", "coin_stack_medium", "coin" };
+
+            for (int i = 0; i < 5; i++)
+            {
+                var coinModel = LoadDungeonModel(coins[i % coins.Length]);
+                if (coinModel == null) break;
+
+                float angle = 40f + i * 62f;
+                float radius = 0.9f + (i % 3) * 0.35f;
+
+                var spot = at + Quaternion.Euler(0f, angle, 0f) * Vector3.forward * radius;
+
+                var coin = (GameObject)PrefabUtility.InstantiatePrefab(coinModel);
+                coin.transform.SetParent(root);
+                coin.transform.position = spot;
+                coin.transform.rotation = Quaternion.Euler(0f, angle * 2.3f, 0f);
+            }
+
+            var lock2 = chest.AddComponent<IsoRPG.Items.TreasureChest>();
+            lock2.Setup(ItemsBuilder.LoadItem("I_CryptKey"));
+            EditorUtility.SetDirty(lock2);
+
+            // Знак появляется, только когда ключ уже в сумке: до этого он был
+            // бы подсказкой к загадке, которую игра ещё не задала.
+            var mark = chest.AddComponent<IsoRPG.Items.ChestMarker>();
+            mark.Setup(ItemsBuilder.LoadItem("I_CryptKey"));
+            EditorUtility.SetDirty(mark);
         }
 
         /// <summary>Модель из набора подземелья: кучки золота, мешочки.</summary>
@@ -632,7 +916,9 @@ namespace IsoRPG.EditorTools
             }
 
             var go = new GameObject("Старый оружейник");
-            go.transform.position = new Vector3(-3.5f, 0f, 3.5f);
+            // В стороне от места появления игрока, но в том же зале:
+            // заказчик должен попадаться на глаза, а не искаться.
+            go.transform.position = RuinsLayout.HallCentre + new Vector3(-6f, 0f, 4f);
 
             // Модель мирного человека, а не скелета: заказчик должен
             // отличаться от того, кого он просит убивать.

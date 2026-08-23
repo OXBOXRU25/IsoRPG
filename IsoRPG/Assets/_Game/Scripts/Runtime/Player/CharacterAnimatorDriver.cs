@@ -20,6 +20,8 @@ namespace IsoRPG.Player
         private static readonly int AttackHash = Animator.StringToHash("Attack");
         private static readonly int StealthKillHash = Animator.StringToHash("StealthKill");
         private static readonly int DeadHash = Animator.StringToHash("Dead");
+        private static readonly int EatingHash = Animator.StringToHash("Eating");
+        private static readonly int JumpHash = Animator.StringToHash("Jump");
 
         [Tooltip("Аниматор персонажа. Обычно на дочерней модели.")]
         [SerializeField] private Animator animator;
@@ -101,6 +103,18 @@ namespace IsoRPG.Player
         public void SetDead(bool dead)
         {
             if (animator != null) animator.SetBool(DeadHash, dead);
+        }
+
+        /// <summary>Прыжок. Разовый сигнал: состояние само возвращается в движение.</summary>
+        public void PlayJump()
+        {
+            if (animator != null) animator.SetTrigger(JumpHash);
+        }
+
+        /// <summary>Еда: персонаж садится на землю и встаёт, когда закончил.</summary>
+        public void SetEating(bool eating)
+        {
+            if (animator != null) animator.SetBool(EatingHash, eating);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace IsoRPG.Quests
     /// которое игра предлагает игроку словами, а не кликом по врагу; без него
     /// квест выдавался бы автоматически и перестал быть согласием на сделку.
     /// </summary>
-    public sealed class DialogueWindow : MonoBehaviour
+    public sealed class DialogueWindow : MonoBehaviour, IsoRPG.UI.IHudWindow
     {
         private static readonly Color PanelColor = new Color32(0x1C, 0x1A, 0x16, 0xE0);
         private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0x8A);
@@ -45,8 +45,8 @@ namespace IsoRPG.Quests
         {
             if (!IsOpen) return;
 
-            var keyboard = Keyboard.current;
-            if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame) Close();
+            // Esc обрабатывает SettingsWindow за всех: шесть независимых
+            // обработчиков в одном кадре спорили за одно нажатие.
 
             // Отошёл от собеседника — разговор кончился. Иначе окно висит
             // через полкарты, и сдать квест можно было бы издалека.

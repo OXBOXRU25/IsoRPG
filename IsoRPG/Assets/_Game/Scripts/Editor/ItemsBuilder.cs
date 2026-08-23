@@ -117,6 +117,95 @@ namespace IsoRPG.EditorTools
                 item.vendorPrice = 1;
             });
 
+            var necklace = CreateItem("I_BoneNecklace", item =>
+            {
+                item.displayName = "Костяной амулет";
+                item.description = "Кость, шнур и чья-то вера, что это помогает.";
+                item.rarity = ItemRarity.Uncommon;
+                item.iconColor = new Color32(0xC8, 0xBE, 0xA0, 0xFF);
+                item.slot = EquipSlot.Necklace;
+                item.stamina = 4;
+                item.vendorPrice = 18;
+            });
+
+            var cloak = CreateItem("I_WornCloak", item =>
+            {
+                item.displayName = "Потёртый плащ";
+                item.description = "Греет хуже, чем прячет.";
+                item.rarity = ItemRarity.Common;
+                item.iconColor = new Color32(0x5A, 0x4A, 0x62, 0xFF);
+                item.slot = EquipSlot.Cloak;
+                item.armor = 4;
+                item.agility = 2;
+                item.vendorPrice = 12;
+            });
+
+            var signet = CreateItem("I_ThiefSignet", item =>
+            {
+                item.displayName = "Воровская печатка";
+                item.description = "Печать цела, а вот дом, где ей пользовались, — нет.";
+                item.rarity = ItemRarity.Uncommon;
+                item.iconColor = new Color32(0xC8, 0xA8, 0x5A, 0xFF);
+                item.slot = EquipSlot.Ring;
+                item.agility = 3;
+                item.vendorPrice = 22;
+            });
+
+            var dart = CreateItem("I_Dart", item =>
+            {
+                item.displayName = "Метательный дротик";
+                item.description = "Летит недалеко, зато тихо.";
+                item.rarity = ItemRarity.Common;
+                item.iconColor = new Color32(0x8A, 0x8A, 0x94, 0xFF);
+                item.slot = EquipSlot.Ranged;
+                item.agility = 1;
+                item.vendorPrice = 6;
+            });
+
+            var cryptKey = CreateItem("I_CryptKey", item =>
+            {
+                item.displayName = "Ключ от склепа";
+                item.description = "Тяжелее, чем должен быть. Череп на головке смотрит вбок.";
+                item.rarity = ItemRarity.Rare;
+                item.iconColor = new Color32(0x8A, 0x84, 0x70, 0xFF);
+                item.slot = EquipSlot.None;
+                item.stackable = false;
+                item.vendorPrice = 0;
+            });
+
+            // Награда за босса. Единственная эпическая вещь, которую нельзя
+            // выбить удачей: она падает раз и только с него.
+            var bossRing = CreateItem("I_RingOfTheBoneLord", item =>
+            {
+                item.displayName = "Печать Костяного владыки";
+                item.description = "Камень до сих пор тёплый. Это не к добру.";
+                item.rarity = ItemRarity.Epic;
+                item.iconColor = new Color32(0x9A, 0x4C, 0xC8, 0xFF);
+                item.slot = EquipSlot.Ring;
+                item.requiredLevel = 3;
+                item.agility = 6;
+                item.stamina = 5;
+                item.armor = 3;
+                item.vendorPrice = 240;
+            });
+
+            var apple = CreateItem("I_Apple", item =>
+            {
+                item.displayName = "Спелое красное яблоко";
+                item.description = "Кто-то нёс его домой и не дошёл.";
+                item.rarity = ItemRarity.Common;
+                item.iconColor = new Color32(0xC8, 0x3A, 0x32, 0xFF);
+                item.slot = EquipSlot.None;
+                item.stackable = true;
+                item.maxStack = 20;
+                item.vendorPrice = 1;
+
+                // Лечит много, но долго и только в покое: это отдых
+                // между схватками, а не глоток посреди боя.
+                item.healAmount = 60;
+                item.healDuration = 18f;
+            });
+
             var epicDagger = CreateItem("I_ShadowfangDagger", item =>
             {
                 item.displayName = "Клык Тени";
@@ -177,6 +266,22 @@ namespace IsoRPG.EditorTools
                     Entry(skeletonBone, 0.7f, 1, 2),
                     Entry(buckle, 0.35f, 1, 2),
                     Entry(leatherChest, 0.1f, 1, 1),
+                };
+            });
+
+            // Сундук владыки. Золота много, вещей мало: главная награда в
+            // нём и так лежит гарантированно, а мусор рядом с эпической
+            // вещью обесценивает сам момент открытия.
+            CreateLoot("LT_Chest", table =>
+            {
+                table.minGold = 120;
+                table.maxGold = 260;
+                table.goldChance = 1f;
+                table.entries = new[]
+                {
+                    Entry(apple, 0.8f, 2, 4),
+                    Entry(signet, 0.35f, 1, 1),
+                    Entry(necklace, 0.3f, 1, 1),
                 };
             });
 
@@ -258,26 +363,44 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static int FillMissingLootEntries()
         {
-            var bone = LoadItem("I_SkeletonBone");
-
-            if (bone == null)
-            {
-                Debug.LogWarning("[IsoRPG] Нет предмета I_SkeletonBone — кости не добавлены в таблицы.");
-                return 0;
-            }
-
+            // Сборщик не переписывает готовые таблицы — правки Павла в них
+            // должны переживать пересборку. Поэтому новый предмет попадает в
+            // добычу только здесь, дозаполнением недостающего.
+            //
             // Шансы разные: с крупного скелета костей больше, чем с мелкого.
-            var wanted = new (string table, float chance, int min, int max)[]
+            // Яблоки падают часто и помалу — это расходник, а не награда.
+            var wanted = new (string item, string table, float chance, int min, int max)[]
             {
-                ("LT_Bandit",  0.65f, 1, 2),
-                ("LT_Thug",    0.80f, 1, 3),
-                ("LT_Drifter", 0.70f, 1, 2),
+                ("I_SkeletonBone", "LT_Bandit",  0.65f, 1, 2),
+                ("I_SkeletonBone", "LT_Thug",    0.80f, 1, 3),
+                ("I_SkeletonBone", "LT_Drifter", 0.70f, 1, 2),
+                ("I_Apple",        "LT_Bandit",  0.40f, 1, 2),
+                ("I_Apple",        "LT_Thug",    0.45f, 1, 3),
+                ("I_Apple",        "LT_Drifter", 0.50f, 1, 2),
+
+                // Снаряжение падает редко: вещь, которая выпадает каждый бой,
+                // перестаёт быть находкой уже к третьему разу.
+                ("I_Dart",         "LT_Bandit",  0.22f, 1, 3),
+                ("I_Dart",         "LT_Drifter", 0.18f, 1, 2),
+                ("I_WornCloak",    "LT_Bandit",  0.10f, 1, 1),
+                ("I_WornCloak",    "LT_Thug",    0.12f, 1, 1),
+                ("I_ThiefSignet",  "LT_Thug",    0.07f, 1, 1),
+                ("I_ThiefSignet",  "LT_Drifter", 0.05f, 1, 1),
+                ("I_BoneNecklace", "LT_Thug",    0.06f, 1, 1),
             };
 
             int filled = 0;
 
-            foreach (var (name, chance, min, max) in wanted)
+            foreach (var (itemName, name, chance, min, max) in wanted)
             {
+                var bone = LoadItem(itemName);
+
+                if (bone == null)
+                {
+                    Debug.LogWarning("[IsoRPG] Нет предмета " + itemName + " — в таблицы не добавлен.");
+                    continue;
+                }
+
                 var table = LoadTable(name);
                 if (table == null) continue;
 

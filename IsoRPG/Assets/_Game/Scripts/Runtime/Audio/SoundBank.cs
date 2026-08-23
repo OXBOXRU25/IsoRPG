@@ -38,6 +38,9 @@ namespace IsoRPG.Audio
         public AudioClip[] pickup;
         public AudioClip[] equip;
 
+        [Tooltip("Жевание. Длинный звук: играется своим источником, а не пулом.")]
+        public AudioClip[] chewing;
+
         [Header("Интерфейс")]
         public AudioClip[] openWindow;
         public AudioClip[] closeWindow;

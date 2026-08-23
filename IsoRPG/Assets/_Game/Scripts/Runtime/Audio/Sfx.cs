@@ -29,6 +29,19 @@ namespace IsoRPG.Audio
 
         public static SoundBank Bank => bank;
 
+        /// <summary>
+        /// Общая громкость эффектов, 0..1. Множитель, а не подмена: у каждого
+        /// звука своя громкость в месте вызова, и настройка игрока обязана
+        /// сохранять их соотношение, иначе тихие звуки исчезнут раньше громких.
+        /// </summary>
+        public static float MasterVolume
+        {
+            get => masterVolume;
+            set => masterVolume = Mathf.Clamp01(value);
+        }
+
+        private static float masterVolume = 1f;
+
         // --- Короткие вызовы под каждое событие --------------------------
         // Отдельные методы, а не один с перечислением: так место вызова
         // читается вслух («здесь играет удар клинком»), и опечатка в имени
@@ -48,7 +61,7 @@ namespace IsoRPG.Audio
         public static void CloseWindow() => Play2D(bank?.closeWindow);
         // Тише прочего: повышение уровня и так заметно полоской и записью
         // в логе, звук тут — подтверждение, а не объявление о победе.
-        public static void LevelUp() => Play2D(bank?.levelUp, 0.35f);
+        public static void LevelUp() => Play2D(bank?.levelUp, 0.85f);
 
         // ------------------------------------------------------------------
 
@@ -61,7 +74,7 @@ namespace IsoRPG.Audio
             var source = Ensure().Take();
             source.transform.position = at;
             source.spatialBlend = 1f;   // объёмный: слышно, откуда
-            source.volume = volume;
+            source.volume = volume * masterVolume;
             source.pitch = RandomPitch(pitchSpread);
             source.clip = clip;
             source.Play();
@@ -96,7 +109,7 @@ namespace IsoRPG.Audio
             var source = Ensure().Take();
             source.transform.localPosition = Vector3.zero;
             source.spatialBlend = 0f;
-            source.volume = volume;
+            source.volume = volume * masterVolume;
 
             // Интерфейс и джинглы тоном не гуляют: там ожидается один и тот
             // же отклик, а разброс читался бы как расстроенный инструмент.

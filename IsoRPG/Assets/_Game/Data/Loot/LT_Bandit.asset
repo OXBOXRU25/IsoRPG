@@ -36,3 +36,15 @@ MonoBehaviour:
     chance: 0.65
     minCount: 1
     maxCount: 2
+  - item: {fileID: 11400000, guid: 838b415bfa4346c4d9130b0e7bfe5b58, type: 2}
+    chance: 0.4
+    minCount: 1
+    maxCount: 2
+  - item: {fileID: 11400000, guid: 1ed3a7ffcca3ee241b2927d391ed6ca1, type: 2}
+    chance: 0.22
+    minCount: 1
+    maxCount: 3
+  - item: {fileID: 11400000, guid: d602207ecc01977479d32402f38aec01, type: 2}
+    chance: 0.1
+    minCount: 1
+    maxCount: 1

@@ -24,6 +24,14 @@ namespace IsoRPG.Combat
         [Tooltip("Ждать ли, пока труп обыщут. Иначе добыча пропадёт вместе с телом.")]
         [SerializeField] private bool waitForLooting = true;
 
+        [Tooltip("Только по команде: игрок встаёт по кнопке, а не сам через полминуты.")]
+        [SerializeField] private bool manualOnly = false;
+
+        /// <summary>Возрождение по кнопке, а не по таймеру. Для игрока.</summary>
+        public void SetManualOnly(bool value) => manualOnly = value;
+
+        public bool IsDead => dead;
+
         private Health health;
         private DeathHandler death;
         private LootSource loot;
@@ -71,6 +79,7 @@ namespace IsoRPG.Combat
 
         private void Update()
         {
+            if (manualOnly) return;
             if (!dead || Time.time < reviveTime) return;
 
             // Пока на трупе висит добыча — не поднимаем: иначе она исчезнет

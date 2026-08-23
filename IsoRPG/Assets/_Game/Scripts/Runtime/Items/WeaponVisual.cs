@@ -22,6 +22,24 @@ namespace IsoRPG.Items
 
         [SerializeField] private Equipment equipment;
 
+        /// <summary>
+        /// Слой, на который класть созданное оружие. Нужен витрине в окне
+        /// снаряжения: её модель живёт на своём слое, и кинжал, оставшийся
+        /// на слое по умолчанию, попал бы в кадр основной камеры — висящим
+        /// в воздухе далеко под картой.
+        /// </summary>
+        private int forcedLayer = -1;
+
+        /// <summary>
+        /// Показывать чужую экипировку. Копии героя в окне отдают ту же
+        /// самую — поэтому синхронизировать нечего: источник один.
+        /// </summary>
+        public void Setup(Equipment source, int layer = -1)
+        {
+            equipment = source;
+            forcedLayer = layer;
+        }
+
         private Transform rightSlot;
         private Transform leftSlot;
         private GameObject rightModel;
@@ -88,6 +106,10 @@ namespace IsoRPG.Items
             // ошибки, что был с коллайдером самого игрока.
             foreach (var collider in current.GetComponentsInChildren<Collider>())
                 Destroy(collider);
+
+            if (forcedLayer >= 0)
+                foreach (var child in current.GetComponentsInChildren<Transform>(true))
+                    child.gameObject.layer = forcedLayer;
         }
 
         /// <summary>

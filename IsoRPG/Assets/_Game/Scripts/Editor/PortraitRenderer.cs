@@ -31,7 +31,10 @@ namespace IsoRPG.EditorTools
             "Skeleton_Warrior", "Skeleton_Rogue", "Skeleton_Minion", "Skeleton_Mage",
         };
 
-        [MenuItem("Tools/IsoRPG/Снять портреты", priority = 18)]
+        // Пункт меню убран намеренно. Портреты теперь рисованные, лежат в той
+        // же папке под теми же именами, и один случайный вызов затирал бы их
+        // рендерами моделей без всякого предупреждения. Метод оставлен: он
+        // пригодится, когда персонажей станет больше, чем рисунков.
         public static void RenderAll()
         {
             if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)

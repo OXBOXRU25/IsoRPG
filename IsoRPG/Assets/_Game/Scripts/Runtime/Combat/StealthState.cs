@@ -92,7 +92,20 @@ namespace IsoRPG.Combat
             stealthed = true;
             readyTime = Time.time + cooldown;
 
-            if (agent != null) agent.speed = normalSpeed * moveSpeedFactor;
+            if (agent != null)
+            {
+                // Талант маскировки возвращает часть отнятой скорости, но не
+                // больше обычной: скрытность, в которой бегут быстрее, чем в
+                // открытую, ломает саму мысль о выборе.
+                var book = GetComponent<IsoRPG.Progression.TalentBook>();
+
+                float factor = moveSpeedFactor;
+                if (book != null)
+                    factor = Mathf.Min(1f, factor +
+                        book.Bonus(IsoRPG.Progression.TalentEffect.StealthSpeed));
+
+                agent.speed = normalSpeed * factor;
+            }
 
             ApplyVisual(true);
             StealthChanged?.Invoke(true);

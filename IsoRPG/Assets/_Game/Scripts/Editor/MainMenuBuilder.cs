@@ -57,7 +57,11 @@ namespace IsoRPG.EditorTools
             menu.SetGameScene(Path.GetFileNameWithoutExtension(GameScenePath));
 
             BuildBackground(root);
-            BuildTitle(root);
+
+            // Название набирается текстом, только если картинки нет:
+            // на самом лого оно уже написано, и дубль под ним читался бы
+            // как недоделка.
+            if (!BuildLogo(root)) BuildTitle(root);
             BuildButtons(root, menu);
             BuildCredits(root);
 
@@ -176,17 +180,53 @@ namespace IsoRPG.EditorTools
             shade.GetComponent<Image>().color = new Color(0.02f, 0.02f, 0.04f, 0.45f);
         }
 
+        /// <summary>
+        /// Эмблема над названием. Пусто — меню обходится без неё.
+        ///
+        /// Название набирается шрифтом, а не рисуется на картинке: кириллицу
+        /// генераторы изображений выводят с ошибками в буквах, и заметить их
+        /// проще всего именно в крупном заголовке. Текстом же его можно
+        /// поправить в любой момент, не перерисовывая ничего.
+        /// </summary>
+        private static bool BuildLogo(RectTransform root)
+        {
+            IconBinder.PrepareSprites("Assets/_Game/Art/UI");
+
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Game/Art/UI/Logo.png");
+            if (sprite == null) return false;
+
+            var go = new GameObject("Logo", typeof(Image));
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(root, false);
+            rect.anchorMin = new Vector2(0.5f, 1f);
+            rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -46f);
+
+            // Пропорции держит preserveAspect, поэтому задаём рамку, а не
+            // точный размер картинки: лого можно перерисовать, и меню не
+            // придётся править.
+            rect.sizeDelta = new Vector2(760f, 530f);
+
+            var image = go.GetComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+
+            return true;
+        }
+
         private static void BuildTitle(RectTransform root)
         {
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            var title = MakeText(root, "Title", "ПТИЦА ВЫСОКОГО ПОЛЁТА", 64, TitleColor, font);
+            var title = MakeText(root, "Title", "ПРИКЛЮЧЕНИЯ РАЗБОЙНИКА ЖЕНИ", 54, TitleColor, font);
             var titleRect = (RectTransform)title.transform;
             titleRect.anchorMin = new Vector2(0.5f, 1f);
             titleRect.anchorMax = new Vector2(0.5f, 1f);
             titleRect.pivot = new Vector2(0.5f, 1f);
-            titleRect.anchoredPosition = new Vector2(0f, -110f);
-            titleRect.sizeDelta = new Vector2(1200f, 80f);
+            titleRect.anchoredPosition = new Vector2(0f, -282f);
+            titleRect.sizeDelta = new Vector2(1400f, 72f);
             title.alignment = TextAnchor.MiddleCenter;
             title.fontStyle = FontStyle.Bold;
 
@@ -196,12 +236,12 @@ namespace IsoRPG.EditorTools
             shadow.effectColor = new Color(0f, 0f, 0f, 0.85f);
             shadow.effectDistance = new Vector2(3f, -3f);
 
-            var subtitle = MakeText(root, "Subtitle", "путь героя начинается", 22, SubtitleColor, font);
+            var subtitle = MakeText(root, "Subtitle", "птицы высокого полёта", 26, SubtitleColor, font);
             var subRect = (RectTransform)subtitle.transform;
             subRect.anchorMin = new Vector2(0.5f, 1f);
             subRect.anchorMax = new Vector2(0.5f, 1f);
             subRect.pivot = new Vector2(0.5f, 1f);
-            subRect.anchoredPosition = new Vector2(0f, -196f);
+            subRect.anchoredPosition = new Vector2(0f, -356f);
             subRect.sizeDelta = new Vector2(800f, 30f);
             subtitle.alignment = TextAnchor.MiddleCenter;
 

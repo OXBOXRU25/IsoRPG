@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 298e8662f91282e4b8286aa2997a887e, type: 3}
+  m_Name: I_BoneNecklace
+  m_EditorClassIdentifier: Assembly-CSharp::IsoRPG.Items.ItemDefinition
+  displayName: "\u041A\u043E\u0441\u0442\u044F\u043D\u043E\u0439 \u0430\u043C\u0443\u043B\u0435\u0442"
+  description: "\u041A\u043E\u0441\u0442\u044C, \u0448\u043D\u0443\u0440 \u0438 \u0447\u044C\u044F-\u0442\u043E
+    \u0432\u0435\u0440\u0430, \u0447\u0442\u043E \u044D\u0442\u043E \u043F\u043E\u043C\u043E\u0433\u0430\u0435\u0442."
+  rarity: 2
+  icon: {fileID: 0}
+  iconColor: {r: 0.78431374, g: 0.74509805, b: 0.627451, a: 1}
+  slot: 10
+  requiredLevel: 1
+  stackable: 0
+  maxStack: 20
+  weaponDamage: 0
+  dualWieldable: 0
+  attackInterval: 1.4
+  armor: 0
+  strength: 0
+  agility: 0
+  stamina: 4
+  healAmount: 0
+  healDuration: 0
+  worldModel: {fileID: 0}
+  vendorPrice: 18

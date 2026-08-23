@@ -34,6 +34,16 @@ namespace IsoRPG.Player
         private Inventory inventory;
         private Camera cam;
 
+        /// <summary>
+        /// Нажатие пришлось на объект: мешок, собеседника, врага.
+        ///
+        /// Без этого зажатая кнопка над мешком читалась как приказ идти
+        /// в точку под курсором. Мешок за стеной давал самое обидное:
+        /// окно открывалось, а персонаж убегал в обход препятствия —
+        /// со стороны выглядело так, будто он убегает ОТ добычи.
+        /// </summary>
+        private bool pressConsumed;
+
         private void Awake()
         {
             targets = GetComponent<TargetSelector>();
@@ -53,7 +63,11 @@ namespace IsoRPG.Player
             bool pressed = mouse.leftButton.wasPressedThisFrame;
             bool held = mouse.leftButton.isPressed;
 
+            if (!held) pressConsumed = false;
             if (!pressed && !held) return;
+
+            // Тащить персонажа может только нажатие, начавшееся на земле.
+            if (!pressed && pressConsumed) return;
 
             // Клик по окну интерфейса не должен уходить в игру: иначе
             // нажатие на ячейку сумки заодно отправляет персонажа бежать
@@ -69,7 +83,11 @@ namespace IsoRPG.Player
 
             // Выбор цели — только по свежему нажатию. Иначе, ведя зажатой
             // кнопкой мимо монстра, игрок случайно перебирает цели.
-            if (pressed && TryPickTarget(screen)) return;
+            if (pressed && TryPickTarget(screen))
+            {
+                pressConsumed = true;
+                return;
+            }
 
             if (movement == null) return;
             if (!pressed && !movement.FollowWhileHeld) return;
@@ -165,9 +183,38 @@ namespace IsoRPG.Player
                     return true;
                 }
 
+                // Сундук раньше мешка: мешок с его добычей ляжет рядом, и
+                // повторный клик должен попадать в мешок, а не в открытый
+                // сундук — но только после того, как сундук открыт.
+                var chest = hit.collider.GetComponentInParent<IsoRPG.Items.TreasureChest>();
+                if (chest != null && !chest.IsOpen)
+                {
+                    float toChest = Vector3.Distance(transform.position, chest.transform.position);
+
+                    if (toChest > chest.Reach)
+                    {
+                        if (movement != null) movement.MoveTo(chest.transform.position);
+                        return true;
+                    }
+
+                    chest.TryOpen(gameObject);
+                    return true;
+                }
+
                 var bag = hit.collider.GetComponentInParent<LootDrop>();
                 if (bag != null)
                 {
+                    float toBag = Vector3.Distance(transform.position, bag.transform.position);
+
+                    // Далеко — подходим, а окно оставляем закрытым: до
+                    // мешка за стеной ещё идти, и показывать его содержимое
+                    // раньше времени — обещание, которого мы не держим.
+                    if (toBag > lootRange)
+                    {
+                        if (movement != null) movement.MoveTo(bag.transform.position);
+                        return true;
+                    }
+
                     if (lootWindow != null) lootWindow.Open(bag);
                     return true;
                 }

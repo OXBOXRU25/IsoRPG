@@ -35,6 +35,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: c5c84946ddbedb74ab1c89cd903af8f5, type: 3}
   equip:
   - {fileID: 8300000, guid: 3caa40f37ad92114d94fcd69ed7277f0, type: 3}
+  chewing:
+  - {fileID: 8300000, guid: c09dbb852ff66b04fa048e542369a0e3, type: 3}
   openWindow:
   - {fileID: 8300000, guid: 50281c6d1412a7043902dfe9cb3632b0, type: 3}
   - {fileID: 8300000, guid: 804a48599f4d1d548bc2dd4585afd239, type: 3}

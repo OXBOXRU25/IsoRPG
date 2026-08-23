@@ -17,6 +17,9 @@ namespace IsoRPG.EditorTools
     {
         private const string ItemIcons = "Assets/_Game/Art/UI/Icons/Items";
         private const string AbilityIcons = "Assets/_Game/Art/UI/Icons/Abilities";
+        private const string ButtonIcons = "Assets/_Game/Art/UI/Icons/Buttons";
+        private const string SlotIcons = "Assets/_Game/Art/UI/Icons/Slots";
+        private const string PortraitIcons = "Assets/_Game/Art/UI/Icons/Portraits";
         private const string ItemsFolder = "Assets/_Game/Data/Items";
         private const string AbilitiesFolder = "Assets/_Game/Data/Abilities";
 
@@ -32,6 +35,9 @@ namespace IsoRPG.EditorTools
 
             PrepareSprites(ItemIcons);
             PrepareSprites(AbilityIcons);
+            PrepareSprites(ButtonIcons);
+            PrepareSprites(SlotIcons);
+            PrepareSprites(PortraitIcons);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -97,7 +103,7 @@ namespace IsoRPG.EditorTools
         /// просто не появляется на экране. Ошибка тихая: ни предупреждения,
         /// ни ошибки, только пустое место.
         /// </summary>
-        private static void PrepareSprites(string folder)
+        public static void PrepareSprites(string folder)
         {
             if (!AssetDatabase.IsValidFolder(folder))
             {

@@ -141,9 +141,20 @@ namespace IsoRPG.Combat
         }
 
         /// <summary>Полный расчёт: база, затем бросок на крит и отражение.</summary>
-        public int RollDamage(int weaponDamage, int comboSpent, out HitResult result)
+        public int RollDamage(int weaponDamage, int comboSpent, out HitResult result) =>
+            RollDamage(weaponDamage, comboSpent, 0f, 0f, 1f, out result);
+
+        /// <summary>
+        /// То же, но с прибавками от талантов. Прибавки приходят снаружи, а
+        /// не хранятся в способности: описание приёма — общее для всех, кто
+        /// им владеет, а таланты у каждого свои.
+        /// </summary>
+        public int RollDamage(int weaponDamage, int comboSpent, float bonusCrit,
+                              float bonusCritMultiplier, float damageMultiplier,
+                              out HitResult result)
         {
             int baseDamage = ComputeBaseDamage(weaponDamage, comboSpent);
+            baseDamage = Mathf.RoundToInt(baseDamage * Mathf.Max(0.1f, damageMultiplier));
 
             if (baseDamage <= 0)
             {
@@ -151,7 +162,9 @@ namespace IsoRPG.Combat
                 return 0;
             }
 
-            return CombatMath.Roll(baseDamage, critChance, critMultiplier,
+            return CombatMath.Roll(baseDamage,
+                                   Mathf.Clamp01(critChance + bonusCrit),
+                                   critMultiplier + bonusCritMultiplier,
                                    missChance, missMultiplier, out result);
         }
 

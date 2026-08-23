@@ -106,7 +106,21 @@ namespace IsoRPG.Combat
             if (animDriver != null) animDriver.SetActionDuration(interval * 0.9f);
         }
 
-        private float CurrentInterval => weapon != null ? weapon.AttackInterval : attackInterval;
+        /// <summary>
+        /// Пауза между ударами. Скорость от талантов делит интервал, а не
+        /// вычитается из него: +10% скорости должны значить одно и то же
+        /// и для кинжала, и для двуручного топора.
+        /// </summary>
+        private float CurrentInterval
+        {
+            get
+            {
+                float baseInterval = weapon != null ? weapon.AttackInterval : attackInterval;
+                float speed = 1f + TalentBonus(IsoRPG.Progression.TalentEffect.AttackSpeed);
+
+                return baseInterval / Mathf.Max(0.2f, speed);
+            }
+        }
 
         private void Update()
         {
@@ -224,6 +238,24 @@ namespace IsoRPG.Combat
             pendingImpactTime = Time.time + impactDelay;
         }
 
+        /// <summary>
+        /// Прибавка от талантов. Книга ищется лениво и один раз: у монстров
+        /// её нет вовсе, и дёргать GetComponent на каждый удар ради
+        /// гарантированного нуля незачем.
+        /// </summary>
+        private float TalentBonus(IsoRPG.Progression.TalentEffect effect)
+        {
+            if (!talentsChecked)
+            {
+                talents = GetComponent<IsoRPG.Progression.TalentBook>();
+                talentsChecked = true;
+            }
+
+            return talents != null ? talents.Bonus(effect) : 0f;
+        }
+
+        private IsoRPG.Progression.TalentBook talents;
+        private bool talentsChecked;
         private void ResolvePendingImpact()
         {
             if (pendingImpactTime < 0f || Time.time < pendingImpactTime) return;
@@ -244,7 +276,18 @@ namespace IsoRPG.Combat
                 // «просто бью» от «делаю приём».
                 int baseDamage = weapon != null ? weapon.WeaponDamage : fallbackDamage;
 
-                int dealt = CombatMath.Roll(baseDamage, critChance, critMultiplier,
+                // Таланты спрашиваем в момент удара, а не храним прибавку у
+                // себя: сброшенный талант должен переставать работать сразу,
+                // а не после перезахода в игру.
+                float bonusDamage = TalentBonus(IsoRPG.Progression.TalentEffect.Damage);
+                float bonusCrit = TalentBonus(IsoRPG.Progression.TalentEffect.CritChance);
+                float bonusCritMult = TalentBonus(IsoRPG.Progression.TalentEffect.CritMultiplier);
+
+                baseDamage = Mathf.RoundToInt(baseDamage * (1f + bonusDamage));
+
+                int dealt = CombatMath.Roll(baseDamage,
+                                            Mathf.Clamp01(critChance + bonusCrit),
+                                            critMultiplier + bonusCritMult,
                                             missChance, missMultiplier, out HitResult result);
 
                 // Показываем то, что дошло после брони, а не то, чем замахивались.

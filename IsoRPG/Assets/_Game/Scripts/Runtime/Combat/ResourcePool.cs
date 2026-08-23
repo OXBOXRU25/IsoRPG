@@ -23,6 +23,8 @@ namespace IsoRPG.Combat
 
         private float current;
         private float nextRegenTime;
+        private IsoRPG.Progression.TalentBook talents;
+        private bool talentsChecked;
 
         public ResourceType Type => type;
         public int Max => max;
@@ -48,7 +50,20 @@ namespace IsoRPG.Combat
             if (Time.time < nextRegenTime) return;
 
             int before = Current;
-            current = Mathf.Min(max, current + regenPerSecond * Time.deltaTime);
+
+            // Таланты ускоряют восстановление. Спрашиваем книгу лениво: у
+            // монстров её нет, а Update тут идёт каждый кадр.
+            if (!talentsChecked)
+            {
+                talents = GetComponent<IsoRPG.Progression.TalentBook>();
+                talentsChecked = true;
+            }
+
+            float rate = regenPerSecond;
+            if (talents != null)
+                rate *= 1f + talents.Bonus(IsoRPG.Progression.TalentEffect.EnergyRegen);
+
+            current = Mathf.Min(max, current + rate * Time.deltaTime);
 
             // Событие шлём только когда изменилось целое значение: иначе
             // интерфейс перерисовывается каждый кадр без всякой пользы.

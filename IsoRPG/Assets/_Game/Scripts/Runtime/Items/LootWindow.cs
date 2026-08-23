@@ -17,18 +17,21 @@ namespace IsoRPG.Items
     /// Закрывается само, когда игрок отходит: мешок остаётся лежать, к нему
     /// можно вернуться, а окно, висящее через полкарты, — мусор на экране.
     /// </summary>
-    public sealed class LootWindow : MonoBehaviour
+    public sealed class LootWindow : MonoBehaviour, IsoRPG.UI.IHudWindow
     {
         private static readonly Color PanelColor = new Color32(0x1C, 0x1A, 0x16, 0xD2);
         private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0x8A);
         private static readonly Color RowColor = new Color32(0x2A, 0x27, 0x21, 0xC0);
         private static readonly Color TextColor = new Color32(0xE8, 0xE2, 0xD4, 0xFF);
+        private static readonly Color ButtonColor = new Color32(0x3A, 0x32, 0x24, 0xE0);
+        private static readonly Color ButtonHover = new Color32(0x54, 0x46, 0x30, 0xFF);
         private static readonly Color GoldColor = new Color32(0xE8, 0xC3, 0x5A, 0xFF);
 
         private const float Width = 230f;
         private const float RowHeight = 30f;
         private const float Pad = 10f;
         private const float TitleHeight = 24f;
+        private const float ButtonHeight = 26f;
 
         [Tooltip("Дальше этого расстояния окно закрывается само.")]
         [SerializeField] private float maxDistance = 4.5f;
@@ -38,6 +41,9 @@ namespace IsoRPG.Items
 
         private GameObject window;
         private RectTransform rows;
+
+        /// <summary>Кнопка «Собрать всё». Живёт всё время, ездит по высоте.</summary>
+        private RectTransform takeAllButton;
         private LootDrop current;
 
         private readonly List<GameObject> spawned = new List<GameObject>();
@@ -58,12 +64,8 @@ namespace IsoRPG.Items
                 return;
             }
 
-            var keyboard = Keyboard.current;
-            if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
-            {
-                Close();
-                return;
-            }
+            // Esc обрабатывает SettingsWindow за всех: шесть независимых
+            // обработчиков в одном кадре спорили за одно нажатие.
 
             // Отошёл — закрываем. Мешок остаётся лежать.
             if (Vector3.Distance(transform.position, current.transform.position) > maxDistance)
@@ -91,6 +93,8 @@ namespace IsoRPG.Items
             IsoRPG.Audio.Sfx.OpenWindow();
         }
 
+        public bool IsOpen => window != null && window.activeSelf;
+
         public void Close()
         {
             if (current != null)
@@ -116,7 +120,7 @@ namespace IsoRPG.Items
 
             if (current.Gold > 0)
             {
-                AddRow(index++, current.Gold + " золота", GoldColor, () =>
+                AddRow(index++, current.Gold + " золота", GoldColor, null, () =>
                 {
                     int taken = current.TakeGold(inventory);
                     if (taken <= 0) return;
@@ -134,7 +138,7 @@ namespace IsoRPG.Items
                 int slot = i;
                 var stack = contents[i];
 
-                AddRow(index++, stack.ToString(), stack.Item.RarityColor, () =>
+                AddRow(index++, stack.ToString(), stack.Item.RarityColor, stack.Item, () =>
                 {
                     if (!current.TakeItem(slot, inventory, out var taken)) return;
 
@@ -147,10 +151,98 @@ namespace IsoRPG.Items
             // Высота окна по содержимому: пустое место под последней строкой
             // выглядит так, будто там что-то не отрисовалось.
             var rect = (RectTransform)window.transform;
-            rect.sizeDelta = new Vector2(Width, TitleHeight + index * RowHeight + Pad * 2f);
+
+            float listHeight = index * RowHeight;
+            rect.sizeDelta = new Vector2(Width,
+                TitleHeight + listHeight + ButtonHeight + Pad * 2f + 4f);
+
+            // Кнопка встаёт под последней строкой, а не прибита к низу окна:
+            // окно меняет высоту под содержимое, и прибитая кнопка ездила бы
+            // относительно списка.
+            if (takeAllButton != null)
+            {
+                takeAllButton.anchoredPosition = new Vector2(Pad, -(TitleHeight + listHeight + 2f));
+                takeAllButton.sizeDelta = new Vector2(Width - Pad * 2f, ButtonHeight);
+
+                // Одна строка — собирать нечего скопом, проще ткнуть в неё.
+                takeAllButton.gameObject.SetActive(index > 1);
+            }
         }
 
-        private void AddRow(int index, string label, Color color, System.Action onClick)
+        /// <summary>
+        /// Забрать всё разом.
+        ///
+        /// Идём с конца списка: взятый предмет исчезает из мешка, и обход
+        /// с начала пропускал бы каждый второй — индексы съезжают под нами.
+        ///
+        /// Сумка кончилась — останавливаемся и говорим об этом. Молча
+        /// оставить половину добычи в мешке хуже, чем не взять ничего:
+        /// игрок уходит уверенным, что забрал всё.
+        /// </summary>
+        private void TakeEverything()
+        {
+            if (current == null || inventory == null) return;
+
+            int gold = current.TakeGold(inventory);
+            int items = 0;
+            bool full = false;
+
+            for (int i = current.Contents.Count - 1; i >= 0; i--)
+            {
+                if (!current.TakeItem(i, inventory, out var taken))
+                {
+                    full = true;
+                    continue;
+                }
+
+                CombatLog.Looted(taken.ToString(), taken.Item.RarityColor);
+                items++;
+            }
+
+            if (gold > 0) CombatLog.Add("Получено золота: " + gold, LogKind.System);
+
+            // Звук один на весь сбор, а не на каждую строку: пять наложенных
+            // подборов подряд слышны как треск, а не как добыча.
+            if (gold > 0 || items > 0)
+                IsoRPG.Audio.Sfx.Play(IsoRPG.Audio.Sfx.Bank?.pickup,
+                                      transform.position, 0.45f, 0.11f);
+
+            if (full) CombatLog.Add("В сумке нет места — часть добычи осталась.", LogKind.System);
+        }
+
+        private void BuildTakeAllButton(RectTransform parent)
+        {
+            var go = new GameObject("TakeAll", typeof(Image), typeof(Button));
+            takeAllButton = (RectTransform)go.transform;
+            takeAllButton.SetParent(parent, false);
+            takeAllButton.anchorMin = new Vector2(0f, 1f);
+            takeAllButton.anchorMax = new Vector2(0f, 1f);
+            takeAllButton.pivot = new Vector2(0f, 1f);
+
+            var plate = go.GetComponent<Image>();
+            plate.color = ButtonColor;
+
+            var button = go.GetComponent<Button>();
+            button.targetGraphic = plate;
+            button.onClick.AddListener(TakeEverything);
+
+            var colors = button.colors;
+            colors.highlightedColor = ButtonHover;
+            colors.pressedColor = ButtonColor;
+            colors.fadeDuration = 0.06f;
+            button.colors = colors;
+
+            var label = MakeText(takeAllButton, "Label", "Собрать всё", 12, TextColor);
+            var labelRect = (RectTransform)label.transform;
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+            label.alignment = TextAnchor.MiddleCenter;
+        }
+
+        private void AddRow(int index, string label, Color color, ItemDefinition item,
+                            System.Action onClick)
         {
             var go = new GameObject("Row" + index, typeof(Image), typeof(Button));
             var rect = (RectTransform)go.transform;
@@ -166,6 +258,12 @@ namespace IsoRPG.Items
 
             go.GetComponent<Image>().color = RowColor;
             go.GetComponent<Button>().onClick.AddListener(() => onClick());
+
+            if (item != null)
+            {
+                var tip = go.AddComponent<IsoRPG.UI.ItemTooltipTrigger>();
+                tip.Setup(item, GetComponent<IsoRPG.Combat.Experience>());
+            }
 
             var text = MakeText(rect, "Label", label, 12, color);
             var textRect = (RectTransform)text.transform;
@@ -226,12 +324,15 @@ namespace IsoRPG.Items
 
             var list = new GameObject("Rows", typeof(RectTransform));
             rows = (RectTransform)list.transform;
+
             rows.SetParent(rect, false);
             rows.anchorMin = new Vector2(0f, 1f);
             rows.anchorMax = new Vector2(1f, 1f);
             rows.pivot = new Vector2(0f, 1f);
             rows.anchoredPosition = new Vector2(Pad, -(TitleHeight + Pad * 0.5f));
             rows.sizeDelta = new Vector2(-Pad * 2f, 0f);
+
+            BuildTakeAllButton(rect);
 
             window = go;
             window.SetActive(false);

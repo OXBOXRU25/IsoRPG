@@ -46,6 +46,7 @@ namespace IsoRPG.EditorTools
             bank.gold   = Load("handleCoins");
             bank.pickup = Load("handleSmallLeather");
             bank.equip  = Load("metalLatch", "clothBelt");
+            bank.chewing = Load("chewing");
 
             bank.openWindow  = Load("bookOpen", "bookFlip");
             bank.closeWindow = Load("bookClose");

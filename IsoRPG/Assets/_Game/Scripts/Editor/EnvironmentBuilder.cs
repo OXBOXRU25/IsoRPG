@@ -37,10 +37,33 @@ namespace IsoRPG.EditorTools
         /// Двор вокруг руин: сюда лес не заходит. Без расчищенной полосы
         /// деревья лезут прямо в стены, и постройка теряется в кустах.
         /// </summary>
-        private const float ClearingRadius = 26f;
+        /// <summary>
+        /// Знамёна для стен: выцветшие и тусклые. Яркие цвета набора рядом с
+        /// нашей серой кладкой читаются как новьё, повешенное вчера, — а зал
+        /// стоит заброшенным.
+        /// </summary>
+        private static readonly string[] Banners =
+        {
+            "banner_brown", "banner_thin_brown", "banner_patternA_brown",
+            "banner_patternB_white", "banner_thin_white", "banner_shield_brown",
+        };
 
-        private const float ForestInner = 27f;
-        private const float ForestOuter = 38f;
+        private const float ClearingRadius = 34f;
+
+        /// <summary>
+        /// Место, отведённое склепу, — прямоугольник за восточной дверью зала.
+        ///
+        /// Лес растёт кольцом вокруг поляны и знать не знает о пристройках
+        /// на карте: без этого запрета сосны выросли бы прямо внутри комнаты
+        /// босса, сквозь пол и стены. Границы с запасом, чтобы кроны не
+        /// нависали над кладкой.
+        /// </summary>
+        private static readonly Rect CryptArea = new Rect(16f, -14f, 54f, 46f);
+
+        private static bool InsideCrypt(Vector3 pos) => CryptArea.Contains(new Vector2(pos.x, pos.z));
+
+        private const float ForestInner = 35f;
+        private const float ForestOuter = 52f;
 
         public static void Build(Transform parent)
         {
@@ -93,8 +116,33 @@ namespace IsoRPG.EditorTools
                     // Пол под всем, включая стены: обрыв кладки в пустоту
                     // читается как недоделка, а не как разрушение.
                     if (RuinsLayout.HasFloor(c))
-                        Place(DungeonFolder + "/" + RuinsLayout.FloorFor(c) + ".fbx",
+                    {
+                        Place(DungeonFolder + "/" + RuinsLayout.FloorFor(c, x, z) + ".fbx",
                               ruins, at, Random.Range(0, 4) * 90f, 1f);
+
+                        // Мелкая плита сверху: трещины и сорняки на целом
+                        // полу. Именно сверху, а не вместо — заменённая
+                        // клетка оставляла дыру в четверть метра вокруг себя.
+                        if (c == '.')
+                        {
+                            string patch = RuinsLayout.PatchFor(x, z);
+
+                            if (patch != null)
+                            {
+                                Vector2 shift = Random.insideUnitCircle * cell * 0.22f;
+
+                                // Приподнята на волос: две плиты на одной
+                                // высоте мерцают полосами, споря за пиксели.
+                                var piece = Place(DungeonFolder + "/" + patch + ".fbx", ruins,
+                                                  at + new Vector3(shift.x, 0.012f, shift.y),
+                                                  Random.Range(0, 4) * 90f, 1f);
+
+                                // Плита лежит на полу и своей тени иметь
+                                // не может: она и есть пол.
+                                DisableShadows(piece);
+                            }
+                        }
+                    }
 
                     if (RuinsLayout.IsWallChar(c))
                     {
@@ -134,8 +182,17 @@ namespace IsoRPG.EditorTools
                                      float offsetX, float offsetZ)
         {
             var candles = new[] { "candle_lit", "candle_thin_lit", "candle_triple", "candle_melted" };
+
+
+            // Следы боя. Валяются там же, где мелочь, но крупнее и реже:
+            // сломанный меч рассказывает, что здесь случилось, без единой
+            // строки текста.
+            var battle = new[] { "sword_shield_broken", "sword_shield", "rubble_large",
+                                 "barrel_small", "trunk_small_A" };
             var litter = new[] { "bottle_A_green", "bottle_B_brown", "bottle_C_green",
-                                 "coin_stack_small", "box_small", "rubble_half" };
+                                 "coin_stack_small", "box_small", "rubble_half",
+                                 "plate_food_A", "plate_stack", "bottle_A_labeled_brown",
+                                 "keg", "stool", "sword_shield_broken" };
 
             for (int z = 0; z < map.Length; z++)
             {
@@ -154,6 +211,7 @@ namespace IsoRPG.EditorTools
                     {
                         // Вдоль стены — свечи. Через одну: сплошной ряд
                         // читается как иллюминация, а не как заброшенное место.
+
                         if ((x + z) % 2 == 0 && Random.value < 0.65f)
                         {
                             Vector3 shift = Quaternion.Euler(0f, wallAngle, 0f) * Vector3.forward;
@@ -232,6 +290,24 @@ namespace IsoRPG.EditorTools
 
             var go = Place(DungeonFolder + "/" + model + ".fbx", parent, at, angle, 1f);
             AddSolidCollider(go);
+
+            // Знамя вешаем на ту же клетку, что и стену, — как факел.
+            //
+            // Две попытки до этого ставили его на соседнюю клетку пола: сперва
+            // на нулевой высоте, потом на верной. Обе раза полотнище оказывалось
+            // в воздухе, потому что стена рядом бывает не сплошной — окно или
+            // проём, и вешать там не на что. Клетка стены такой вопрос снимает:
+            // если мы её строим, значит стена тут точно есть.
+            if (c == '#' && (x * 5 + z * 3) % 11 == 0)
+            {
+                var banner = Place(DungeonFolder + "/" + Banners[(x + z) % Banners.Length] + ".fbx",
+                                   parent, at + Vector3.up * cell * 0.34f, angle, 1f);
+
+                // Тень знамени падала на пол отдельным прямоугольником и
+                // читалась как объект, которого нет. Полотнищу на стене тень
+                // не нужна: оно и так прижато к кладке.
+                DisableShadows(banner);
+            }
 
             if (!RuinsLayout.HasTorch(c)) return;
 
@@ -330,7 +406,9 @@ namespace IsoRPG.EditorTools
             // самое узнаваемое «сделано генератором»: в природе деревья
             // цепляются друг за друга, оставляя прогалины между группами.
             // Прогалины важнее самих деревьев: по ним ходят и через них видно.
-            for (int grove = 0; grove < 26; grove++)
+            // Рощ больше пропорционально площади: та же плотность на
+            // выросшем кольце, иначе лес поредеет и станет похож на парк.
+            for (int grove = 0; grove < 38; grove++)
             {
                 float angle = Random.Range(0f, Mathf.PI * 2f);
                 float radius = Random.Range(ForestInner, ForestOuter);
@@ -349,6 +427,7 @@ namespace IsoRPG.EditorTools
                     var pos = center + new Vector3(flat.x, 0f, flat.y);
 
                     if (pos.magnitude < ClearingRadius) continue;
+                    if (InsideCrypt(pos)) continue;
 
                     var pool = (bare.Count > 0 && Random.value < bareChance) ? bare : living;
 
@@ -369,6 +448,7 @@ namespace IsoRPG.EditorTools
                 float radius = Random.Range(ClearingRadius * 0.72f, ClearingRadius - 1f);
 
                 var pos = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+                if (InsideCrypt(pos)) continue;
 
                 var go = Place(solitary[Random.Range(0, solitary.Count)], forest, pos,
                                Random.Range(0f, 360f), Random.Range(0.8f, 1.05f));
@@ -412,9 +492,21 @@ namespace IsoRPG.EditorTools
                 float radius = Random.Range(minRadius, maxRadius);
 
                 var pos = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+                if (InsideCrypt(pos)) continue;
 
                 var go = Place(pool[Random.Range(0, pool.Count)], parent, pos,
                                Random.Range(0f, 360f), Random.Range(minScale, maxScale));
+
+                // Тени снимаем со всего мелкого.
+                //
+                // Солнце у нас закатное, под двадцатью градусами: тень
+                // втрое длиннее предмета и уезжает далеко от него. У куста
+                // за краем кадра она ложится посреди пустой поляны, и это
+                // читается как тень от несуществующего объекта.
+                //
+                // Объём держат стены, деревья и персонажи — они тени и
+                // отбрасывают. Травинке она не нужна ни для чего.
+                if (!solid) DisableShadows(go);
 
                 if (solid) AddSolidCollider(go);
             }
@@ -507,6 +599,21 @@ namespace IsoRPG.EditorTools
         }
 
         /// <summary>Коллайдер по форме меша — для стен и колонн.</summary>
+        /// <summary>
+        /// Снять тени у мелочи.
+        ///
+        /// Тень нужна тому, что стоит на полу и держит объём: стенам, мебели,
+        /// деревьям. У травинки, свечи или полотнища на стене она даёт только
+        /// лишнее пятно на полу и лишний проход отрисовки.
+        /// </summary>
+        private static void DisableShadows(GameObject go)
+        {
+            if (go == null) return;
+
+            foreach (var renderer in go.GetComponentsInChildren<Renderer>(true))
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+
         private static void AddSolidCollider(GameObject go)
         {
             if (go == null) return;

@@ -15,6 +15,16 @@ namespace IsoRPG.Items
         Feet,
         Hands,
         Ring,
+
+        /// <summary>Второе кольцо. Кольца надеваются в любой свободный.</summary>
+        Ring2,
+
+        Necklace,
+        Cloak,
+
+        /// <summary>Метательное: дротики, ножи.</summary>
+        Ranged,
+
         Trinket,
     }
 
@@ -87,6 +97,13 @@ namespace IsoRPG.Items
         public int agility = 0;
         public int stamina = 0;
 
+        [Header("Еда")]
+        [Tooltip("Сколько здоровья восстановит целиком. Ноль — не еда.")]
+        public int healAmount = 0;
+
+        [Tooltip("За сколько секунд. Ноль — мгновенно.")]
+        public float healDuration = 0f;
+
         [Header("Внешний вид")]
         [Tooltip("Модель предмета в руке. Пусто — предмет невидим на персонаже.")]
         public GameObject worldModel;
@@ -97,6 +114,9 @@ namespace IsoRPG.Items
 
         public bool IsWeapon => weaponDamage > 0;
         public bool IsEquippable => slot != EquipSlot.None;
+
+        /// <summary>Съедобное: клик в сумке тратит одну штуку и лечит.</summary>
+        public bool IsFood => healAmount > 0;
 
         /// <summary>Прибавки к характеристикам одним блоком — так их удобно складывать.</summary>
         public StatBlock StatBonus => new StatBlock(strength, agility, stamina);

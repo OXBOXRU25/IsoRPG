@@ -104,15 +104,29 @@ namespace IsoRPG.Items
         /// второй кинжал у разбойника — это второй кинжал, а не замена
         /// первому. Всё остальное ложится в свой слот без вариантов.
         /// </summary>
+        /// <summary>
+        /// Куда на самом деле пойдёт вещь.
+        ///
+        /// Парных слотов у нас два вида — руки и кольца, — и правило одно:
+        /// занят первый, свободен второй — идём во второй. Иначе второе
+        /// кольцо пришлось бы надевать перетаскиванием, а его у нас нет.
+        /// </summary>
         private EquipSlot ChooseHand(ItemDefinition item)
         {
+            if (item.slot == EquipSlot.Ring)
+                return PickFree(EquipSlot.Ring, EquipSlot.Ring2);
+
             if (item.slot != EquipSlot.MainHand || !item.dualWieldable)
                 return item.slot;
 
-            if (!GetSlot(EquipSlot.MainHand).IsEmpty && GetSlot(EquipSlot.OffHand).IsEmpty)
-                return EquipSlot.OffHand;
+            return PickFree(EquipSlot.MainHand, EquipSlot.OffHand);
+        }
 
-            return EquipSlot.MainHand;
+        private EquipSlot PickFree(EquipSlot first, EquipSlot second)
+        {
+            if (!GetSlot(first).IsEmpty && GetSlot(second).IsEmpty) return second;
+
+            return first;
         }
 
         /// <summary>Снять предмет в сумку.</summary>
@@ -152,6 +166,13 @@ namespace IsoRPG.Items
         public int TotalArmor()
         {
             int total = baseArmor;
+
+            // Броня от талантов считается здесь же, а не поверх: это
+            // единственное место, где броня собирается, и второй источник
+            // рано или поздно затёр бы первый.
+            var talents = GetComponent<IsoRPG.Progression.TalentBook>();
+            if (talents != null)
+                total += Mathf.RoundToInt(talents.Bonus(IsoRPG.Progression.TalentEffect.Armor));
 
             foreach (var pair in worn)
             {

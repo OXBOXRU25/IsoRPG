@@ -13,7 +13,7 @@ namespace IsoRPG.Items
     /// каждый заход, и менять числа в одном файле быстрее, чем перекладывать
     /// объекты в дереве сцены.
     /// </summary>
-    public sealed class InventoryHud : MonoBehaviour
+    public sealed class InventoryHud : MonoBehaviour, IsoRPG.UI.IHudWindow
     {
         private static readonly Color PanelColor = new Color32(0x1C, 0x1A, 0x16, 0xF0);
         private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0xFF);
@@ -23,7 +23,6 @@ namespace IsoRPG.Items
         private static readonly Color SlotEmpty = new Color32(0x2A, 0x27, 0x21, 0xFF);
         private static readonly Color TextColor = new Color32(0xE8, 0xE2, 0xD4, 0xFF);
         private static readonly Color GoldColor = new Color32(0xE8, 0xC3, 0x5A, 0xFF);
-        private static readonly Color BagColor = new Color32(0x7A, 0x5C, 0x38, 0xFF);
 
         private const float Margin = 18f;
         private const float BagSize = 46f;
@@ -36,6 +35,8 @@ namespace IsoRPG.Items
 
         [SerializeField] private Inventory inventory;
         [SerializeField] private Equipment equipment;
+        [SerializeField] private IsoRPG.Combat.Experience experience;
+        [SerializeField] private FoodConsumer food;
 
         private Font font;
         private GameObject window;
@@ -48,10 +49,16 @@ namespace IsoRPG.Items
         /// <summary>Рисунки предметов поверх цветных плашек редкости.</summary>
         private readonly List<Image> cellArt = new List<Image>();
 
+        /// <summary>Подсказка о предмете в ячейке.</summary>
+        private readonly List<IsoRPG.UI.ItemTooltipTrigger> cellTips =
+            new List<IsoRPG.UI.ItemTooltipTrigger>();
+
         private void Awake()
         {
             if (inventory == null) inventory = GetComponentInParent<Inventory>();
             if (equipment == null) equipment = GetComponentInParent<Equipment>();
+            if (experience == null) experience = GetComponentInParent<IsoRPG.Combat.Experience>();
+            if (food == null) food = GetComponentInParent<FoodConsumer>();
 
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -84,9 +91,11 @@ namespace IsoRPG.Items
                 if (window != null && window.activeSelf) IsoRPG.Audio.Sfx.OpenWindow();
                 else IsoRPG.Audio.Sfx.CloseWindow();
             }
-            if (keyboard.escapeKey.wasPressedThisFrame && window != null && window.activeSelf)
-                window.SetActive(false);
+            // Esc обрабатывает SettingsWindow за всех: шесть независимых
+            // обработчиков в одном кадре спорили за одно нажатие.
         }
+
+        public bool IsOpen => window != null && window.activeSelf;
 
         public void Toggle()
         {
@@ -94,6 +103,11 @@ namespace IsoRPG.Items
 
             window.SetActive(!window.activeSelf);
             if (window.activeSelf) Refresh();
+        }
+
+        public void Close()
+        {
+            if (window != null) window.SetActive(false);
         }
 
         // ------------------------------------------------------------------
@@ -118,41 +132,9 @@ namespace IsoRPG.Items
 
             var root = (RectTransform)canvasGo.transform;
 
-            BuildBagButton(root);
+            // Кнопка сумки переехала в общий ряд кнопок (HudBar): четыре окна
+            // должны открываться одинаково, а не каждое своим способом.
             BuildWindow(root);
-        }
-
-        private void BuildBagButton(RectTransform root)
-        {
-            var go = new GameObject("BagButton", typeof(Image), typeof(Button));
-            var rect = (RectTransform)go.transform;
-            rect.SetParent(root, false);
-
-            rect.anchorMin = new Vector2(1f, 0f);
-            rect.anchorMax = new Vector2(1f, 0f);
-            rect.pivot = new Vector2(1f, 0f);
-
-            // Приподнят над полоской опыта, чтобы не наезжать на неё.
-            rect.anchoredPosition = new Vector2(-Margin, Margin + 10f);
-            rect.sizeDelta = new Vector2(BagSize, BagSize);
-
-            var image = go.GetComponent<Image>();
-            image.color = BagColor;
-
-            var button = go.GetComponent<Button>();
-            button.onClick.AddListener(Toggle);
-
-            var label = CreateText(rect, "Label", "СУМКА", 9, TextColor);
-            label.alignment = TextAnchor.MiddleCenter;
-            Stretch((RectTransform)label.transform);
-
-            var hint = CreateText(rect, "Hint", "I", 11, new Color32(0xD8, 0xC8, 0xA8, 0xFF));
-            var hintRect = (RectTransform)hint.transform;
-            hintRect.anchorMin = new Vector2(0f, 1f);
-            hintRect.anchorMax = new Vector2(0f, 1f);
-            hintRect.pivot = new Vector2(0f, 1f);
-            hintRect.anchoredPosition = new Vector2(3f, -2f);
-            hintRect.sizeDelta = new Vector2(12f, 12f);
         }
 
         private void BuildWindow(RectTransform root)
@@ -216,6 +198,8 @@ namespace IsoRPG.Items
             goldRect.anchoredPosition = new Vector2(0f, WindowPad * 0.5f);
             goldRect.sizeDelta = new Vector2(-WindowPad * 2f, FooterHeight);
             goldText.alignment = TextAnchor.MiddleCenter;
+
+            IsoRPG.UI.WindowChrome.AddCloseButton(rect, font, Close);
 
             window = go;
             window.SetActive(false);
@@ -285,17 +269,37 @@ namespace IsoRPG.Items
             count.alignment = TextAnchor.LowerRight;
             cellCounts.Add(count);
 
+            cellTips.Add(go.AddComponent<IsoRPG.UI.ItemTooltipTrigger>());
+
             int captured = index;
             go.GetComponent<Button>().onClick.AddListener(() => OnCellClicked(captured));
         }
 
-        /// <summary>Клик по ячейке — надеть, если предмет надевается.</summary>
+        /// <summary>
+        /// Клик по ячейке: надеть вещь или съесть еду.
+        ///
+        /// Одно действие на предмет, без меню по правой кнопке: у вещи
+        /// оно очевидно, у еды тоже, а выбор из двух пунктов там, где
+        /// пункт всегда один, — лишний шаг на каждое нажатие.
+        /// </summary>
         private void OnCellClicked(int index)
         {
-            if (inventory == null || equipment == null) return;
+            if (inventory == null) return;
 
             var stack = inventory.GetSlot(index);
-            if (stack.IsEmpty || !stack.Item.IsEquippable) return;
+            if (stack.IsEmpty) return;
+
+            if (stack.Item.IsFood)
+            {
+                if (food == null) return;
+
+                // Тратим только если еда пошла: отказ «здоровье полное»
+                // не должен съедать яблоко.
+                if (food.Begin(stack.Item)) inventory.TakeFrom(index, 1);
+                return;
+            }
+
+            if (equipment == null || !stack.Item.IsEquippable) return;
 
             equipment.EquipFromInventory(index);
         }
@@ -314,6 +318,7 @@ namespace IsoRPG.Items
                     cellCounts[i].text = "";
 
                     if (cellArt != null && i < cellArt.Count) cellArt[i].enabled = false;
+                    if (i < cellTips.Count) cellTips[i].Setup(null, experience);
                     continue;
                 }
 
@@ -329,6 +334,8 @@ namespace IsoRPG.Items
                     cellArt[i].sprite = stack.Item.icon;
                     cellArt[i].enabled = stack.Item.icon != null;
                 }
+
+                if (i < cellTips.Count) cellTips[i].Setup(stack.Item, experience);
             }
 
             if (goldText != null) goldText.text = inventory.Gold + " золота";

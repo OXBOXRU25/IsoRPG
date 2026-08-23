@@ -17,6 +17,30 @@ namespace IsoRPG.Items
         [Tooltip("Что может выпасть. Пусто — монстр не даёт добычи.")]
         [SerializeField] private LootTable table;
 
+        [Tooltip("Награда, которая падает наверняка и только один раз.")]
+        [SerializeField] private ItemDefinition guaranteed;
+
+        [Tooltip("Что написать в лог при такой награде.")]
+        [SerializeField] private string guaranteedNote = "";
+
+        /// <summary>
+        /// Отдана ли уникальная награда. НЕ сбрасывается возрождением:
+        /// босс вернётся и будет так же опасен, но второго кольца не
+        /// отдаст. Иначе самый быстрый способ разбогатеть — стоять у его
+        /// двери и ждать.
+        /// </summary>
+        private bool guaranteedGiven;
+
+        /// <summary>
+        /// Награда за победу, а не удачный бросок. Таблица добычи про
+        /// случай, а это про событие, поэтому и живёт отдельно от шансов.
+        /// </summary>
+        public void SetupUnique(ItemDefinition item, string note)
+        {
+            guaranteed = item;
+            guaranteedNote = note;
+        }
+
         [Tooltip("Модель мешка с добычей.")]
         [SerializeField] private GameObject itemModel;
 
@@ -82,6 +106,13 @@ namespace IsoRPG.Items
             if (health != null) health.Died -= OnDied;
         }
 
+        /// <summary>
+        /// Выдать добычу не по смерти, а по событию: открытый сундук,
+        /// разрытая земля. Тот же путь, что и у трупа, — значит окно, мешок
+        /// и правила подбора те же самые.
+        /// </summary>
+        public void ForceDrop() => OnDied(null);
+
         private void OnDied(GameObject killer)
         {
             if (generated) return;
@@ -97,6 +128,19 @@ namespace IsoRPG.Items
             generated = true;
             gold = table.RollGold();
             contents.AddRange(table.RollItems());
+
+            // Уникальная награда подмешивается здесь же, а не отдельным
+            // слушателем смерти: порядок подписок Unity не задаёт, и
+            // предмет, добавленный после раскладки мешка, в него не попал
+            // бы вовсе.
+            if (guaranteed != null && !guaranteedGiven)
+            {
+                guaranteedGiven = true;
+                contents.Add(new ItemStack(guaranteed, 1));
+
+                if (!string.IsNullOrEmpty(guaranteedNote))
+                    CombatLog.Add(guaranteedNote, LogKind.Loot);
+            }
 
             Debug.Log($"[IsoRPG] Добыча с «{name}»: {gold} золота, предметов {contents.Count}");
 

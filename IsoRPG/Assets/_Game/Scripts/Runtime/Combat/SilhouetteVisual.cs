@@ -36,6 +36,13 @@ namespace IsoRPG.Combat
 
         public void Setup(Material material) => silhouette = material;
 
+        /// <summary>
+        /// Высота объекта для проверки перекрытия. У персонажа это рост, у
+        /// лежащего на земле мешка — полметра: проверять его на уровне головы
+        /// человека значит мерить не то место.
+        /// </summary>
+        public void SetHeight(float value) => checkHeight = value;
+
         private void Start()
         {
             if (silhouette == null) return;
@@ -83,7 +90,21 @@ namespace IsoRPG.Combat
         /// </summary>
         private bool IsBlocked()
         {
-            Vector3 point = transform.position + Vector3.up * checkHeight;
+            // Две точки, а не одна: низ и верх объекта.
+            //
+            // Одной точки мало, и ошибается она в обе стороны. Точка у земли
+            // цепляется за каждый бугор, и силуэт вспыхивает на ровном месте.
+            // Точка на высоте роста проходит поверх низкой стены — и лежащий
+            // за ней мешок остаётся невидимым, хотя закрыт целиком.
+            //
+            // Закрытым считаем, когда закрыты ОБЕ: значит объект не виден
+            // ни целиком, ни частью.
+            return Blocked(transform.position + Vector3.up * (checkHeight * 0.25f))
+                && Blocked(transform.position + Vector3.up * checkHeight);
+        }
+
+        private bool Blocked(Vector3 point)
+        {
             Vector3 fromCamera = point - view.transform.position;
             float distance = fromCamera.magnitude;
 

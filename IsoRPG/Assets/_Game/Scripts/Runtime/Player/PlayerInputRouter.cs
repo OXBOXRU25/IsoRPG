@@ -27,6 +27,8 @@ namespace IsoRPG.Player
         private static readonly Color GoldColor = new Color32(0xE8, 0xC3, 0x5A, 0xFF);
 
         private TargetSelector targets;
+        private LootWindow lootWindow;
+        private IsoRPG.Quests.DialogueWindow dialogue;
         private ClickToMoveController movement;
         private MeleeCombatant combat;
         private Inventory inventory;
@@ -35,6 +37,8 @@ namespace IsoRPG.Player
         private void Awake()
         {
             targets = GetComponent<TargetSelector>();
+            lootWindow = GetComponent<LootWindow>();
+            dialogue = GetComponent<IsoRPG.Quests.DialogueWindow>();
             movement = GetComponent<ClickToMoveController>();
             combat = GetComponent<MeleeCombatant>();
             inventory = GetComponent<Inventory>();
@@ -131,14 +135,40 @@ namespace IsoRPG.Player
 
             foreach (var hit in hits)
             {
-                // Труп с добычей — обыскиваем, а не выбираем целью.
-                // Проверяем раньше живых: мёртвый в цель всё равно не берётся,
-                // а клик по нему должен что-то делать, а не проваливаться.
-                var loot = hit.collider.GetComponentInParent<LootSource>();
-                if (loot != null && loot.HasLoot)
+                // Мешок с добычей — открываем окно, а не выбираем целью.
+                // Проверяем раньше живых: мешок лежит на земле, и клик по
+                // нему должен открывать его, а не проваливаться сквозь.
+                // NPC с квестом — разговариваем, а не бьём. Раньше живых:
+                // NPC мирный, целью он не берётся, и клик по нему должен
+                // открывать разговор, а не проваливаться.
+                var giver = hit.collider.GetComponentInParent<IsoRPG.Quests.QuestGiver>();
+                if (giver != null)
                 {
-                    Debug.Log($"[IsoRPG] Клик по добыче: {loot.name}, золота {loot.Gold}");
-                    TryLoot(loot);
+                    float distance = Vector3.Distance(transform.position, giver.transform.position);
+
+                    if (distance <= giver.TalkRange)
+                    {
+                        // Разворачиваем к себе до открытия окна: собеседник
+                        // должен смотреть на того, с кем говорит.
+                        giver.FaceTo(transform.position);
+
+                        if (dialogue != null) dialogue.Open(giver);
+                    }
+                    else
+                    {
+                        // Далеко — подходим. Требовать от игрока самому
+                        // догадаться подойти ближе, когда клик просто ничего
+                        // не делает, — худший вид немого отказа.
+                        if (movement != null) movement.MoveTo(giver.transform.position);
+                    }
+
+                    return true;
+                }
+
+                var bag = hit.collider.GetComponentInParent<LootDrop>();
+                if (bag != null)
+                {
+                    if (lootWindow != null) lootWindow.Open(bag);
                     return true;
                 }
 

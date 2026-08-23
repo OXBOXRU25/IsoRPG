@@ -180,6 +180,8 @@ namespace IsoRPG.Combat
             Projectile.Spawn(projectileModel, from, pendingVictim, gameObject,
                              rolled, result, projectileSpeed);
 
+            IsoRPG.Audio.Sfx.BowShot(transform.position);
+
             pendingVictim = null;
         }
 

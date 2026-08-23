@@ -158,8 +158,17 @@ namespace IsoRPG.EditorTools
                         {
                             Vector3 shift = Quaternion.Euler(0f, wallAngle, 0f) * Vector3.forward;
 
-                            Place(DungeonFolder + "/" + candles[Random.Range(0, candles.Length)] + ".fbx",
-                                  parent, at - shift * cell * 0.34f, Random.Range(0, 4) * 90f, 1f);
+                            var candle = Place(
+                                DungeonFolder + "/" + candles[Random.Range(0, candles.Length)] + ".fbx",
+                                parent, at - shift * cell * 0.34f, Random.Range(0, 4) * 90f, 1f);
+
+                            // Светит не каждая: свет — самое дорогое, что
+                            // есть в кадре, и три десятка источников ради
+                            // свечек не окупаются. Хватает трети, остальные
+                            // читаются отражённым светом соседей.
+                            // Радиус больше, яркость меньше: свеча должна
+                            // подсвечивать угол, а не выжигать круг на полу.
+                            if (Random.value < 0.35f) AddFireLight(candle, 4.5f, 0.5f, 0.55f);
                         }
 
                         continue;
@@ -228,8 +237,10 @@ namespace IsoRPG.EditorTools
 
             // Факел вешаем на стену, а не ставим на пол: напольный посреди
             // зала читается как столб непонятного назначения.
-            Place(DungeonFolder + "/" + RuinsLayout.TorchModel + ".fbx", parent,
-                  at + Vector3.up * cell * 0.42f, angle, 1f);
+            var torch = Place(DungeonFolder + "/" + RuinsLayout.TorchModel + ".fbx", parent,
+                              at + Vector3.up * cell * 0.42f, angle, 1f);
+
+            AddFireLight(torch, 8f, 2.1f, 0.25f);
         }
 
         /// <summary>
@@ -460,6 +471,39 @@ namespace IsoRPG.EditorTools
                                                        StaticEditorFlags.OccludeeStatic);
 
             return go;
+        }
+
+        /// <summary>
+        /// Живой огонь: точечный источник с лёгким дрожанием.
+        ///
+        /// Ровно горящий факел выглядит лампочкой. Дрожание делает мизерная
+        /// анимация яркости — эффект стоит копейки, а замечается сразу,
+        /// потому что глаз ищет движение.
+        /// </summary>
+        private static void AddFireLight(GameObject go, float range, float intensity, float height)
+        {
+            if (go == null) return;
+
+            var holder = new GameObject("Fire");
+            holder.transform.SetParent(go.transform, false);
+
+            // Огонь горит на верхушке, а не у основания. Источник у самого
+            // пола даёт кляксу прямо под предметом: свет упирается в пол
+            // раньше, чем успевает разойтись, и вместо свечения получается
+            // пятно от фонарика.
+            holder.transform.localPosition = Vector3.up * height;
+
+            var light = holder.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = new Color(1f, 0.72f, 0.36f);
+            light.range = range;
+            light.intensity = intensity;
+
+            // Тени от свечей не считаем: их десятки, и каждая обошлась бы
+            // дороже всего остального освещения вместе взятого.
+            light.shadows = LightShadows.None;
+
+            holder.AddComponent<IsoRPG.Combat.FlickeringLight>();
         }
 
         /// <summary>Коллайдер по форме меша — для стен и колонн.</summary>

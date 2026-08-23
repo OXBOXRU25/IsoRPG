@@ -25,6 +25,47 @@ namespace IsoRPG.EditorTools
         /// этого обычно заведены отдельные кости-держатели, и угадывать их
         /// имена нельзя — промах даст меч, растущий из бедра.
         /// </summary>
+        /// <summary>
+        /// Что внутри модели с проёмом: отдельная ли створка.
+        ///
+        /// От этого зависит, можно ли двери открывать. Если створка — отдельный
+        /// объект внутри модели, её достаточно повернуть. Если она вварена в
+        /// общий меш, придётся искать другую модель или резать геометрию, а это
+        /// уже работа в редакторе моделей.
+        /// </summary>
+        [MenuItem("Tools/IsoRPG/Показать устройство двери", priority = 34)]
+        public static void ProbeDoorway()
+        {
+            var lines = new List<string>();
+
+            foreach (var name in new[] { "wall_doorway", "wall_gated", "wall_doorway_sides" })
+            {
+                string path = "Assets/_Game/Art/KayKit/Dungeon/" + name + ".fbx";
+                var model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+
+                if (model == null)
+                {
+                    lines.Add(name + ": НЕ НАЙДЕНА");
+                    continue;
+                }
+
+                lines.Add("");
+                lines.Add("=== " + name + " ===");
+
+                foreach (var t in model.GetComponentsInChildren<Transform>(true))
+                {
+                    var renderer = t.GetComponent<Renderer>();
+                    string size = renderer != null
+                        ? "  размер " + renderer.bounds.size.ToString("0.00")
+                        : "";
+
+                    lines.Add("    " + t.name + size);
+                }
+            }
+
+            Debug.Log(string.Join(System.Environment.NewLine, lines));
+        }
+
         [MenuItem("Tools/IsoRPG/Показать кости персонажа", priority = 33)]
         public static void ProbeBones()
         {

@@ -62,6 +62,8 @@ namespace IsoRPG.Combat
             if (driver != null) driver.SetDead(true);
 
             // Останавливаем и отключаем всё, что заставляет тело действовать.
+            IsoRPG.Audio.Sfx.Death(transform.position);
+
             var agent = GetComponent<NavMeshAgent>();
             if (agent != null)
             {

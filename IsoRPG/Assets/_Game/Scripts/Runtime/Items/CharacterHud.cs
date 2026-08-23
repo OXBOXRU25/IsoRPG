@@ -97,7 +97,13 @@ namespace IsoRPG.Items
             if (keyboard.cKey.wasPressedThisFrame)
             {
                 window.SetActive(!window.activeSelf);
-                if (window.activeSelf) Refresh();
+
+                if (window.activeSelf)
+                {
+                    Refresh();
+                    IsoRPG.Audio.Sfx.OpenWindow();
+                }
+                else IsoRPG.Audio.Sfx.CloseWindow();
             }
 
             if (keyboard.escapeKey.wasPressedThisFrame && window.activeSelf)

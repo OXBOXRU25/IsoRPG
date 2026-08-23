@@ -17,6 +17,15 @@ namespace IsoRPG.Items
         [Tooltip("Что может выпасть. Пусто — монстр не даёт добычи.")]
         [SerializeField] private LootTable table;
 
+        [Tooltip("Модель мешка с добычей.")]
+        [SerializeField] private GameObject itemModel;
+
+        [Tooltip("Материал силуэта, чтобы мешок было видно за препятствиями.")]
+        [SerializeField] private Material silhouetteMaterial;
+
+        [Tooltip("Насколько широко разбрасывается добыча вокруг тела.")]
+        [SerializeField] private float spillRadius = 0.7f;
+
         [Tooltip("Высота значка мешка над трупом.")]
         [SerializeField] private float markerHeight = 1.6f;
 
@@ -36,6 +45,12 @@ namespace IsoRPG.Items
         public event Action LootTaken;
 
         public void Setup(LootTable newTable) => table = newTable;
+
+        public void SetupModels(GameObject bag, Material silhouette)
+        {
+            itemModel = bag;
+            silhouetteMaterial = silhouette;
+        }
 
         /// <summary>
         /// Сбросить добычу перед возрождением: монстр встаёт заново, и в
@@ -93,20 +108,70 @@ namespace IsoRPG.Items
 
             if (HasLoot)
             {
-                ShowMarker();
-
-                // Возвращаем кликабельность сами, не полагаясь на порядок
-                // обработчиков смерти. Обработчик смерти мог отключить
-                // коллайдеры раньше, чем сюда дошла очередь — и тогда труп
-                // с добычей оказывался неотличим от пустого.
-                RestoreClickability();
-
+                SpillOnGround();
                 LootReady?.Invoke();
             }
             else
             {
                 Debug.Log($"[IsoRPG] С «{name}» ничего не выпало — не повезло с шансами.");
             }
+        }
+
+        /// <summary>
+        /// Роняет добычу на землю кучками вокруг тела.
+        ///
+        /// Вразброс, а не в одну точку: сложенные друг в друга модели
+        /// читаются как один предмет, и игрок уходит, забрав половину.
+        /// Радиус небольшой — добыча должна лежать у тела, а не разлетаться
+        /// по локации.
+        /// </summary>
+        private void SpillOnGround()
+        {
+            Vector2 flat = UnityEngine.Random.insideUnitCircle * spillRadius;
+            Vector3 at = transform.position + new Vector3(flat.x, 0f, flat.y);
+
+            GameObject go;
+
+            if (itemModel != null)
+            {
+                go = Instantiate(itemModel, at,
+                                 Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f));
+            }
+            else
+            {
+                // Модели нет — ставим приметный кубик. Без него добыча выпала
+                // бы невидимой, и это неотличимо от её отсутствия.
+                go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                go.transform.position = at;
+                go.transform.localScale = Vector3.one * 0.35f;
+            }
+
+            go.name = "Loot_" + name;
+
+            // Коллайдер нужен: по мешку кликают. Делаем его триггером, чтобы
+            // он не мешал навигации и не толкал персонажей.
+            foreach (var old in go.GetComponentsInChildren<Collider>())
+                Destroy(old);
+
+            var box = go.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            box.center = Vector3.up * 0.3f;
+            box.size = new Vector3(0.9f, 0.9f, 0.9f);
+
+            var drop = go.AddComponent<LootDrop>();
+            drop.Fill(gold, contents);
+
+            // Силуэт: мешок легко падает за стену или в траву, и без силуэта
+            // добыча просто теряется. Компонент тот же, что у персонажей.
+            var silhouette = go.AddComponent<IsoRPG.Combat.SilhouetteVisual>();
+            if (silhouetteMaterial != null) silhouette.Setup(silhouetteMaterial);
+
+            // Мешок лежит на земле: мерить его перекрытие на высоте человека
+            // бессмысленно — там воздух.
+            silhouette.SetHeight(0.55f);
+
+            gold = 0;
+            contents.Clear();
         }
 
         /// <summary>

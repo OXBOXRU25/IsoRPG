@@ -596,6 +596,7 @@ namespace IsoRPG.Combat
             if (playerNameText != null) playerNameText.text = "Разбойник  ур. " + level;
 
             CombatLog.LevelUp(level);
+            IsoRPG.Audio.Sfx.LevelUp();
         }
 
         private void OnComboChanged(int points, int max)

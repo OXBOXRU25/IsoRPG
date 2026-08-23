@@ -53,6 +53,18 @@ namespace IsoRPG.EditorTools
                 item.worldModel = LoadModel("dagger");
             });
 
+            var skeletonBone = CreateItem("I_SkeletonBone", item =>
+            {
+                item.displayName = "Кость скелета";
+                item.description = "Выбелена временем. Кому-то такие зачем-то нужны.";
+                item.rarity = ItemRarity.Common;
+                item.iconColor = new Color32(0xD8, 0xD2, 0xC0, 0xFF);
+                item.slot = EquipSlot.None;
+                item.stackable = true;
+                item.maxStack = 20;
+                item.vendorPrice = 2;
+            });
+
             // --- Броня ---
 
             var leatherChest = CreateItem("I_LeatherChest", item =>
@@ -105,16 +117,34 @@ namespace IsoRPG.EditorTools
                 item.vendorPrice = 1;
             });
 
+            var epicDagger = CreateItem("I_ShadowfangDagger", item =>
+            {
+                item.displayName = "Клык Тени";
+                item.description = "Лёгкий до невесомости. В темноте кажется, что он дышит.";
+                item.rarity = ItemRarity.Epic;
+                item.iconColor = new Color32(0xA0, 0x6A, 0xD8, 0xFF);
+                item.slot = EquipSlot.MainHand;
+                item.weaponDamage = 26;
+                item.attackInterval = 1.2f;
+                item.dualWieldable = true;
+                item.agility = 8;
+                item.stamina = 4;
+                item.requiredLevel = 3;
+                item.vendorPrice = 400;
+                item.worldModel = LoadModel("dagger");
+            });
+
             // --- Таблицы добычи ---
 
             CreateLoot("LT_Bandit", table =>
             {
-                table.minGold = 1;
-                table.maxGold = 18;
-                table.goldChance = 1f;
+                table.minGold = 3;
+                table.maxGold = 14;
+                table.goldChance = 0.55f;
                 table.entries = new[]
                 {
                     Entry(pelt, 0.55f, 1, 2),
+                    Entry(skeletonBone, 0.65f, 1, 2),
                     Entry(buckle, 0.3f, 1, 1),
                     Entry(rustyDagger, 0.12f, 1, 1),
                     Entry(banditDagger, 0.05f, 1, 1),
@@ -123,12 +153,13 @@ namespace IsoRPG.EditorTools
 
             CreateLoot("LT_Thug", table =>
             {
-                table.minGold = 1;
-                table.maxGold = 45;
-                table.goldChance = 1f;
+                table.minGold = 9;
+                table.maxGold = 40;
+                table.goldChance = 0.7f;
                 table.entries = new[]
                 {
                     Entry(pelt, 0.5f, 1, 3),
+                    Entry(skeletonBone, 0.8f, 1, 3),
                     Entry(leatherChest, 0.28f, 1, 1),
                     Entry(banditDagger, 0.15f, 1, 1),
                     Entry(swiftRing, 0.04f, 1, 1),
@@ -137,12 +168,13 @@ namespace IsoRPG.EditorTools
 
             CreateLoot("LT_Drifter", table =>
             {
-                table.minGold = 1;
-                table.maxGold = 28;
-                table.goldChance = 1f;
+                table.minGold = 5;
+                table.maxGold = 26;
+                table.goldChance = 0.6f;
                 table.entries = new[]
                 {
                     Entry(pelt, 0.5f, 1, 2),
+                    Entry(skeletonBone, 0.7f, 1, 2),
                     Entry(buckle, 0.35f, 1, 2),
                     Entry(leatherChest, 0.1f, 1, 1),
                 };
@@ -151,12 +183,14 @@ namespace IsoRPG.EditorTools
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             int filled = FillMissingModels();
+            int lootFilled = FillMissingLootEntries();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             Debug.Log("[IsoRPG] Предметы и таблицы добычи созданы. " +
-                      "Дозаполнено моделей: " + filled + ".");
+                      "Дозаполнено моделей: " + filled +
+                      ", записей в таблицах: " + lootFilled + ".");
         }
 
         private static LootEntry Entry(ItemDefinition item, float chance, int min, int max) =>
@@ -209,6 +243,65 @@ namespace IsoRPG.EditorTools
                     AssetDatabase.CreateFolder(current, parts[i]);
                 current = next;
             }
+        }
+
+        /// <summary>
+        /// Дописывает в таблицы добычи записи, появившиеся позже самих таблиц.
+        ///
+        /// То же слепое пятно, что и с полями предметов: сборщик намеренно не
+        /// перезаписывает существующие ассеты, чтобы не стирать ручные правки
+        /// — и новая строка в таблице не появляется никогда. Снаружи это
+        /// выглядит как «предмет не падает», а не как «таблица старая».
+        ///
+        /// Трогаем только отсутствующее: если запись есть, её шансы и числа
+        /// остаются как были.
+        /// </summary>
+        private static int FillMissingLootEntries()
+        {
+            var bone = LoadItem("I_SkeletonBone");
+
+            if (bone == null)
+            {
+                Debug.LogWarning("[IsoRPG] Нет предмета I_SkeletonBone — кости не добавлены в таблицы.");
+                return 0;
+            }
+
+            // Шансы разные: с крупного скелета костей больше, чем с мелкого.
+            var wanted = new (string table, float chance, int min, int max)[]
+            {
+                ("LT_Bandit",  0.65f, 1, 2),
+                ("LT_Thug",    0.80f, 1, 3),
+                ("LT_Drifter", 0.70f, 1, 2),
+            };
+
+            int filled = 0;
+
+            foreach (var (name, chance, min, max) in wanted)
+            {
+                var table = LoadTable(name);
+                if (table == null) continue;
+
+                bool has = false;
+
+                if (table.entries != null)
+                {
+                    foreach (var entry in table.entries)
+                        if (entry.item == bone) { has = true; break; }
+                }
+
+                if (has) continue;
+
+                var list = new System.Collections.Generic.List<LootEntry>();
+                if (table.entries != null) list.AddRange(table.entries);
+
+                list.Add(Entry(bone, chance, min, max));
+                table.entries = list.ToArray();
+
+                EditorUtility.SetDirty(table);
+                filled++;
+            }
+
+            return filled;
         }
 
         /// <summary>

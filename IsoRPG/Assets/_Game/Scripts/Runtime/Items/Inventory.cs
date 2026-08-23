@@ -146,6 +146,49 @@ namespace IsoRPG.Items
             return true;
         }
 
+        /// <summary>
+        /// Сколько таких предметов в сумке всего.
+        ///
+        /// Считает по всем ячейкам, а не по первой найденной: один и тот же
+        /// предмет может лежать несколькими стопками, и счёт по первой дал бы
+        /// заниженный результат ровно тогда, когда его больше всего.
+        /// </summary>
+        public int CountOf(ItemDefinition item)
+        {
+            if (item == null) return 0;
+
+            int total = 0;
+
+            for (int i = 0; i < Slots.Length; i++)
+                if (!Slots[i].IsEmpty && Slots[i].Item == item) total += Slots[i].Count;
+
+            return total;
+        }
+
+        /// <summary>
+        /// Убрать заданное число предметов. Возвращает, сколько убрали
+        /// на самом деле — может быть меньше, если столько не нашлось.
+        /// </summary>
+        public int Remove(ItemDefinition item, int count)
+        {
+            if (item == null || count <= 0) return 0;
+
+            int left = count;
+
+            for (int i = 0; i < Slots.Length && left > 0; i++)
+            {
+                if (Slots[i].IsEmpty || Slots[i].Item != item) continue;
+
+                int take = Mathf.Min(left, Slots[i].Count);
+                Slots[i] = Slots[i].Take(take, out int taken);
+                left -= taken;
+            }
+
+            if (left < count) Changed?.Invoke();
+
+            return count - left;
+        }
+
         public bool HasFreeSlot()
         {
             for (int i = 0; i < Slots.Length; i++)

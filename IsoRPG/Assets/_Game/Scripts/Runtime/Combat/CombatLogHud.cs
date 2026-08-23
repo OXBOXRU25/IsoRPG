@@ -12,8 +12,14 @@ namespace IsoRPG.Combat
     /// </summary>
     public sealed class CombatLogHud : MonoBehaviour
     {
-        private static readonly Color PanelColor = new Color32(0x14, 0x13, 0x10, 0xC0);
-        private static readonly Color PanelEdge = new Color32(0x30, 0x2C, 0x24, 0xFF);
+        // Полупрозрачная подложка: лог занимает угол экрана постоянно, и
+        // глухая плашка там съедает часть локации. Читаемость держится на
+        // контрасте текста, а не на плотности фона.
+        private static readonly Color PanelColor = new Color32(0x14, 0x13, 0x10, 0x8A);
+        // Рамка тоже полупрозрачная. Она лежит ПОД панелью и чуть больше
+        // неё — то есть заполняет собой всю площадь. Непрозрачная рамка
+        // сводит прозрачность панели к нулю: сквозь стекло видна доска.
+        private static readonly Color PanelEdge = new Color32(0x30, 0x2C, 0x24, 0x5A);
 
         // Цвета по видам сообщений. Игрок различает их боковым зрением,
         // не вчитываясь: красное — по нам попали, жёлтое — крит или золото.

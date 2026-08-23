@@ -250,6 +250,13 @@ namespace IsoRPG.Combat
                 // Показываем то, что дошло после брони, а не то, чем замахивались.
                 int actual = pendingVictim.Health.TakeDamage(dealt, gameObject);
                 DamagePopup.Show(pendingVictim.OverheadPoint, actual, result);
+
+                // Звук в момент попадания, а не замаха: ухо связывает удар с
+                // тем, что увидело, и рассинхрон в полсекунды слышен сразу.
+                if (self != null && self.Faction == Faction.Player)
+                    IsoRPG.Audio.Sfx.BladeHit(pendingVictim.transform.position);
+                else
+                    IsoRPG.Audio.Sfx.HeavyHit(pendingVictim.transform.position);
                 ReportToLog(pendingVictim, actual, result);
             }
 

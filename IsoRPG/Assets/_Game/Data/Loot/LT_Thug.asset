@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ee94e83f11477d40b257ab29d38fc93, type: 3}
   m_Name: LT_Thug
   m_EditorClassIdentifier: Assembly-CSharp::IsoRPG.Items.LootTable
-  minGold: 1
-  maxGold: 45
-  goldChance: 1
+  minGold: 9
+  maxGold: 40
+  goldChance: 0.7
   entries:
   - item: {fileID: 11400000, guid: 69df98c3d363c28439b8dae176eeb6b0, type: 2}
     chance: 0.5
@@ -32,3 +32,7 @@ MonoBehaviour:
     chance: 0.04
     minCount: 1
     maxCount: 1
+  - item: {fileID: 11400000, guid: 760f625cf04002e4faf6cc79050b2066, type: 2}
+    chance: 0.8
+    minCount: 1
+    maxCount: 3

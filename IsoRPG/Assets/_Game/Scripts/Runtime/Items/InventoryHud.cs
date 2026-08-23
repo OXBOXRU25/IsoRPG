@@ -69,7 +69,15 @@ namespace IsoRPG.Items
             if (keyboard == null) return;
 
             // I — как в любой игре жанра. Плюс Esc закрывает, если открыто.
-            if (keyboard.iKey.wasPressedThisFrame) Toggle();
+            if (keyboard.iKey.wasPressedThisFrame)
+            {
+                Toggle();
+
+                // Звук по факту состояния, а не по нажатию: если окно не
+                // открылось, звука быть не должно.
+                if (window != null && window.activeSelf) IsoRPG.Audio.Sfx.OpenWindow();
+                else IsoRPG.Audio.Sfx.CloseWindow();
+            }
             if (keyboard.escapeKey.wasPressedThisFrame && window != null && window.activeSelf)
                 window.SetActive(false);
         }

@@ -71,6 +71,8 @@ namespace IsoRPG.EditorTools
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             CreateLighting();
+
+            CreateAudio();
             GameObject ground = CreateGround();
             // Окружение вместо серых коробок. Коробки были нужны, пока
             // проверялось, что персонаж обходит препятствия; теперь ту же
@@ -84,6 +86,7 @@ namespace IsoRPG.EditorTools
             GameObject marker = CreateDestinationMarker();
             GameObject player = CreatePlayer(marker);
             CreateDummies();
+            CreateQuestGiver();
             CreateCamera(player.transform);
             CreateEventSystem();
 
@@ -112,6 +115,28 @@ namespace IsoRPG.EditorTools
         // Свет
         // ------------------------------------------------------------------
 
+        /// <summary>
+        /// Ставит в сцену объект со звуком.
+        ///
+        /// Именно объект, а не вызов статики из сборщика: сборщик — код
+        /// редактора, он отрабатывает при нажатии пункта меню, а статические
+        /// поля обнуляются при запуске игры. Ссылка должна лежать в сцене.
+        /// </summary>
+        private static void CreateAudio()
+        {
+            var go = new GameObject("Audio");
+            var setup = go.AddComponent<IsoRPG.Audio.AudioSetup>();
+
+            var bank = SoundBankBuilder.Load();
+
+            if (bank == null)
+                Debug.LogWarning("[IsoRPG] Банк звуков не собран — игра будет беззвучной. " +
+                                 "Прогони Tools/IsoRPG/Собрать банк звуков.");
+
+            setup.Setup(bank, bank != null ? bank.music : null);
+            EditorUtility.SetDirty(setup);
+        }
+
         private static void CreateLighting()
         {
             var go = new GameObject("Sun");
@@ -119,26 +144,35 @@ namespace IsoRPG.EditorTools
 
             light.type = LightType.Directional;
 
-            // Низкое солнце: тени вытягиваются и дают объём пустому полю.
-            // Это половина «дороговизны» картинки у Albion, стоит один поворот.
-            go.transform.rotation = Quaternion.Euler(38f, 145f, 0f);
+            // Вечер, солнце у горизонта. Угол ниже дневного вдвое: тени
+            // вытягиваются через всю площадку и дают объём там, где геометрия
+            // плоская. Это половина «дороговизны» картинки, и стоит она один
+            // поворот.
+            //
+            // И главное: при дневном свете факелы и свечи — просто модели.
+            // Огонь виден только когда вокруг темнее его.
+            go.transform.rotation = Quaternion.Euler(21f, 152f, 0f);
 
-            light.color = new Color32(0xFF, 0xF0, 0xD2, 0xFF); // тёплый дневной
-            light.intensity = 1.15f;
+            light.color = new Color32(0xFF, 0xC9, 0x8A, 0xFF); // закатный, оранжевый
+            light.intensity = 0.95f;
             light.shadows = LightShadows.Soft;
-            light.shadowStrength = 0.75f;
+            light.shadowStrength = 0.82f;
 
+            // Тени холодные, свет тёплый — контраст, на котором держится
+            // вечернее освещение. Если и то и другое тёплое, получается не
+            // вечер, а жёлтый фильтр.
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color32(0x9C, 0xB4, 0xCC, 0xFF);     // холодное небо
-            RenderSettings.ambientEquatorColor = new Color32(0x7A, 0x7A, 0x6E, 0xFF);
-            RenderSettings.ambientGroundColor = new Color32(0x4A, 0x46, 0x38, 0xFF);
+            RenderSettings.ambientSkyColor = new Color32(0x5A, 0x74, 0xA6, 0xFF);     // сумеречное небо
+            RenderSettings.ambientEquatorColor = new Color32(0x62, 0x63, 0x70, 0xFF);
+            RenderSettings.ambientGroundColor = new Color32(0x33, 0x30, 0x2E, 0xFF);
 
             // Дымка вдали прячет край локации без забора — приём с референса.
+            // К вечеру она гуще и холоднее: это же и добавляет глубины.
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Linear;
-            RenderSettings.fogColor = new Color32(0xB6, 0xBA, 0xA8, 0xFF);
-            RenderSettings.fogStartDistance = 45f;
-            RenderSettings.fogEndDistance = 130f;
+            RenderSettings.fogColor = new Color32(0x6E, 0x76, 0x8C, 0xFF);
+            RenderSettings.fogStartDistance = 34f;
+            RenderSettings.fogEndDistance = 96f;
         }
 
         // ------------------------------------------------------------------
@@ -256,10 +290,6 @@ namespace IsoRPG.EditorTools
             player.AddComponent<IsoRPG.Items.Inventory>();
             player.AddComponent<IsoRPG.Items.Equipment>();
 
-            // Автоподбор добычи: клик по трупу оказался ненадёжным,
-            // потому что тело теряет коллайдер при смерти.
-            player.AddComponent<IsoRPG.Items.LootCollector>();
-
             // Стартовое снаряжение приходит через сумку и надевание — тем же
             // путём, что и добыча. Прописать оружие напрямую нельзя: экипировка
             // при старте увидит пустые руки и заменит его на «Кулаки».
@@ -323,6 +353,18 @@ namespace IsoRPG.EditorTools
             // Слой ставим в самом конце сборки персонажа: к этому моменту
             // модель и оружие уже на месте, и слой достанется всему разом.
             ApplySilhouetteLayer(player);
+            player.AddComponent<IsoRPG.Audio.FootstepPlayer>();
+
+            // Окно добычи. На игроке, потому что ему нужны и сумка, и
+            // положение персонажа: окно закрывается, когда игрок отходит.
+            player.AddComponent<IsoRPG.Items.LootWindow>();
+
+            // Квесты: журнал считает прогресс по сумке, панель показывает
+            // цели, окно ведёт разговор. Все трое на игроке — им нужны его
+            // сумка, опыт и положение.
+            player.AddComponent<IsoRPG.Quests.QuestLog>();
+            player.AddComponent<IsoRPG.Quests.QuestTracker>();
+            player.AddComponent<IsoRPG.Quests.DialogueWindow>();
 
             // Полоска над головой у игрока тоже. Панель вверху экрана
             // отвечает на вопрос «сколько у меня осталось», а полоска над
@@ -343,6 +385,7 @@ namespace IsoRPG.EditorTools
         private static void CreateDummies()
         {
             var root = new GameObject("Monsters");
+            var bankForVoices = SoundBankBuilder.Load();
 
             // Разнесены по карте, чтобы радиусы агрессии не перекрывались:
             // иначе на первый же бой сбегаются все сразу, и понять поведение
@@ -446,6 +489,10 @@ namespace IsoRPG.EditorTools
                                    " — монстр останется без дропа.");
 
                 lootSource.Setup(lootTable);
+                lootSource.SetupModels(
+                    LoadDungeonModel("box_small"),
+                    AssetDatabase.LoadAssetAtPath<Material>(
+                        "Assets/_Game/Art/Materials/M_Silhouette_Ally.mat"));
                 EditorUtility.SetDirty(lootSource);
 
                 monster.AddComponent<Respawner>();
@@ -454,6 +501,13 @@ namespace IsoRPG.EditorTools
                 monster.AddComponent<OverheadHealthBar>();
 
                 ApplySilhouetteLayer(monster);
+                monster.AddComponent<IsoRPG.Audio.FootstepPlayer>();
+
+                // Голос нежити. Скелет, который поскрипывает за стеной,
+                // существует для игрока ещё до того, как покажется.
+                var voice = monster.AddComponent<IsoRPG.Audio.AmbientVoice>();
+                if (bankForVoices != null) voice.Setup(bankForVoices.boneVoice);
+                EditorUtility.SetDirty(voice);
             }
         }
 
@@ -485,6 +539,18 @@ namespace IsoRPG.EditorTools
             EditorUtility.SetDirty(visual);
         }
 
+        /// <summary>Модель из набора подземелья: кучки золота, мешочки.</summary>
+        private static GameObject LoadDungeonModel(string fileName)
+        {
+            string path = "Assets/_Game/Art/KayKit/Dungeon/" + fileName + ".fbx";
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+
+            if (model == null)
+                Debug.LogWarning("[IsoRPG] Не найдена модель " + path);
+
+            return model;
+        }
+
         /// <summary>
         /// Модель оружия из набора. Пустое имя — рука свободна, это законно.
         /// </summary>
@@ -499,6 +565,91 @@ namespace IsoRPG.EditorTools
                 Debug.LogWarning("[IsoRPG] Не найдена модель оружия " + path + " — рука останется пустой.");
 
             return model;
+        }
+
+        /// <summary>
+        /// Ставит NPC с квестом рядом с точкой появления игрока.
+        ///
+        /// Рядом, а не где-то в мире: первый квест должен найтись сам, без
+        /// поисков. Игрок появляется, видит знак над головой в двух шагах —
+        /// и дальше игра объясняет себя сама.
+        /// </summary>
+        private static void CreateQuestGiver()
+        {
+            var quest = QuestBuilder.LoadFirst();
+
+            if (quest == null)
+            {
+                Debug.LogWarning("[IsoRPG] Квест не создан — прогони " +
+                                 "Tools/IsoRPG/Создать квесты. NPC будет молчать.");
+            }
+
+            var go = new GameObject("Старый оружейник");
+            go.transform.position = new Vector3(-3.5f, 0f, 3.5f);
+
+            // Модель мирного человека, а не скелета: заказчик должен
+            // отличаться от того, кого он просит убивать.
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/_Game/Art/KayKit/Characters/Mage.fbx");
+
+            if (model != null)
+            {
+                var visual = (GameObject)PrefabUtility.InstantiatePrefab(model);
+                visual.transform.SetParent(go.transform, false);
+                visual.transform.localRotation = Quaternion.identity;
+
+                // Анимация покоя. Неподвижная модель читается как статуя, и
+                // никакой знак над головой этого не исправит: живым делает
+                // движение, а не метка.
+                var animator = visual.GetComponent<Animator>();
+                if (animator == null) animator = visual.AddComponent<Animator>();
+
+                var controller = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>(
+                    "Assets/_Game/Art/KayKit/Controllers/AC_Rogue.controller");
+
+                if (controller != null)
+                {
+                    animator.runtimeAnimatorController = controller;
+                    animator.applyRootMotion = false;
+                }
+                else
+                {
+                    Debug.LogWarning("[IsoRPG] Нет контроллера анимаций — NPC будет неподвижен.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[IsoRPG] Модель NPC не найдена — ставлю капсулу.");
+
+                var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                body.name = "Body";
+                body.transform.SetParent(go.transform, false);
+                body.transform.localPosition = Vector3.up;
+                Object.DestroyImmediate(body.GetComponent<Collider>());
+            }
+
+            // Коллайдер для клика. Триггер, чтобы не мешать навигации: NPC
+            // стоит на проходе, и твёрдое тело заставляло бы его обходить.
+            var box = go.AddComponent<CapsuleCollider>();
+            box.isTrigger = true;
+            box.center = Vector3.up;
+            box.height = 2f;
+            box.radius = 0.5f;
+
+            // Изначально смотрит на точку появления игрока: первое, что тот
+            // увидит, — обращённое к нему лицо, а не спина.
+            go.transform.rotation = Quaternion.LookRotation(
+                (Vector3.zero - go.transform.position).normalized);
+
+            var giver = go.AddComponent<IsoRPG.Quests.QuestGiver>();
+            giver.Setup(quest);
+            EditorUtility.SetDirty(giver);
+
+            // Силуэт: NPC стоит в комнате, и стена может его закрыть.
+            var silhouette = go.AddComponent<SilhouetteVisual>();
+            silhouette.Setup(AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/_Game/Art/Materials/M_Silhouette_Ally.mat"));
+            EditorUtility.SetDirty(silhouette);
         }
 
         /// <summary>

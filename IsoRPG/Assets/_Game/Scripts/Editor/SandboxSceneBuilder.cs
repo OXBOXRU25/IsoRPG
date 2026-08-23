@@ -320,6 +320,10 @@ namespace IsoRPG.EditorTools
             // состояние сразу при включении.
             player.AddComponent<IsoRPG.Items.WeaponVisual>();
 
+            // Слой ставим в самом конце сборки персонажа: к этому моменту
+            // модель и оружие уже на месте, и слой достанется всему разом.
+            ApplySilhouetteLayer(player);
+
             // Полоска над головой у игрока тоже. Панель вверху экрана
             // отвечает на вопрос «сколько у меня осталось», а полоска над
             // персонажем — на другой: «попали по мне только что или нет».
@@ -448,7 +452,37 @@ namespace IsoRPG.EditorTools
                 monster.AddComponent<StunReceiver>();
                 monster.AddComponent<DeathHandler>();
                 monster.AddComponent<OverheadHealthBar>();
+
+                ApplySilhouetteLayer(monster);
             }
+        }
+
+        /// <summary>
+        /// Включает силуэт сквозь препятствия.
+        ///
+        /// Материал добавляется вторым на каждый рендерер персонажа — это
+        /// делает сам компонент в момент запуска, когда модель уже собрана.
+        /// </summary>
+        private static void ApplySilhouetteLayer(GameObject go)
+        {
+            // Цвет по стороне: свой зелёный, чужой красный.
+            var targetable = go.GetComponent<Targetable>();
+            bool enemy = targetable != null && targetable.Faction == Faction.Hostile;
+
+            var material = AssetDatabase.LoadAssetAtPath<Material>(
+                enemy ? "Assets/_Game/Art/Materials/M_Silhouette_Enemy.mat"
+                      : "Assets/_Game/Art/Materials/M_Silhouette_Ally.mat");
+
+            if (material == null)
+            {
+                Debug.LogWarning("[IsoRPG] Нет материала силуэта — прогони " +
+                                 "Tools/IsoRPG/Настроить силуэты.");
+                return;
+            }
+
+            var visual = go.AddComponent<SilhouetteVisual>();
+            visual.Setup(material);
+            EditorUtility.SetDirty(visual);
         }
 
         /// <summary>

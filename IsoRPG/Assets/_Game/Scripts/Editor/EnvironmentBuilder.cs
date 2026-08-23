@@ -33,9 +33,14 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private const int Seed = 20260823;
 
-        private const float RuinsRadius = 13f;
-        private const float ForestInner = 21f;
-        private const float ForestOuter = 37f;
+        /// <summary>
+        /// Двор вокруг руин: сюда лес не заходит. Без расчищенной полосы
+        /// деревья лезут прямо в стены, и постройка теряется в кустах.
+        /// </summary>
+        private const float ClearingRadius = 26f;
+
+        private const float ForestInner = 27f;
+        private const float ForestOuter = 38f;
 
         public static void Build(Transform parent)
         {
@@ -61,75 +66,235 @@ namespace IsoRPG.EditorTools
             var ruins = new GameObject("Ruins").transform;
             ruins.SetParent(root, false);
 
-            // Стена меряется по факту, а не берётся из предположения о сетке:
-            // тогда куски стыкуются встык при любом наборе.
-            float step = MeasureWidth(DungeonFolder + "/wall.fbx");
-            if (step < 0.5f) step = 4f;
+            float cell = MeasureWidth(DungeonFolder + "/wall.fbx");
+            if (cell < 0.5f) cell = 4f;
 
-            // Прямоугольник стен с разрывами. Разрывы важнее самих стен: они
-            // дают проходы, укрытия от стрел и места, где можно оторваться
-            // от погони. Сплошная коробка была бы просто забором.
-            var walls = new (string model, float x, float z, float rotY)[]
+            var map = RuinsLayout.Map;
+            int rows = map.Length;
+            int cols = 0;
+            foreach (var line in map) cols = Mathf.Max(cols, line.Length);
+
+            // Центрируем план вокруг начала координат: игрок появляется там,
+            // и руины должны быть вокруг него, а не сбоку.
+            float offsetX = -(cols - 1) * cell * 0.5f;
+            float offsetZ = (rows - 1) * cell * 0.5f;
+
+            for (int z = 0; z < rows; z++)
             {
-                ("wall_broken",  -2f, 3f,   0f),
-                ("wall",         -1f, 3f,   0f),
-                ("wall_doorway",  0f, 3f,   0f),
-                ("wall",          1f, 3f,   0f),
-                ("wall_broken",   2f, 3f,   0f),
+                string line = map[z];
 
-                ("wall_corner",  -2.5f, 2.5f, 0f),
-                ("wall_corner",   2.5f, 2.5f, 270f),
+                for (int x = 0; x < line.Length; x++)
+                {
+                    char c = line[x];
+                    if (c == ' ') continue;
 
-                ("wall",        -2.5f, 1f,  90f),
-                ("wall_broken", -2.5f, 0f,  90f),
-                ("wall_half",    2.5f, 1f,  90f),
-                ("wall_broken",  2.5f, -1f, 90f),
+                    var at = new Vector3(offsetX + x * cell, 0f, offsetZ - z * cell);
 
-                ("wall_broken", -1f, -2.5f, 180f),
-                ("wall_half",    1f, -2.5f, 180f),
-            };
+                    // Пол под всем, включая стены: обрыв кладки в пустоту
+                    // читается как недоделка, а не как разрушение.
+                    if (RuinsLayout.HasFloor(c))
+                        Place(DungeonFolder + "/" + RuinsLayout.FloorFor(c) + ".fbx",
+                              ruins, at, Random.Range(0, 4) * 90f, 1f);
 
-            foreach (var (model, x, z, rotY) in walls)
-            {
-                var go = Place(DungeonFolder + "/" + model + ".fbx", ruins,
-                               new Vector3(x * step, 0f, z * step), rotY, 1f);
+                    if (RuinsLayout.IsWallChar(c))
+                    {
+                        PlaceWall(ruins, map, x, z, at, cell);
+                        continue;
+                    }
 
-                // Стены обязаны быть непрозрачными для луча: на них держится
-                // проверка линии огня у лучника.
-                AddSolidCollider(go);
+                    string prop = RuinsLayout.PropFor(c);
+                    if (prop == null) continue;
+
+                    var placed = Place(DungeonFolder + "/" + prop + ".fbx", ruins, at,
+                                       c == 'o' ? 0f : PropAngle(map, x, z), 1f);
+
+                    // Колонны и штабеля перекрывают выстрел, бочка по пояс —
+                    // нет: иначе лучник замолкал бы за каждым ящиком.
+                    if (RuinsLayout.IsSolidProp(c)) AddSolidCollider(placed);
+                }
             }
 
-            // Колонны по углам площадки — вертикали, за которые цепляется глаз.
-            var pillars = new (float x, float z)[]
-            {
-                (-1.6f, 1.6f), (1.6f, 1.6f), (-1.6f, -1.6f), (1.6f, -1.6f),
-            };
+            Decorate(ruins, map, cell, offsetX, offsetZ);
+        }
 
-            foreach (var (x, z) in pillars)
+        /// <summary>
+        /// Расставляет мелочь: свечи вдоль стен и хлам на полу.
+        ///
+        /// Не рисуется в карте намеренно. Свеча у стены — это не решение
+        /// планировщика, а правило: «вдоль стен, через одну, изнутри». Такие
+        /// вещи должны появляться сами, иначе карта превращается в мозаику из
+        /// сотни символов и перестаёт читаться — а читаемость и была смыслом
+        /// карты.
+        ///
+        /// Мелочь важнее, чем кажется: пустой каменный пол выглядит
+        /// недоделанным при любой планировке, а десяток свечей и пара бутылок
+        /// превращают помещение в место, где кто-то был.
+        /// </summary>
+        private static void Decorate(Transform parent, string[] map, float cell,
+                                     float offsetX, float offsetZ)
+        {
+            var candles = new[] { "candle_lit", "candle_thin_lit", "candle_triple", "candle_melted" };
+            var litter = new[] { "bottle_A_green", "bottle_B_brown", "bottle_C_green",
+                                 "coin_stack_small", "box_small", "rubble_half" };
+
+            for (int z = 0; z < map.Length; z++)
             {
-                var go = Place(DungeonFolder + "/pillar.fbx", ruins,
-                               new Vector3(x * step, 0f, z * step),
-                               Random.Range(0f, 360f), 1f);
-                AddSolidCollider(go);
+                string line = map[z];
+
+                for (int x = 0; x < line.Length; x++)
+                {
+                    // Ставим только на пустой каменный пол: под мебелью и на
+                    // земле мелочь смотрится мусором, а не деталью.
+                    if (line[x] != '.') continue;
+
+                    var at = new Vector3(offsetX + x * cell, 0f, offsetZ - z * cell);
+
+                    float wallAngle;
+                    if (NextToWall(map, x, z, out wallAngle))
+                    {
+                        // Вдоль стены — свечи. Через одну: сплошной ряд
+                        // читается как иллюминация, а не как заброшенное место.
+                        if ((x + z) % 2 == 0 && Random.value < 0.65f)
+                        {
+                            Vector3 shift = Quaternion.Euler(0f, wallAngle, 0f) * Vector3.forward;
+
+                            Place(DungeonFolder + "/" + candles[Random.Range(0, candles.Length)] + ".fbx",
+                                  parent, at - shift * cell * 0.34f, Random.Range(0, 4) * 90f, 1f);
+                        }
+
+                        continue;
+                    }
+
+                    // В глубине комнаты — редкий хлам.
+                    if (Random.value < 0.07f)
+                    {
+                        Vector2 jitter = Random.insideUnitCircle * cell * 0.28f;
+
+                        Place(DungeonFolder + "/" + litter[Random.Range(0, litter.Length)] + ".fbx",
+                              parent, at + new Vector3(jitter.x, 0f, jitter.y),
+                              Random.Range(0f, 360f), 1f);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Стоит ли клетка у стены и куда эта стена смотрит.
+        /// </summary>
+        private static bool NextToWall(string[] map, int x, int z, out float angle)
+        {
+            angle = 0f;
+
+            if (IsWallAt(map, x, z - 1)) { angle = 0f; return true; }
+            if (IsWallAt(map, x, z + 1)) { angle = 180f; return true; }
+            if (IsWallAt(map, x - 1, z)) { angle = 270f; return true; }
+            if (IsWallAt(map, x + 1, z)) { angle = 90f; return true; }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Ставит секцию стены, подбирая вид по соседям.
+        ///
+        /// Угол, обычная секция или трещина — это не украшение: одинаковые
+        /// куски по всему периметру читаются как обои, а торчащие торцами
+        /// углы выдают сборку вслепую.
+        /// </summary>
+        private static void PlaceWall(Transform parent, string[] map, int x, int z,
+                                      Vector3 at, float cell)
+        {
+            char c = map[z][x];
+            string model = RuinsLayout.WallFor(c);
+            float angle = WallAngle(map, x, z);
+
+            bool corner = IsCorner(map, x, z);
+
+            if (corner && c == '#')
+            {
+                model = RuinsLayout.CornerModel;
+                angle = CornerAngle(map, x, z);
+            }
+            else if (c == '#')
+            {
+                // Проёмы и окна не ломаем: через них ходят и смотрят.
+                if (RuinsLayout.ShouldBreak(x, z)) model = RuinsLayout.BrokenModel;
+                else if (RuinsLayout.ShouldCrack(x, z)) model = RuinsLayout.CrackedModel;
             }
 
-            // Обломки: без них руины выглядят как недостроенный дом, а не как
-            // разрушенный.
-            for (int i = 0; i < 9; i++)
-            {
-                string model = Random.value < 0.5f ? "rubble_half" : "rubble_large";
-                Vector2 flat = Random.insideUnitCircle * RuinsRadius;
+            var go = Place(DungeonFolder + "/" + model + ".fbx", parent, at, angle, 1f);
+            AddSolidCollider(go);
 
-                Place(DungeonFolder + "/" + model + ".fbx", ruins,
-                      new Vector3(flat.x, 0f, flat.y), Random.Range(0f, 360f),
-                      Random.Range(0.85f, 1.15f));
-            }
+            if (!RuinsLayout.HasTorch(c)) return;
 
-            // Пара факелов у входа: единственный источник тепла в кадре.
-            Place(DungeonFolder + "/torch_lit.fbx", ruins,
-                  new Vector3(-0.45f * step, 0f, 3f * step), 0f, 1f);
-            Place(DungeonFolder + "/torch_lit.fbx", ruins,
-                  new Vector3(0.45f * step, 0f, 3f * step), 0f, 1f);
+            // Факел вешаем на стену, а не ставим на пол: напольный посреди
+            // зала читается как столб непонятного назначения.
+            Place(DungeonFolder + "/" + RuinsLayout.TorchModel + ".fbx", parent,
+                  at + Vector3.up * cell * 0.42f, angle, 1f);
+        }
+
+        /// <summary>
+        /// Стена смотрит внутрь помещения. Считается по соседям: где открытая
+        /// клетка — туда и лицо.
+        /// </summary>
+        private static float WallAngle(string[] map, int x, int z)
+        {
+            if (IsOpenAt(map, x, z + 1)) return 0f;
+            if (IsOpenAt(map, x, z - 1)) return 180f;
+            if (IsOpenAt(map, x + 1, z)) return 90f;
+            if (IsOpenAt(map, x - 1, z)) return 270f;
+
+            return 0f;
+        }
+
+        private static bool IsCorner(string[] map, int x, int z)
+        {
+            bool up = IsWallAt(map, x, z - 1);
+            bool down = IsWallAt(map, x, z + 1);
+            bool left = IsWallAt(map, x - 1, z);
+            bool right = IsWallAt(map, x + 1, z);
+
+            // Угол — это когда стена продолжается по двум перпендикулярным
+            // направлениям, а по остальным обрывается.
+            return (up || down) && (left || right);
+        }
+
+        private static float CornerAngle(string[] map, int x, int z)
+        {
+            bool up = IsWallAt(map, x, z - 1);
+            bool left = IsWallAt(map, x - 1, z);
+            bool right = IsWallAt(map, x + 1, z);
+
+            if (up && right) return 0f;
+            if (up && left) return 270f;
+            if (left) return 180f;
+
+            return 90f;
+        }
+
+        private static float PropAngle(string[] map, int x, int z)
+        {
+            if (IsWallAt(map, x, z - 1)) return 0f;
+            if (IsWallAt(map, x, z + 1)) return 180f;
+            if (IsWallAt(map, x - 1, z)) return 90f;
+            if (IsWallAt(map, x + 1, z)) return 270f;
+
+            return Random.Range(0, 4) * 90f;
+        }
+
+        private static bool IsOpenAt(string[] map, int x, int z)
+        {
+            if (z < 0 || z >= map.Length) return false;
+            if (x < 0 || x >= map[z].Length) return false;
+
+            return RuinsLayout.IsOpen(map[z][x]);
+        }
+
+        private static bool IsWallAt(string[] map, int x, int z)
+        {
+            if (z < 0 || z >= map.Length) return false;
+            if (x < 0 || x >= map[z].Length) return false;
+
+            return RuinsLayout.IsWallChar(map[z][x]);
         }
 
         // ------------------------------------------------------------------
@@ -150,37 +315,52 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
-            // Плотное кольцо по краю: оно закрывает границу земли, за которой
-            // ничего нет. Без него карта заканчивается обрывом в пустоту.
-            for (int i = 0; i < 190; i++)
+            // Лес растёт рощами, а не ровным слоем. Равномерный разброс —
+            // самое узнаваемое «сделано генератором»: в природе деревья
+            // цепляются друг за друга, оставляя прогалины между группами.
+            // Прогалины важнее самих деревьев: по ним ходят и через них видно.
+            for (int grove = 0; grove < 26; grove++)
             {
                 float angle = Random.Range(0f, Mathf.PI * 2f);
                 float radius = Random.Range(ForestInner, ForestOuter);
 
-                var pos = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+                var center = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
 
-                // Чем дальше от руин, тем больше живых деревьев.
-                float bareChance = Mathf.InverseLerp(ForestOuter, ForestInner, radius);
-                var pool = (bare.Count > 0 && Random.value < bareChance * 0.7f) ? bare : living;
+                // Ближе к руинам рощи мельче и суше — переход, а не стена леса.
+                float toEdge = Mathf.InverseLerp(ForestInner, ForestOuter, radius);
+                int count = Mathf.RoundToInt(Mathf.Lerp(4f, 11f, toEdge));
+                float spread = Mathf.Lerp(3.5f, 6f, toEdge);
+                float bareChance = Mathf.Lerp(0.75f, 0.1f, toEdge);
 
-                var go = Place(pool[Random.Range(0, pool.Count)], forest, pos,
-                               Random.Range(0f, 360f), Random.Range(0.85f, 1.3f));
+                for (int i = 0; i < count; i++)
+                {
+                    Vector2 flat = Random.insideUnitCircle * spread;
+                    var pos = center + new Vector3(flat.x, 0f, flat.y);
 
-                AddTrunkCollider(go);
+                    if (pos.magnitude < ClearingRadius) continue;
+
+                    var pool = (bare.Count > 0 && Random.value < bareChance) ? bare : living;
+
+                    var go = Place(pool[Random.Range(0, pool.Count)], forest, pos,
+                                   Random.Range(0f, 360f), Random.Range(0.85f, 1.3f));
+
+                    AddTrunkCollider(go);
+                }
             }
 
-            // Одиночные деревья в средней зоне: они разбивают пустое поле и
-            // дают лучнику что обходить.
-            for (int i = 0; i < 22; i++)
+            // Одиночные сухие деревья во дворе: они разбивают пустоту и дают
+            // лучнику что обходить, но не превращают площадку в чащу.
+            var solitary = bare.Count > 0 ? bare : living;
+
+            for (int i = 0; i < 9; i++)
             {
                 float angle = Random.Range(0f, Mathf.PI * 2f);
-                float radius = Random.Range(RuinsRadius + 2f, ForestInner);
+                float radius = Random.Range(ClearingRadius * 0.72f, ClearingRadius - 1f);
 
                 var pos = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
-                var pool = bare.Count > 0 ? bare : living;
 
-                var go = Place(pool[Random.Range(0, pool.Count)], forest, pos,
-                               Random.Range(0f, 360f), Random.Range(0.8f, 1.1f));
+                var go = Place(solitary[Random.Range(0, solitary.Count)], forest, pos,
+                               Random.Range(0f, 360f), Random.Range(0.8f, 1.05f));
 
                 AddTrunkCollider(go);
             }
@@ -201,9 +381,12 @@ namespace IsoRPG.EditorTools
 
             // Кусты и трава коллайдеров НЕ получают: сквозь них надо ходить.
             // Иначе поле превращается в лабиринт, а навигация — в кашу.
-            Scatter(bushes, undergrowth, 70, 6f, ForestOuter - 3f, 0.8f, 1.3f, false);
-            Scatter(grass, undergrowth, 260, 4f, ForestInner + 4f, 0.9f, 1.6f, false);
-            Scatter(rocks, undergrowth, 40, 8f, ForestOuter - 4f, 0.7f, 1.4f, false);
+            // Кусты и камни только снаружи двора: внутри руин им не место,
+            // там пол. Трава заходит на границу — обжитый край выглядит
+            // естественнее ровно обрезанного.
+            Scatter(bushes, undergrowth, 90, ClearingRadius - 2f, ForestOuter - 2f, 0.8f, 1.3f, false);
+            Scatter(grass, undergrowth, 220, ClearingRadius - 6f, ForestOuter - 4f, 0.9f, 1.6f, false);
+            Scatter(rocks, undergrowth, 45, ClearingRadius - 3f, ForestOuter - 3f, 0.7f, 1.4f, false);
         }
 
         private static void Scatter(List<string> pool, Transform parent, int count,

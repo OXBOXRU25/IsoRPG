@@ -61,6 +61,16 @@ namespace IsoRPG.Combat
             faction = newFaction;
         }
 
+        /// <summary>
+        /// Поднять полоску под рост существа.
+        ///
+        /// Высота фиксированным числом работает, пока все одного размера.
+        /// У крупного противника такая полоска висит на уровне груди, у
+        /// мелкого — заметно выше макушки, и оба случая читаются как брак
+        /// вёрстки, а не как разный рост.
+        /// </summary>
+        public void SetOverheadHeight(float value) => overheadHeight = value;
+
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {

@@ -81,6 +81,10 @@ namespace IsoRPG.Items
         public int agility = 0;
         public int stamina = 0;
 
+        [Header("Внешний вид")]
+        [Tooltip("Модель предмета в руке. Пусто — предмет невидим на персонаже.")]
+        public GameObject worldModel;
+
         [Header("Торговля")]
         [Tooltip("За сколько монет купит торговец.")]
         public int vendorPrice = 1;

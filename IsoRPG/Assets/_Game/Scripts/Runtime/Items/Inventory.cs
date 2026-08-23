@@ -29,22 +29,39 @@ namespace IsoRPG.Items
         /// <summary>Не поместилось: предмет и сколько штук пропало.</summary>
         public event Action<ItemDefinition, int> Overflow;
 
-        private void Awake()
+        /// <summary>
+        /// Ячейки сумки. Создаются при первом обращении, а не в Awake.
+        ///
+        /// Порядок пробуждения объектов Unity не гарантирует: окно сумки —
+        /// отдельный объект, и его OnEnable законно случается раньше, чем
+        /// Awake самой сумки. Половинчатая защита (проверка на null в одних
+        /// методах и не в других) это не лечит — она только переносит падение
+        /// в следующий метод.
+        /// </summary>
+        private ItemStack[] Slots
         {
-            slots = new ItemStack[capacity];
-            for (int i = 0; i < capacity; i++) slots[i] = ItemStack.Empty;
+            get
+            {
+                if (slots == null || slots.Length != capacity)
+                {
+                    slots = new ItemStack[capacity];
+                    for (int i = 0; i < capacity; i++) slots[i] = ItemStack.Empty;
+                }
+
+                return slots;
+            }
         }
 
         public ItemStack GetSlot(int index) =>
-            slots != null && index >= 0 && index < slots.Length ? slots[index] : ItemStack.Empty;
+            index >= 0 && index < Slots.Length ? Slots[index] : ItemStack.Empty;
 
         public int UsedSlots
         {
             get
             {
                 int used = 0;
-                for (int i = 0; i < slots.Length; i++)
-                    if (!slots[i].IsEmpty) used++;
+                for (int i = 0; i < Slots.Length; i++)
+                    if (!Slots[i].IsEmpty) used++;
                 return used;
             }
         }
@@ -81,19 +98,19 @@ namespace IsoRPG.Items
 
             if (item.stackable)
             {
-                for (int i = 0; i < slots.Length && left > 0; i++)
+                for (int i = 0; i < Slots.Length && left > 0; i++)
                 {
-                    if (!slots[i].Accepts(item)) continue;
-                    slots[i] = slots[i].Add(left, out left);
+                    if (!Slots[i].Accepts(item)) continue;
+                    Slots[i] = Slots[i].Add(left, out left);
                 }
             }
 
-            for (int i = 0; i < slots.Length && left > 0; i++)
+            for (int i = 0; i < Slots.Length && left > 0; i++)
             {
-                if (!slots[i].IsEmpty) continue;
+                if (!Slots[i].IsEmpty) continue;
 
                 int put = item.stackable ? Mathf.Min(left, Mathf.Max(1, item.maxStack)) : 1;
-                slots[i] = new ItemStack(item, put);
+                Slots[i] = new ItemStack(item, put);
                 left -= put;
             }
 
@@ -108,11 +125,11 @@ namespace IsoRPG.Items
         /// <summary>Забрать из ячейки. Возвращает, что забрали.</summary>
         public ItemStack TakeFrom(int index, int amount = int.MaxValue)
         {
-            if (slots == null || index < 0 || index >= slots.Length) return ItemStack.Empty;
-            if (slots[index].IsEmpty) return ItemStack.Empty;
+            if (index < 0 || index >= Slots.Length) return ItemStack.Empty;
+            if (Slots[index].IsEmpty) return ItemStack.Empty;
 
-            var item = slots[index].Item;
-            slots[index] = slots[index].Take(amount, out int taken);
+            var item = Slots[index].Item;
+            Slots[index] = Slots[index].Take(amount, out int taken);
 
             Changed?.Invoke();
             return new ItemStack(item, taken);
@@ -121,25 +138,25 @@ namespace IsoRPG.Items
         /// <summary>Положить предмет обратно в конкретную ячейку. Нужно при снятии экипировки.</summary>
         public bool PutInto(int index, ItemStack stack)
         {
-            if (slots == null || index < 0 || index >= slots.Length || stack.IsEmpty) return false;
-            if (!slots[index].IsEmpty) return false;
+            if (index < 0 || index >= Slots.Length || stack.IsEmpty) return false;
+            if (!Slots[index].IsEmpty) return false;
 
-            slots[index] = stack;
+            Slots[index] = stack;
             Changed?.Invoke();
             return true;
         }
 
         public bool HasFreeSlot()
         {
-            for (int i = 0; i < slots.Length; i++)
-                if (slots[i].IsEmpty) return true;
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i].IsEmpty) return true;
             return false;
         }
 
         /// <summary>Всё содержимое — для интерфейса и сохранений.</summary>
         public IEnumerable<ItemStack> All()
         {
-            for (int i = 0; i < slots.Length; i++) yield return slots[i];
+            for (int i = 0; i < Slots.Length; i++) yield return Slots[i];
         }
     }
 }

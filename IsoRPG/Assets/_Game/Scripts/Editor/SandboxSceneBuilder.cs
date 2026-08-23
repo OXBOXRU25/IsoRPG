@@ -370,6 +370,10 @@ namespace IsoRPG.EditorTools
             player.AddComponent<IsoRPG.Items.InventoryHud>();
             player.AddComponent<IsoRPG.Items.CharacterHud>();
 
+            // Оружие в руках. Ставится после экипировки: компонент читает её
+            // состояние сразу при включении.
+            player.AddComponent<IsoRPG.Items.WeaponVisual>();
+
             return player;
         }
 
@@ -394,16 +398,20 @@ namespace IsoRPG.EditorTools
             // механики превращается в минуту долбёжки.
             //
             // Настоящий баланс подберём, когда механики устоятся.
-            var spots = new (Vector3 pos, string name, int hp, int level, int armor, string loot)[]
+            // Разные виды нежити, а не один вид разного роста. Рост под
+            // уровень был костылём той поры, когда модель была одна на всех:
+            // ни в WoW, ни в Albion габарит не значит силу — он значит, кто
+            // перед тобой. Уровень читается из полоски и цифры.
+            var spots = new (Vector3 pos, string name, int hp, int level, int armor, string loot, string prefab)[]
             {
-                (new Vector3(  6f, 0f,   6f), "Бандит",     45, 1,  10, "LT_Bandit"),
-                (new Vector3(-10f, 0f,  -6f), "Головорез", 110, 3,  45, "LT_Thug"),
-                (new Vector3( 16f, 0f,  -8f), "Бродяга",    70, 2,  20, "LT_Drifter"),
+                (new Vector3(  6f, 0f,   6f), "Скелет-прислужник",  45, 1, 10, "LT_Bandit",  "Skeleton_Minion"),
+                (new Vector3(-10f, 0f,  -6f), "Скелет-воин",       110, 3, 45, "LT_Thug",    "Skeleton_Warrior"),
+                (new Vector3( 16f, 0f,  -8f), "Костяной разбойник", 70, 2, 20, "LT_Drifter", "Skeleton_Rogue"),
             };
 
             var material = GetOrCreateMaterial("M_Dummy", DummyColor, smoothness: 0.1f);
 
-            foreach (var (pos, name, hp, level, armor, loot) in spots)
+            foreach (var (pos, name, hp, level, armor, loot, prefab) in spots)
             {
                 // Корень стоит НА земле, а не в центре капсулы: навигационный
                 // агент ищет сетку под своей точкой, и поднятый на метр монстр
@@ -412,12 +420,7 @@ namespace IsoRPG.EditorTools
                 monster.transform.SetParent(root.transform);
                 monster.transform.position = pos;
 
-                var visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                visual.name = "Body";
-                visual.transform.SetParent(monster.transform);
-                visual.transform.localPosition = Vector3.up;
-                Object.DestroyImmediate(visual.GetComponent<Collider>());
-                visual.GetComponent<Renderer>().sharedMaterial = material;
+                CreateMonsterVisual(monster.transform, prefab, material);
 
                 // Коллайдер вешаем на корень: по нему игрок кликает, выбирая
                 // цель, и по нему же монстров находят чужие сканирования.
@@ -428,6 +431,7 @@ namespace IsoRPG.EditorTools
 
                 var targetable = monster.AddComponent<Targetable>();
                 targetable.Setup(name, Faction.Hostile);
+                targetable.SetOverheadHeight(2.2f);
 
                 var health = monster.AddComponent<Health>();
                 health.Setup(hp);
@@ -448,6 +452,12 @@ namespace IsoRPG.EditorTools
 
                 monster.AddComponent<MeleeCombatant>();
                 monster.AddComponent<MonsterBrain>();
+
+                // Тот же водитель анимаций, что у игрока: он зависит только от
+                // навигационного агента и аниматора в детях, а они у монстра
+                // есть. Ходьба, удар и смерть заработают сами — боевой код уже
+                // дёргает его через проверку на null.
+                monster.AddComponent<CharacterAnimatorDriver>();
                 var lootSource = monster.AddComponent<IsoRPG.Items.LootSource>();
                 var lootTable = ItemsBuilder.LoadTable(loot);
 
@@ -465,6 +475,38 @@ namespace IsoRPG.EditorTools
                 monster.AddComponent<DeathHandler>();
                 monster.AddComponent<OverheadHealthBar>();
             }
+        }
+
+        /// <summary>
+        /// Ставит модель противника по имени префаба, иначе — капсулу.
+        ///
+        /// Запасной вариант нужен не для красоты: пока модели не собраны,
+        /// сцена должна запускаться. Иначе один недостающий ассет блокирует
+        /// всю работу над механикой.
+        /// </summary>
+        private static void CreateMonsterVisual(Transform parent, string prefabName, Material fallback)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/_Game/Prefabs/" + prefabName + ".prefab");
+
+            if (prefab != null)
+            {
+                var visual = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                visual.transform.SetParent(parent);
+                visual.transform.localPosition = Vector3.zero;
+                visual.transform.localRotation = Quaternion.identity;
+                return;
+            }
+
+            Debug.LogWarning("[IsoRPG] Нет префаба " + prefabName + " — ставлю капсулу. " +
+                             "Собери их через Tools/IsoRPG/Собрать персонажей KayKit.");
+
+            var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            body.name = "Body";
+            body.transform.SetParent(parent);
+            body.transform.localPosition = Vector3.up;
+            Object.DestroyImmediate(body.GetComponent<Collider>());
+            body.GetComponent<Renderer>().sharedMaterial = fallback;
         }
 
         /// <summary>
@@ -545,7 +587,7 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static void CreateEventSystem()
         {
-            if (Object.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() != null) return;
+            if (Object.FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() != null) return;
 
             var go = new GameObject("EventSystem",
                 typeof(UnityEngine.EventSystems.EventSystem),

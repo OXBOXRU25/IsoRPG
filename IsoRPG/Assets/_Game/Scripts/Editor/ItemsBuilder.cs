@@ -34,6 +34,7 @@ namespace IsoRPG.EditorTools
                 item.weaponDamage = 8;
                 item.attackInterval = 1.3f;
                 item.vendorPrice = 4;
+                item.worldModel = LoadModel("dagger");
             });
 
             var banditDagger = CreateItem("I_BanditDagger", item =>
@@ -47,6 +48,7 @@ namespace IsoRPG.EditorTools
                 item.attackInterval = 1.3f;
                 item.agility = 3;
                 item.vendorPrice = 25;
+                item.worldModel = LoadModel("dagger");
             });
 
             // --- Броня ---
@@ -146,7 +148,13 @@ namespace IsoRPG.EditorTools
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[IsoRPG] Предметы и таблицы добычи созданы.");
+            int filled = FillMissingModels();
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            Debug.Log("[IsoRPG] Предметы и таблицы добычи созданы. " +
+                      "Дозаполнено моделей: " + filled + ".");
         }
 
         private static LootEntry Entry(ItemDefinition item, float chance, int min, int max) =>
@@ -200,5 +208,66 @@ namespace IsoRPG.EditorTools
                 current = next;
             }
         }
+
+        /// <summary>
+        /// Дозаполняет поля, появившиеся позже самих предметов.
+        ///
+        /// Сборщик намеренно не перезаписывает существующие ассеты, чтобы не
+        /// стирать правки в инспекторе. У этого правила есть слепое пятно:
+        /// поле, добавленное в описание предмета уже после его создания,
+        /// остаётся пустым навсегда — и предмет молча ведёт себя как
+        /// сломанный. Здесь мы трогаем только пустое: пустота правкой не
+        /// бывает.
+        /// </summary>
+        private static int FillMissingModels()
+        {
+            int filled = 0;
+
+            foreach (var guid in AssetDatabase.FindAssets("t:ItemDefinition", new[] { ItemsFolder }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
+
+                if (item == null || !item.IsWeapon || item.worldModel != null) continue;
+
+                item.worldModel = LoadModel(ModelFor(item));
+                EditorUtility.SetDirty(item);
+                filled++;
+            }
+
+            return filled;
+        }
+
+        /// <summary>
+        /// Какая модель какому оружию. Пока весь наш арсенал — кинжалы, но
+        /// список нужен уже сейчас: с появлением второго типа оружия
+        /// подстановка по умолчанию превратится в мечи, выглядящие кинжалами.
+        /// </summary>
+        private static string ModelFor(ItemDefinition item)
+        {
+            string name = item.name.ToLower();
+
+            if (name.Contains("sword")) return "sword_1handed";
+            if (name.Contains("axe")) return "axe_1handed";
+            if (name.Contains("bow")) return "bow";
+
+            return "dagger";
+        }
+
+        /// <summary>
+        /// Модель предмета из набора KayKit. Пусто — предмет будет невидим
+        /// в руке, поэтому о промахе говорим вслух.
+        /// </summary>
+        private static GameObject LoadModel(string fileName)
+        {
+            string path = "Assets/_Game/Art/KayKit/Weapons/" + fileName + ".fbx";
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+
+            if (model == null)
+                Debug.LogWarning("[IsoRPG] Не найдена модель " + path + " — предмет останется невидимым.");
+
+            return model;
+        }
     }
+
 }

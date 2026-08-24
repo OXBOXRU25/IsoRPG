@@ -14,13 +14,43 @@ namespace IsoRPG.Items
     public sealed class Inventory : MonoBehaviour
     {
         [Tooltip("Сколько ячеек в сумке.")]
-        [SerializeField] private int capacity = 20;
+        /// <summary>
+        /// Сорок ячеек. Двадцати переставало хватать примерно на втором
+        /// уровне: половину занимали яблоки и шкуры, и до торговца игрок
+        /// доходил с полной сумкой, выбрасывая находки прямо у трупа.
+        /// </summary>
+        [SerializeField] private int capacity = 40;
 
         [SerializeField] private int gold = 0;
 
         private ItemStack[] slots;
 
         public int Capacity => capacity;
+
+        /// <summary>
+        /// Задаёт размер сумки. Нужно сборщику сцены.
+        ///
+        /// Менять значение поля по умолчанию мало: у объекта, уже лежащего
+        /// в сцене, сохранена своя копия, и новое умолчание её не трогает.
+        /// Это та ловушка, из-за которой правка «просто не применяется»,
+        /// хотя в коде всё верно.
+        /// </summary>
+        public void SetCapacity(int value)
+        {
+            capacity = Mathf.Max(1, value);
+
+            // Пересобираем ячейки, если размер поменялся уже после старта.
+            if (slots == null || slots.Length != capacity)
+            {
+                var old = slots;
+                slots = new ItemStack[capacity];
+
+                for (int i = 0; i < capacity; i++)
+                {
+                    slots[i] = old != null && i < old.Length ? old[i] : ItemStack.Empty;
+                }
+            }
+        }
         public int Gold => gold;
 
         /// <summary>Содержимое изменилось — интерфейсу пора перерисоваться.</summary>

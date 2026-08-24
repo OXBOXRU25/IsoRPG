@@ -26,7 +26,15 @@ namespace IsoRPG.Items
 
         private const float Margin = 18f;
         private const float BagSize = 46f;
-        private const int Columns = 5;
+        /// <summary>
+        /// Восемь колонок на сорок ячеек — это пять рядов.
+        ///
+        /// При прежних пяти колонках получилось бы восемь рядов, и окно
+        /// вытянулось бы в узкий столбец высотой почти во весь экран.
+        /// Широкая и низкая сетка ещё и просматривается быстрее: глаз
+        /// бежит вдоль строки, а не прыгает по столбцу.
+        /// </summary>
+        private const int Columns = 8;
         private const float CellSize = 46f;
         private const float CellGap = 4f;
         private const float WindowPad = 12f;
@@ -270,6 +278,12 @@ namespace IsoRPG.Items
             cellCounts.Add(count);
 
             cellTips.Add(go.AddComponent<IsoRPG.UI.ItemTooltipTrigger>());
+
+            // Перетаскивание за пределы окна выбрасывает вещь на землю.
+            // Окно передаём сюда же: именно по его границе и решается,
+            // выбросили вещь или просто повозили курсором внутри сумки.
+            var drag = go.AddComponent<SlotDragSource>();
+            drag.Setup(index, inventory, parent);
 
             int captured = index;
             go.GetComponent<Button>().onClick.AddListener(() => OnCellClicked(captured));

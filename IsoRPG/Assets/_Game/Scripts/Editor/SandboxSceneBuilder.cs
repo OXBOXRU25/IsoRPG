@@ -493,6 +493,27 @@ namespace IsoRPG.EditorTools
 
             // Смерть и возвращение. Возрождатель тот же, что у монстров, но
             // по команде: игрок встаёт кнопкой, а не сам через полминуты.
+            // Размер сумки задаём явно: у компонента, уже лежащего в сцене,
+            // сохранено своё значение, и правка умолчания в коде его не
+            // меняет.
+            var bag = player.GetComponent<IsoRPG.Items.Inventory>();
+            if (bag != null)
+            {
+                bag.SetCapacity(40);
+                EditorUtility.SetDirty(bag);
+            }
+
+            // Выброс вещей из сумки. Модель мешка та же, что у добычи
+            // с монстров: игрок уже знает, что лежащий мешок можно
+            // подобрать, и второй вид лежащей вещи пришлось бы объяснять
+            // заново.
+            var dropper = player.AddComponent<IsoRPG.Items.ItemDropper>();
+            dropper.Setup(
+                LoadDungeonModel("box_small"),
+                AssetDatabase.LoadAssetAtPath<Material>(
+                    "Assets/_Game/Art/Materials/M_Silhouette_Ally.mat"));
+            EditorUtility.SetDirty(dropper);
+
             var playerRespawn = player.AddComponent<Respawner>();
             playerRespawn.SetManualOnly(true);
             EditorUtility.SetDirty(playerRespawn);

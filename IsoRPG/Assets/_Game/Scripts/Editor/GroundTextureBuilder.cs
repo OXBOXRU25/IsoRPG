@@ -173,17 +173,35 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static float Tileable(float x, float y, float frequency)
         {
+            // Смещение в заведомо положительную область — не украшение,
+            // а обязательное условие.
+            //
+            // Mathf.PerlinNoise у Unity зеркалит отрицательные координаты:
+            // значение в точке -x совпадает со значением в +x. А приём
+            // бесшовности как раз и берёт сэмплы за левым и нижним краем,
+            // то есть в минусе. В итоге текстура вышла симметричной —
+            // одинаковые пятна по всем четырём углам, — а от смешивания
+            // почти одинаковых значений пропал и контраст: получилось
+            // размытое зелёное поле вместо травы.
+            //
+            // Тысяча взята с запасом: самая высокая частота у нас 24 с двумя
+            // октавами, то есть период не превышает 48, и после вычитания
+            // координата остаётся далеко в плюсе.
+            const float Origin = 1000f;
+
             float period = frequency;
-            float u = x / Size * frequency;
-            float v = y / Size * frequency;
+            float u = x / Size * frequency + Origin;
+            float v = y / Size * frequency + Origin;
 
             float a = Mathf.PerlinNoise(u, v);
             float b = Mathf.PerlinNoise(u - period, v);
             float c = Mathf.PerlinNoise(u, v - period);
             float d = Mathf.PerlinNoise(u - period, v - period);
 
-            float wu = u / period;
-            float wv = v / period;
+            // Веса берём от координаты без смещения: оно нужно только
+            // для выборки шума, а доля пути до края от него не зависит.
+            float wu = (u - Origin) / period;
+            float wv = (v - Origin) / period;
 
             return a * (1f - wu) * (1f - wv)
                  + b * wu * (1f - wv)

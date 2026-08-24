@@ -25,6 +25,12 @@ const CHANGELOG = path.join(repo, 'CHANGELOG.md');
 const LOGO = path.join(repo, 'IsoRPG/Assets/_Game/Art/UI/Logo.png');
 const LOGO_WEB = path.join(here, 'logo-web.png');
 const OUT = path.join(repo, 'site', 'index.html');
+const PACKAGE_ROOT = path.join(repo, 'Package');
+
+// Адрес сайта. Ссылки на скачивание делаем абсолютными: страницу открывают
+// и с сервера, и с диска, и из опубликованной копии — относительный путь
+// работал бы только в первом случае. При переезде на домен меняется здесь.
+const SITE_URL = 'http://5.129.195.139';
 
 // --- Разбор истории --------------------------------------------------------
 //
@@ -188,11 +194,37 @@ function logoDataUri() {
   return 'data:image/png;base64,' + fs.readFileSync(file).toString('base64');
 }
 
+// --- Файлы для скачивания --------------------------------------------------
+
+/**
+ * Размеры берём с диска, а не пишем руками: цифра рядом с кнопкой должна
+ * совпадать с тем, что человек реально получит, а после каждой сборки она
+ * меняется.
+ */
+function downloads(version) {
+  const setup = path.join(PACKAGE_ROOT, 'Установка Приключения разбойника Жени ' + version + '.exe');
+  const archive = path.join(PACKAGE_ROOT, 'Приключения разбойника Жени ' + version + '.zip');
+
+  function megabytes(file) {
+    if (!fs.existsSync(file)) return null;
+    return Math.round(fs.statSync(file).size / 1024 / 1024);
+  }
+
+  return {
+    setup: megabytes(setup),
+    archive: megabytes(archive),
+    setupUrl: SITE_URL + '/downloads/HighFlyingBird-Setup-latest.exe',
+    archiveUrl: SITE_URL + '/downloads/HighFlyingBird-latest.zip',
+  };
+}
+
 // --- Страница --------------------------------------------------------------
 
 function buildPage(releases) {
   const latest = releases[0] || { version: '—', date: '' };
   const logo = logoDataUri();
+
+  const files = downloads(latest.version);
 
   const total = releases.reduce(
     (sum, release) => sum + release.sections.reduce((n, s) => n + s.items.length, 0), 0);
@@ -295,6 +327,65 @@ function buildPage(releases) {
     color: var(--ink-soft);
     max-width: 46ch;
   }
+
+  /* --- Кнопка скачивания --------------------------------------------- */
+
+  .get {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /*
+    Золото то же, что на кнопке запуска в лаунчере. Человек, скачавший
+    игру здесь, через минуту увидит ту же кнопку у себя на экране — и
+    должен узнать её, а не гадать, та ли это программа.
+  */
+  .get__button {
+    display: inline-block;
+    padding: 15px 30px 16px;
+    border-radius: 5px;
+    background: linear-gradient(180deg, var(--gold-bright) 0%, var(--gold) 55%, #B87F22 100%);
+    color: #241808;
+    font-family: "PT Sans", sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .3), 0 10px 24px rgba(232, 169, 58, .18);
+    transition: transform .18s cubic-bezier(.16, 1, .3, 1), box-shadow .18s;
+  }
+
+  .get__button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, .35), 0 14px 30px rgba(232, 169, 58, .26);
+  }
+
+  .get__button:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 3px;
+  }
+
+  .get__meta {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+
+  .get__alt {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+
+  .get__alt a {
+    color: var(--ink-soft);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .get__alt a:hover { color: var(--gold); }
 
   /* --- Сводка -------------------------------------------------------- */
 
@@ -503,6 +594,12 @@ function buildPage(releases) {
       <h1 class="head__title">Приключения разбойника Жени</h1>
       <p class="head__lede">Что менялось в игре от сборки к сборке. Записи идут
       от новых к старым — сверху то, что в игре прямо сейчас.</p>
+    </div>
+
+    <div class="get">
+      <a class="get__button" href="${files.setupUrl}">Скачать игру</a>
+      <p class="get__meta">Установщик для Windows${files.setup ? ', ' + files.setup + ' МБ' : ''}</p>
+      <p class="get__alt">или <a href="${files.archiveUrl}">архивом</a>${files.archive ? ', ' + files.archive + ' МБ' : ''} — без установки</p>
     </div>
   </header>
 

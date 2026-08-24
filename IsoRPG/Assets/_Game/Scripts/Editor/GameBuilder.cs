@@ -57,6 +57,10 @@ namespace IsoRPG.EditorTools
             PlayerSettings.productName = ProductName;
             PlayerSettings.companyName = "OXBOX";
 
+            // Номер берём из CHANGELOG.md, а не из настроек проекта: иначе
+            // версия и описание изменений живут порознь и расходятся.
+            string version = GameVersion.ApplyToPlayerSettings();
+
             // Полноэкранное окно, а не эксклюзивный полный экран: у второго
             // ломается переключение по Alt+Tab, а выигрыша на нашей картинке
             // никакого.
@@ -89,12 +93,16 @@ namespace IsoRPG.EditorTools
 
             CleanBuildFolder(folder);
 
-            string archive = Path.Combine(BuildRoot, ExecutableName + ".zip");
+            // Версия в имени файла обязательна: у игрока на диске лежат три
+            // архива с одинаковым именем, и какой из них новее — не узнать.
+            string archive = Path.Combine(BuildRoot, ExecutableName + "-" + version + ".zip");
             Zip(folder, archive);
+
+            WriteVersionFile(folder, version);
 
             double megabytes = summary.totalSize / 1024.0 / 1024.0;
 
-            Debug.Log("[IsoRPG] Готово. Папка: " + folder + nl +
+            Debug.Log("[IsoRPG] Готово, версия " + version + ". Папка: " + folder + nl +
                       "Архив: " + archive + nl +
                       "Размер сборки: " + megabytes.ToString("0.0") + " МБ, " +
                       "время " + summary.totalTime.TotalSeconds.ToString("0") + " с.");
@@ -118,6 +126,27 @@ namespace IsoRPG.EditorTools
                 Directory.Delete(path, true);
                 Debug.Log("[IsoRPG] Из сборки убрано: " + Path.GetFileName(path));
             }
+        }
+
+        /// <summary>
+        /// Кладёт рядом с игрой файл с её версией.
+        ///
+        /// Нужен лаунчеру: чтобы понять, надо ли обновляться, он должен
+        /// узнать версию установленной игры, не запуская её. Читать номер
+        /// из свойств exe можно, но там он в формате Windows (четыре числа),
+        /// и наша «0.2.0» туда не ложится без потерь.
+        /// </summary>
+        private static void WriteVersionFile(string folder, string version)
+        {
+            var (_, date) = GameVersion.Read();
+
+            string json = "{" + nl +
+                          "  \u0022version\u0022: \u0022" + version + "\u0022," + nl +
+                          "  \u0022date\u0022: \u0022" + date + "\u0022," + nl +
+                          "  \u0022executable\u0022: \u0022" + ExecutableName + ".exe\u0022" + nl +
+                          "}" + nl;
+
+            File.WriteAllText(Path.Combine(folder, "version.json"), json);
         }
 
         private static string nl => Environment.NewLine;

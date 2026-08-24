@@ -63,6 +63,12 @@ namespace IsoRPG.EditorTools
             // на самом лого оно уже написано, и дубль под ним читался бы
             // как недоделка.
             if (!BuildLogo(root)) BuildTitle(root);
+
+            // Номер версии в углу. Первый вопрос к любому отчёту об ошибке —
+            // какая сборка у человека на руках; без подписи на него не
+            // ответить ни ему, ни нам.
+            IsoRPG.UI.VersionLabel.Attach(
+                root, Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
             BuildButtons(root, menu);
             BuildCredits(root);
 

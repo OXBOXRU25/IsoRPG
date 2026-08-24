@@ -187,6 +187,18 @@ namespace IsoRPG.EditorTools
         // Геометрия
         // ------------------------------------------------------------------
 
+        /// <summary>
+        /// Сколько раз текстура повторяется по стороне поляны.
+        ///
+        /// Считается из размера мира, а не пишется числом: поляна ещё будет
+        /// расти, и вписанное вручную число молча растянет текстуру.
+        /// </summary>
+        public static void ApplyGroundTiling(Material material)
+        {
+            float tiles = GroundSize / GroundTextureBuilder.MetersPerTile;
+            material.SetTextureScale("_BaseMap", new Vector2(tiles, tiles));
+        }
+
         private static GameObject CreateGround()
         {
             var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -197,7 +209,46 @@ namespace IsoRPG.EditorTools
             ground.transform.position = Vector3.zero;
 
             ApplyMaterial(ground, "M_Ground", GroundColor, smoothness: 0f);
+
+            // Текстуру кладём после материала: она могла быть нарисована
+            // раньше, и тогда её надо вернуть на место — материал
+            // создаётся один раз и переживает пересборку сцены.
+            DressGround(ground);
+
             return ground;
+        }
+
+        /// <summary>
+        /// Ставит на землю нарисованную текстуру, если она есть.
+        ///
+        /// Без текстуры остаётся заливка одним цветом — работает, но
+        /// читается как незаполненное место: под ногами не за что
+        /// зацепиться глазом, и пропадает ощущение движения.
+        /// </summary>
+        private static void DressGround(GameObject ground)
+        {
+            var material = ground.GetComponent<Renderer>().sharedMaterial;
+            if (material == null) return;
+
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                "Assets/_Game/Art/Textures/T_Ground.png");
+
+            if (texture == null)
+            {
+                Debug.Log("[IsoRPG] Текстуры земли нет. Создать: " +
+                          "Tools -> IsoRPG -> Создать текстуру земли.");
+                return;
+            }
+
+            material.SetTexture("_BaseMap", texture);
+
+            // Белый цвет обязателен: он умножается на текстуру, и прежний
+            // зелёный сделал бы её вдвое темнее. Со стороны выглядит так,
+            // будто текстура вовсе не легла.
+            material.SetColor("_BaseColor", Color.white);
+
+            ApplyGroundTiling(material);
+            EditorUtility.SetDirty(material);
         }
 
         private static GameObject CreateDestinationMarker()
@@ -496,6 +547,21 @@ namespace IsoRPG.EditorTools
                 (new Vector3(-10f, 0f,  -6f), "Скелет-воин",       110, 3, 45, "LT_Thug",    "Skeleton_Warrior",
                  "Skeleton_Axe", "Skeleton_Shield_Large_A", false),
 
+                (new Vector3(  0f, 0f,  14f), "Костяной послушник", 50, 1, 12, "LT_Bandit",  "Skeleton_Minion",
+                 "dagger", null, false),
+
+                (new Vector3(-14f, 0f,   2f), "Костяной страж",    100, 2, 35, "LT_Thug",    "Skeleton_Warrior",
+                 "sword_1handed", "shield_round", false),
+
+                // Двое в лесу между руинами и лагерем. Дорога туда была
+                // совершенно пустой: полминуты бега мимо деревьев, за
+                // которые не цепляется ни взгляд, ни опасность.
+                (new Vector3(-22f, 0f, -14f), "Заблудший скелет",   60, 1, 15, "LT_Bandit",  "Skeleton_Minion",
+                 "axe_1handed", null, false),
+
+                (new Vector3(-26f, 0f,  -4f), "Заблудший скелет",   60, 1, 15, "LT_Bandit",  "Skeleton_Warrior",
+                 "sword_1handed", null, false),
+
                 (new Vector3( 16f, 0f,  -8f), "Костяной лучник",    70, 2, 20, "LT_Drifter", "Skeleton_Rogue",
                  "bow_withString", null, true),
 
@@ -521,6 +587,15 @@ namespace IsoRPG.EditorTools
 
                 (BanditCampBuilder.Centre + new Vector3(-7f, 0f, -4f), "Дозорный",           90, 2, 35, "LT_Bandit_Human", "Bandit_Brute",
                  "axe_1handed", null, false),
+
+                // Колдун бьёт издали, из-за спин своих. Он и меняет бой в
+                // лагере: пока к нему не прорвёшься, размен идёт не в твою
+                // пользу, сколько бы разбойников ты ни срубил.
+                (BanditCampBuilder.Centre + new Vector3( 2f, 0f,  9f), "Колдун банды",       90, 3, 50, "LT_Bandit_Human", "Bandit_Warlock",
+                 "staff", null, true),
+
+                (BanditCampBuilder.Centre + new Vector3(-9f, 0f,  2f), "Лазутчик",           85, 3, 40, "LT_Bandit_Human", "Bandit_Skirmisher",
+                 "dagger", null, false),
 
                 (BanditCampBuilder.Centre + new Vector3( 0f, 0f, -8f), "Атаман Кривой Клык", 210, 4, 70, "LT_Bandit_Chief", "Bandit_Guard",
                  "sword_1handed", "shield_round", false),
@@ -772,12 +847,22 @@ namespace IsoRPG.EditorTools
             boss.transform.SetParent(root);
             boss.transform.position = at;
 
-            CreateMonsterVisual(boss.transform, "Skeleton_Mage", material);
+            // Владыка на треть выше рядовых скелетов. Это единственное, что
+            // отличает его силуэт: модель у него та же, что у обычного мага,
+            // и без разницы в росте игрок узнаёт босса только по полоске
+            // здоровья, то есть уже вступив в бой.
+            const float BossScale = 1.35f;
 
+            CreateMonsterVisual(boss.transform, "Skeleton_Mage", material, BossScale);
+
+            // Коллайдер растёт вместе с моделью. Оставить прежний — значит
+            // получить босса, у которого голова и плечи не нажимаются:
+            // курсор проходит мимо, и выглядит это как неработающий выбор
+            // цели, а не как маленькая зона попадания.
             var body = boss.AddComponent<CapsuleCollider>();
-            body.center = Vector3.up;
-            body.height = 2f;
-            body.radius = 0.5f;
+            body.center = Vector3.up * BossScale;
+            body.height = 2f * BossScale;
+            body.radius = 0.5f * BossScale;
 
             var targetable = boss.AddComponent<Targetable>();
             targetable.Setup("Костяной владыка", Faction.Hostile);
@@ -834,6 +919,11 @@ namespace IsoRPG.EditorTools
             boss.AddComponent<OverheadHealthBar>();
 
             var respawn = boss.AddComponent<Respawner>();
+
+            // Пять минут вместо полутора. К владыке готовятся — берут
+            // уровень, ищут кинжал, — и если он встаёт наравне с рядовым
+            // скелетом, то и победа над ним весит столько же.
+            respawn.SetDelay(300f);
             EditorUtility.SetDirty(respawn);
 
             ApplySilhouetteLayer(boss);
@@ -1092,7 +1182,13 @@ namespace IsoRPG.EditorTools
         /// сцена должна запускаться. Иначе один недостающий ассет блокирует
         /// всю работу над механикой.
         /// </summary>
-        private static void CreateMonsterVisual(Transform parent, string prefabName, Material fallback)
+        /// <summary>
+        /// Ставит модель монстра. Масштаб — для тех, кто должен выглядеть
+        /// крупнее сородичей: у босса на общей модели нет иного способа
+        /// показать, что перед тобой не рядовой скелет.
+        /// </summary>
+        private static void CreateMonsterVisual(Transform parent, string prefabName,
+                                                Material fallback, float scale = 1f)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
                 "Assets/_Game/Prefabs/" + prefabName + ".prefab");
@@ -1103,6 +1199,12 @@ namespace IsoRPG.EditorTools
                 visual.transform.SetParent(parent);
                 visual.transform.localPosition = Vector3.zero;
                 visual.transform.localRotation = Quaternion.identity;
+
+                // Масштабируем только модель, а не корень объекта: на корне
+                // висят агент навигации и коллайдер, и они от масштаба
+                // родителя ведут себя непредсказуемо. Их размеры правятся
+                // отдельно и явно.
+                visual.transform.localScale = Vector3.one * scale;
                 return;
             }
 

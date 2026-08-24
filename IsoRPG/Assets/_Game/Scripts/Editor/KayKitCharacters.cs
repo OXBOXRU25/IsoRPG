@@ -129,6 +129,8 @@ namespace IsoRPG.EditorTools
             ("Barbarian",        "Bandit",   "Bandit_Brute"),
             ("Knight",           "Bandit",   "Bandit_Guard"),
             ("Ranger",           "Hunter",   "Bandit_Hunter"),
+            ("Mage",             "Mage",     "Bandit_Warlock"),
+            ("Rogue",            "Rogue",    "Bandit_Skirmisher"),
         };
 
         [MenuItem("Tools/IsoRPG/Собрать персонажей KayKit", priority = 13)]

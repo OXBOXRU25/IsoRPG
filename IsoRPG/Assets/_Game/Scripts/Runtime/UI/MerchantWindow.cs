@@ -134,6 +134,7 @@ namespace IsoRPG.UI
             }
 
             if (row == 0) AddEmpty(stockList, "Лавка пуста");
+            FitContent(stockList, row);
 
             // Своя сумка
             row = 0;
@@ -150,6 +151,23 @@ namespace IsoRPG.UI
             }
 
             if (row == 0) AddEmpty(bagList, "Сумка пуста");
+            FitContent(bagList, row);
+        }
+
+        /// <summary>
+        /// Задаёт высоту списка по числу строк.
+        ///
+        /// Без этого прокрутка есть, но не работает: она смотрит на
+        /// заявленный размер содержимого, а не на то, сколько строк туда
+        /// реально положили. Нулевая высота означает «прокручивать нечего»,
+        /// и список молча остаётся неподвижным.
+        /// </summary>
+        private static void FitContent(RectTransform list, int rows)
+        {
+            if (list == null) return;
+
+            list.sizeDelta = new Vector2(list.sizeDelta.x,
+                                         Mathf.Max(0f, rows * RowHeight));
         }
 
         private void AddRow(RectTransform parent, int index, ItemDefinition item, int price,
@@ -292,6 +310,47 @@ namespace IsoRPG.UI
             window.SetActive(false);
         }
 
+        /// <summary>
+        /// Превращает колонку в прокручиваемый список и отдаёт то место,
+        /// куда класть строки.
+        ///
+        /// До этого строки просто ставились одна под другой без всякой
+        /// обрезки: пока предметов было мало, всё помещалось, а с полным
+        /// мешком список вываливался за нижний край окна и висел поверх
+        /// игры. Выглядит это не как «не влезло», а как сломанная вёрстка.
+        ///
+        /// Обрезаем через RectMask2D, а не Mask: второй требует отдельного
+        /// прохода трафарета, а нам нужен обычный прямоугольник.
+        /// </summary>
+        private static RectTransform MakeScrollable(RectTransform viewport)
+        {
+            viewport.gameObject.AddComponent<RectMask2D>();
+
+            var content = new GameObject("Content", typeof(RectTransform));
+            var contentRect = (RectTransform)content.transform;
+            contentRect.SetParent(viewport, false);
+
+            contentRect.anchorMin = new Vector2(0f, 1f);
+            contentRect.anchorMax = new Vector2(1f, 1f);
+            contentRect.pivot = new Vector2(0.5f, 1f);
+            contentRect.anchoredPosition = Vector2.zero;
+            contentRect.sizeDelta = Vector2.zero;
+
+            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = viewport;
+            scroll.content = contentRect;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+
+            // Без упругости: список товаров — не лента новостей, отскок
+            // на краю здесь читается как неточность, а не как отклик.
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.inertia = false;
+            scroll.scrollSensitivity = 28f;
+
+            return contentRect;
+        }
+
         private RectTransform MakeColumn(RectTransform parent, string name, float x, string caption)
         {
             var title = MakeText(parent, name + "Title", caption, 13, DimColor);
@@ -312,7 +371,7 @@ namespace IsoRPG.UI
             rect.anchoredPosition = new Vector2(x, -80f);
             rect.sizeDelta = new Vector2(ColumnWidth, Height - 96f);
 
-            return rect;
+            return MakeScrollable(rect);
         }
 
         private static void Place(Text text, Vector2 position, Vector2 size)

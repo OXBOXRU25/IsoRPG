@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -60,6 +61,8 @@ namespace IsoRPG.EditorTools
             // Номер берём из CHANGELOG.md, а не из настроек проекта: иначе
             // версия и описание изменений живут порознь и расходятся.
             string version = GameVersion.ApplyToPlayerSettings();
+
+            ApplyIcon();
 
             // Полноэкранное окно, а не эксклюзивный полный экран: у второго
             // ломается переключение по Alt+Tab, а выигрыша на нашей картинке
@@ -150,6 +153,31 @@ namespace IsoRPG.EditorTools
                           "}" + nl;
 
             File.WriteAllText(Path.Combine(folder, "version.json"), json);
+        }
+
+        /// <summary>
+        /// Ставит игре её собственную иконку.
+        ///
+        /// Без этого шага в панели задач и на ярлыке висит логотип Unity —
+        /// та деталь, по которой сразу видно недоделанную игру. Стоит она
+        /// две строки, а замечают её раньше половины остального.
+        /// </summary>
+        private static void ApplyIcon()
+        {
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                "Assets/_Game/Art/UI/AppIcon.png");
+
+            if (icon == null)
+            {
+                Debug.LogWarning("[IsoRPG] Нет AppIcon.png — игра соберётся " +
+                                 "с логотипом Unity на ярлыке.");
+                return;
+            }
+
+            // Одной картинки достаточно: Unity сама уменьшит её под все
+            // нужные размеры, от ярлыка до значка в панели задач.
+            PlayerSettings.SetIcons(NamedBuildTarget.Standalone,
+                                    new[] { icon }, IconKind.Application);
         }
 
         private static string nl => Environment.NewLine;

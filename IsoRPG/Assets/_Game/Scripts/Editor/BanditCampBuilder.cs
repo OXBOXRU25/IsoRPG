@@ -66,6 +66,17 @@ namespace IsoRPG.EditorTools
                                   angle + 90f + Random.Range(-4f, 4f));
 
                 AddCollider(piece);
+
+                // Знамя вешаем прямо на кол, а не рядом с ним.
+                //
+                // До этого три знамени ставились по кругу на высоте 1.4 м
+                // безо всякой опоры — в руинах их держит стена, а тут
+                // держать нечем, и полотнища висели в воздухе. Кол ровно
+                // для этого и годится: он вертикальный и уже стоит.
+                if (model == "barrier_column" && i % 8 == 0)
+                {
+                    HangBanner(parent, piece, at, angle);
+                }
             }
         }
 
@@ -151,13 +162,43 @@ namespace IsoRPG.EditorTools
                 AddCollider(piece);
             }
 
-            // Знамёна на кольях: лагерь метит территорию, как всякая банда.
-            for (int i = 0; i < 3; i++)
-            {
-                float angle = 150f + i * 60f;
-                var at = Centre + Quaternion.Euler(0f, angle, 0f) * Vector3.forward * (Radius - 0.6f);
+            // Знамёна переехали на колья частокола — см. BuildFence.
+        }
 
-                Place(DungeonFolder + "/banner_thin_red.fbx", parent, at + Vector3.up * 1.4f, angle);
+        /// <summary>
+        /// Вешает знамя на кол частокола.
+        ///
+        /// Высоту берём из самой модели кола, а не числом: колья набора
+        /// разной высоты, и вписанное значение подошло бы одному из них,
+        /// а на остальных полотнище оказалось бы то в земле, то над ней.
+        /// </summary>
+        private static void HangBanner(Transform parent, GameObject post,
+                                       Vector3 at, float angle)
+        {
+            if (post == null) return;
+
+            var renderer = post.GetComponentInChildren<Renderer>();
+            if (renderer == null) return;
+
+            float top = renderer.bounds.max.y;
+
+            // Чуть ниже верхушки: полотнище, начинающееся ровно с торца,
+            // выглядит надетым на кол, а не подвешенным.
+            var spot = new Vector3(at.x, top - 0.25f, at.z);
+
+            // Разворачиваем внутрь лагеря: знамя, смотрящее в лес, видно
+            // только с той стороны, откуда никто не приходит.
+            var banner = Place(DungeonFolder + "/banner_thin_red.fbx",
+                               parent, spot, angle + 180f);
+
+            // Тень от полотнища падает на землю отдельным прямоугольником
+            // и читается как предмет, которого нет.
+            if (banner == null) return;
+
+            foreach (var piece in banner.GetComponentsInChildren<Renderer>())
+            {
+                piece.shadowCastingMode =
+                    UnityEngine.Rendering.ShadowCastingMode.Off;
             }
         }
 

@@ -25,9 +25,19 @@ namespace IsoRPG.UI
         /// </summary>
         private const float Size = 26f;
 
+        /// <summary>
+        /// Общая обвязка окна: крестик в углу и полоса, за которую окно
+        /// таскают мышью.
+        ///
+        /// Оба здесь, а не в каждом окне отдельно, по одной причине: новое
+        /// окно однажды забудут снабдить ручкой, и оно единственное станет
+        /// вести себя не как остальные.
+        /// </summary>
         public static void AddCloseButton(RectTransform panel, Font font,
                                           UnityEngine.Events.UnityAction onClose)
         {
+            DraggableWindow.Attach(panel);
+
             var go = new GameObject("Close", typeof(Image), typeof(Button));
             var rect = (RectTransform)go.transform;
             rect.SetParent(panel, false);

@@ -18,8 +18,26 @@ namespace IsoRPG.Combat
         /// <summary>Все живые возрождатели на сцене — для глобального «поднять всех».</summary>
         private static readonly List<Respawner> all = new List<Respawner>();
 
+        /// <summary>
+        /// Полторы минуты вместо прежних двадцати пяти секунд.
+        ///
+        /// На четверти минуты зачищенная комната восстанавливалась раньше,
+        /// чем игрок успевал её обыскать: разворачиваешься от сундука, а
+        /// убитые уже стоят на своих местах. Это отменяет саму мысль
+        /// «я тут прибрался» — а она и есть награда за бой.
+        /// </summary>
         [Tooltip("Через сколько секунд после смерти монстр встаёт снова.")]
-        [SerializeField] private float respawnDelay = 25f;
+        [SerializeField] private float respawnDelay = 90f;
+
+        /// <summary>
+        /// Разброс времени, долей от задержки.
+        ///
+        /// Без него убитая разом группа встаёт разом же — четверо появляются
+        /// в одну секунду, и видно, что это не мир живёт, а сработал таймер.
+        /// Четверть — достаточно, чтобы возвращались вразнобой.
+        /// </summary>
+        [Tooltip("Насколько время возрождения гуляет: 0.25 — это ±25%.")]
+        [SerializeField] private float respawnJitter = 0.25f;
 
         [Tooltip("Ждать ли, пока труп обыщут. Иначе добыча пропадёт вместе с телом.")]
         [SerializeField] private bool waitForLooting = true;
@@ -29,6 +47,14 @@ namespace IsoRPG.Combat
 
         /// <summary>Возрождение по кнопке, а не по таймеру. Для игрока.</summary>
         public void SetManualOnly(bool value) => manualOnly = value;
+
+        /// <summary>
+        /// Своё время возрождения. Нужно тем, кого не должно быть на месте
+        /// через полторы минуты, — прежде всего боссам: их убивают редко и
+        /// готовятся к этому, поэтому мгновенное возвращение обесценивает
+        /// саму победу.
+        /// </summary>
+        public void SetDelay(float seconds) => respawnDelay = seconds;
 
         public bool IsDead => dead;
 
@@ -69,7 +95,8 @@ namespace IsoRPG.Combat
         private void OnDied(GameObject killer)
         {
             dead = true;
-            reviveTime = Time.time + respawnDelay;
+            reviveTime = Time.time + respawnDelay *
+                         (1f + Random.Range(-respawnJitter, respawnJitter));
 
             // Тело убирать нельзя: мы его же и поднимем. Отключаем удаление
             // в обработчике смерти, иначе объекта к моменту возрождения

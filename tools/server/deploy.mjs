@@ -23,7 +23,7 @@ const HOST = 'root@5.129.195.139';
 
 // Адрес, по которому сервер виден снаружи. Он попадает в описание обновления,
 // поэтому меняется здесь же при переезде на домен — и только здесь.
-const SITE_URL = 'https://5.129.195.139.sslip.io';
+const SITE_URL = 'https://mygame.oxboxdigital.ru';
 const KEY = 'C:/Users/OXBOX/.ssh/id_ed25519_game';
 const REMOTE_ROOT = '/var/www/game';
 
@@ -207,4 +207,4 @@ const check = ssh('curl -sS -o /dev/null -w "%{http_code}" http://localhost/ ; '
                   'curl -sS -o /dev/null -w "%{http_code}" http://localhost/CHANGELOG.md');
 
 console.log(NL + 'Ответы сервера (страница, файл версий): ' + check.output.trim());
-console.log('Адрес: https://5.129.195.139.sslip.io/');
+console.log('Адрес: https://mygame.oxboxdigital.ru/');

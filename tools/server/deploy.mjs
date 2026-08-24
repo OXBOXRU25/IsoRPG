@@ -211,6 +211,87 @@ if (process.argv.includes('--builds')) {
     }
   }
 
+  // --- Пофайловый список для умного обновления ---------------------------
+  //
+  // Обновление целым архивом качает всё подряд: между соседними версиями
+  // меняется восемь файлов из двухсот, а игрок скачивает восемьдесят
+  // мегабайт вместо семи. Список с размерами и суммами позволяет лаунчеру
+  // взять только то, что у него отличается.
+
+  const buildFolder = path.join(repo, 'Build', 'HighFlyingBird');
+
+  if (!fs.existsSync(buildFolder)) {
+    console.log('  папки сборки нет — пофайловый список пропущен');
+  } else {
+    const entries = [];
+
+    (function walk(dir) {
+      for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, item.name);
+
+        if (item.isDirectory()) { walk(full); continue; }
+
+        // Путь внутри игры пишем через прямые слеши: он поедет в адрес
+        // и в сравнение на стороне лаунчера, а там разделитель один.
+        const rel = path.relative(buildFolder, full).split(path.sep).join('/');
+
+        entries.push({
+          path: rel,
+          size: fs.statSync(full).size,
+          sha256: crypto.createHash('sha256')
+            .update(fs.readFileSync(full)).digest('hex'),
+        });
+      }
+    })(buildFolder);
+
+    // Раскладываем сами файлы: лаунчер берёт их поштучно по адресу.
+    // Через архив и распаковку на сервере, а не двумя сотнями отдельных
+    // передач — каждая из них это своё соединение, и вместе они идут
+    // дольше, чем один архив.
+    const remoteBase = REMOTE_ROOT + '/files/' + current;
+
+    ssh('rm -rf ' + JSON.stringify(remoteBase) +
+        ' && mkdir -p ' + JSON.stringify(remoteBase));
+
+    const archiveForFiles = path.join(PACKAGE_ROOT, NAME + ' игра ' + current + '.zip');
+
+    if (fs.existsSync(archiveForFiles)) {
+      const temp = '/tmp/game-' + current + '.zip';
+
+      console.log('  раскладываю файлы по отдельности');
+
+      const sent = scp(archiveForFiles, temp);
+
+      if (sent.ok) {
+        ssh('cd ' + JSON.stringify(remoteBase) +
+            ' && unzip -oq ' + JSON.stringify(temp) +
+            ' && rm -f ' + JSON.stringify(temp));
+      } else {
+        console.log('  НЕ УДАЛОСЬ разложить: ' + sent.output);
+      }
+    }
+
+    const q2 = String.fromCharCode(34);
+
+    const list = {
+      version: current,
+      base: SITE_URL + '/files/' + current + '/',
+      files: entries,
+    };
+
+    const listPath = path.join(repo, 'site', 'files.json');
+    fs.writeFileSync(listPath, JSON.stringify(list, null, 2) + NL);
+
+    const put = scpAtomic(listPath, REMOTE_ROOT, 'files.json');
+
+    const total = entries.reduce((sum, e) => sum + e.size, 0);
+
+    console.log(put.ok
+      ? '  список файлов: ' + entries.length + ' штук, ' +
+        (total / 1024 / 1024).toFixed(1) + ' МБ всего'
+      : '  НЕ УДАЛОСЬ список: ' + put.output);
+  }
+
   // Прошлые выкладки с кириллицей в имени, если они остались.
   ssh('find ' + REMOTE_ROOT + '/downloads -maxdepth 1 -name "*Приключения*" -delete');
 }

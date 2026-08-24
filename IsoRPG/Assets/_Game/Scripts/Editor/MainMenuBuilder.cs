@@ -270,6 +270,12 @@ namespace IsoRPG.EditorTools
             // получилась бы каша из двух дорожек.
             player.audioOutputMode = UnityEngine.Video.VideoAudioOutputMode.None;
 
+            // Сторож на случай остановки. Собственное зацикливание
+            // проигрывателя включено, но ролик всё равно замирал после
+            // первого прохода — проигрыватель останавливается и по другим
+            // поводам, и ни один из них не сообщает о себе ошибкой.
+            go.AddComponent<IsoRPG.UI.VideoLoopGuard>();
+
             EditorUtility.SetDirty(player);
 
             Debug.Log("[IsoRPG] Фон оживлён видео.");

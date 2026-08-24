@@ -771,13 +771,45 @@ namespace HighFlyingBird.Launcher
             playButton.Opacity = 0.5;
             progressTrack.Visibility = Visibility.Visible;
 
-            string folder = System.IO.Path.GetDirectoryName(game.ExecutablePath);
+            string folder = Path.GetDirectoryName(game.ExecutablePath);
 
-            bool done = await Updater.Install(pendingUpdate, folder, (text, share) =>
+            Action<string, double> show = (text, share) =>
             {
                 statusText.Text = text;
                 progressFill.Width = progressTrack.Width * Math.Max(0, Math.Min(1, share));
-            });
+            };
+
+            // Сначала пробуем обновиться по одному файлу.
+            //
+            // Между соседними версиями меняется около десятка файлов из двух
+            // сотен: движок в тридцать семь мегабайт не трогается месяцами,
+            // а игрок скачивал его каждый раз. Список с суммами позволяет
+            // взять только отличающееся — обычно меньше десятой части.
+            //
+            // Если списка нет или он не от той версии, откатываемся на целый
+            // архив: обновиться игрок должен в любом случае.
+            string filesUrl = config.UpdateUrl.Replace("update.json", "files.json");
+
+            var list = await FileUpdater.Fetch(filesUrl);
+
+            bool done;
+
+            if (list.IsValid && list.Version == pendingUpdate.Version)
+            {
+                done = await FileUpdater.Install(list, folder, show);
+
+                // Пофайловое могло сорваться на середине — тогда целый архив
+                // приведёт папку в согласованное состояние.
+                if (!done)
+                {
+                    Log.Write("Пофайловое не удалось, беру архив целиком.");
+                    done = await Updater.Install(pendingUpdate, folder, show);
+                }
+            }
+            else
+            {
+                done = await Updater.Install(pendingUpdate, folder, show);
+            }
 
             installing = false;
             playButton.Opacity = 1;

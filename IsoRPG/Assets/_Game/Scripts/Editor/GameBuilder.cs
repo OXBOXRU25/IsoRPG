@@ -95,10 +95,13 @@ namespace IsoRPG.EditorTools
 
             // Версия в имени файла обязательна: у игрока на диске лежат три
             // архива с одинаковым именем, и какой из них новее — не узнать.
+            // Файл версии пишем ДО упаковки, иначе он остаётся только в
+            // папке, а в архив не попадает — и лаунчер у того, кто получил
+            // архив, показывает игру без версии.
+            WriteVersionFile(folder, version);
+
             string archive = Path.Combine(BuildRoot, ExecutableName + "-" + version + ".zip");
             Zip(folder, archive);
-
-            WriteVersionFile(folder, version);
 
             double megabytes = summary.totalSize / 1024.0 / 1024.0;
 

@@ -1382,6 +1382,18 @@ namespace IsoRPG.EditorTools
         // Навигация
         // ------------------------------------------------------------------
 
+        /// <summary>
+        /// Строит навигационную сетку и сохраняет её файлом.
+        ///
+        /// Сохранение обязательно, и это не очевидно: BuildNavMesh строит
+        /// сетку в памяти, и в редакторе всё выглядит рабочим — персонажи
+        /// ходят, монстры догоняют. Но в сборку попадает только то, что лежит
+        /// на диске, и собранная игра оказывается без сетки вовсе.
+        ///
+        /// Со стороны игрока это выглядит так: игра запускается, мир на месте,
+        /// а никто не двигается. В журнале при этом ровно одна строка на
+        /// каждого персонажа — «no valid NavMesh», и ни одной ошибки.
+        /// </summary>
         private static void BakeNavigation(GameObject ground)
         {
             var surface = ground.AddComponent<NavMeshSurface>();
@@ -1389,7 +1401,33 @@ namespace IsoRPG.EditorTools
             surface.useGeometry = NavMeshCollectGeometry.RenderMeshes;
             surface.BuildNavMesh();
 
-            Debug.Log("[IsoRPG] Навигационная сетка построена.");
+            if (surface.navMeshData == null)
+            {
+                Debug.LogError("[IsoRPG] Сетка не построилась. В сборке никто " +
+                               "не сможет ходить.");
+                return;
+            }
+
+            // Кладём рядом со сценой, в папку с её именем — так делает и сам
+            // редактор, когда запекаешь навигацию вручную.
+            const string ScenesFolder = "Assets/_Game/Scenes";
+            const string DataFolder = ScenesFolder + "/Sandbox";
+
+            if (!AssetDatabase.IsValidFolder(DataFolder))
+                AssetDatabase.CreateFolder(ScenesFolder, "Sandbox");
+
+            string path = DataFolder + "/NavMesh-Ground.asset";
+
+            // Старый файл удаляем: CreateAsset поверх существующего оставляет
+            // сцену со ссылкой на прежний объект, и обновлённая сетка молча
+            // не применяется.
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(surface.navMeshData, path);
+            AssetDatabase.SaveAssets();
+
+            EditorUtility.SetDirty(surface);
+
+            Debug.Log("[IsoRPG] Навигационная сетка построена и сохранена: " + path);
         }
 
         // ------------------------------------------------------------------

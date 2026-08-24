@@ -20,6 +20,8 @@ namespace IsoRPG.EditorTools
         private const string GameScenePath = "Assets/_Game/Scenes/Sandbox.unity";
         private const string BackgroundPath = "Assets/_Game/Art/UI/MainMenuBackground.png";
         private const string MusicPath = "Assets/_Game/Audio/Music/MainMenuTheme.mp3";
+        private const string VideoPath = "Assets/_Game/Video/MainMenuBackground.mp4";
+        private const string ScreenPath = "Assets/_Game/Video/MainMenuScreen.renderTexture";
 
         private static readonly Color TitleColor = new Color32(0xF2, 0xE6, 0xC8, 0xFF);
         private static readonly Color SubtitleColor = new Color32(0xC8, 0xA8, 0x70, 0xFF);
@@ -59,6 +61,11 @@ namespace IsoRPG.EditorTools
             menu.SetGameScene(Path.GetFileNameWithoutExtension(GameScenePath));
 
             BuildBackground(root);
+
+            // Видео поверх картинки: она остаётся первым кадром, пока
+            // проигрыватель раскручивается.
+            BuildVideo(root);
+
             BuildMusic();
 
             // Название набирается текстом, только если картинки нет:
@@ -163,7 +170,15 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
-            var go = new GameObject("Music", typeof(AudioSource));
+            // Слушатель звука в той же сцене.
+            //
+            // Без него не слышно ничего: источник играет, но принимать звук
+            // некому. В обычной сцене слушатель приезжает вместе с камерой,
+            // а меню я собираю сам — и камеры с ним тут нет.
+            //
+            // Симптом обманчивый: в редакторе на вкладке источника видно, что
+            // клип назначен и воспроизведение идёт, а в колонках тишина.
+            var go = new GameObject("Music", typeof(AudioSource), typeof(AudioListener));
             var source = go.GetComponent<AudioSource>();
 
             source.clip = clip;
@@ -176,6 +191,79 @@ namespace IsoRPG.EditorTools
             source.spatialBlend = 0f;
 
             EditorUtility.SetDirty(source);
+        }
+
+        /// <summary>
+        /// Оживляет фон видео, если оно есть в проекте.
+        ///
+        /// Видео кладётся поверх неподвижной картинки, а не вместо неё.
+        /// Причина в первом кадре: проигрыватель начинает не мгновенно, и
+        /// без подложки меню на долю секунды показывает чёрный экран —
+        /// та самая мелочь, по которой видно наспех сделанное.
+        ///
+        /// Кадры идут в отдельную текстуру, а оттуда в картинку на холсте.
+        /// Напрямую в интерфейс видео выводить нечем: проигрыватель умеет
+        /// рисовать в камеру или в текстуру, а камеры в меню нет.
+        /// </summary>
+        private static void BuildVideo(RectTransform root)
+        {
+            var clip = AssetDatabase.LoadAssetAtPath<UnityEngine.Video.VideoClip>(VideoPath);
+
+            if (clip == null)
+            {
+                Debug.Log("[IsoRPG] Видео фона нет — остаётся картинка.");
+                return;
+            }
+
+            var screen = AssetDatabase.LoadAssetAtPath<RenderTexture>(ScreenPath);
+
+            if (screen == null)
+            {
+                // Половина разрешения кадра: на фоне за логотипом разницы не
+                // видно, а памяти под текстуру уходит вчетверо меньше.
+                screen = new RenderTexture(1280, 720, 0, RenderTextureFormat.ARGB32);
+                screen.name = "MainMenuScreen";
+
+                AssetDatabase.CreateAsset(screen, ScreenPath);
+                AssetDatabase.SaveAssets();
+            }
+
+            var go = new GameObject("VideoBackground", typeof(RawImage),
+                                    typeof(UnityEngine.Video.VideoPlayer));
+
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(root, false);
+
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            var image = go.GetComponent<RawImage>();
+            image.texture = screen;
+            image.raycastTarget = false;
+
+            // Обрезаем по краям, как и неподвижную картинку: растянутое
+            // видео выдаёт себя мгновенно.
+            var fitter = go.AddComponent<AspectRatioFitter>();
+            fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            fitter.aspectRatio = 16f / 9f;
+
+            var player = go.GetComponent<UnityEngine.Video.VideoPlayer>();
+            player.clip = clip;
+            player.renderMode = UnityEngine.Video.VideoRenderMode.RenderTexture;
+            player.targetTexture = screen;
+            player.isLooping = true;
+            player.playOnAwake = true;
+            player.waitForFirstFrame = true;
+
+            // Звук глушим: фоновый ролик заспорил бы с музыкой меню, и
+            // получилась бы каша из двух дорожек.
+            player.audioOutputMode = UnityEngine.Video.VideoAudioOutputMode.None;
+
+            EditorUtility.SetDirty(player);
+
+            Debug.Log("[IsoRPG] Фон оживлён видео.");
         }
 
         private static void BuildBackground(RectTransform root)

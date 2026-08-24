@@ -93,7 +93,14 @@ namespace IsoRPG.UI
         /// вовсе, и перетаскивание молча не работает — самая частая причина
         /// «код есть, а не двигается».
         /// </summary>
-        public static DraggableWindow Attach(RectTransform panel, float handleHeight = 40f)
+        /// <summary>
+        /// Тридцать пикселей — это полоса заголовка и ничего больше.
+        ///
+        /// Сорок, стоявшие тут сначала, залезали на первый ряд ячеек сумки:
+        /// заголовок с отступом занимает тридцать четыре, и лишние шесть
+        /// пикселей отняли бы у верхних ячеек часть площади нажатия.
+        /// </summary>
+        public static DraggableWindow Attach(RectTransform panel, float handleHeight = 30f)
         {
             var go = new GameObject("DragHandle", typeof(Image), typeof(DraggableWindow));
             var rect = (RectTransform)go.transform;
@@ -110,10 +117,18 @@ namespace IsoRPG.UI
             image.color = new Color(0f, 0f, 0f, 0f);
             image.raycastTarget = true;
 
-            // Первой в списке: всё, что добавлено к окну позже — крестик,
-            // заголовок, содержимое, — остаётся выше и продолжает получать
-            // нажатия. Иначе ручка накрыла бы кнопку закрытия.
-            rect.SetAsFirstSibling();
+            // Последней в списке, а не первой.
+            //
+            // В uGUI порядок в иерархии — это порядок отрисовки: первый
+            // элемент рисуется снизу, последний сверху. Указатель же ищет
+            // цель сверху вниз, поэтому ручка, поставленная первой,
+            // оказывалась под заголовком окна и не получала ни одного
+            // события. Со стороны это выглядело как «перетаскивание не
+            // сделано», хотя код отрабатывал.
+            //
+            // Кнопку закрытия она не накроет: крестик создаётся после
+            // ручки и потому лежит выше неё.
+            rect.SetAsLastSibling();
 
             var drag = go.GetComponent<DraggableWindow>();
             drag.Setup(panel);

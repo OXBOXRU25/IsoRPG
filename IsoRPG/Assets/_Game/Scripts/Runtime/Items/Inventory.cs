@@ -230,6 +230,26 @@ namespace IsoRPG.Items
         /// предмет может лежать несколькими стопками, и счёт по первой дал бы
         /// заниженный результат ровно тогда, когда его больше всего.
         /// </summary>
+        /// <summary>
+        /// Меняет местами содержимое двух ячеек.
+        ///
+        /// Просто обмен, без попытки объединить одинаковые стопки: игрок,
+        /// который перекладывает вещь, хочет положить её именно туда, куда
+        /// тянет. Слияние вместо перемещения выглядит как пропажа.
+        /// </summary>
+        public void Swap(int a, int b)
+        {
+            if (a == b) return;
+            if (slots == null) return;
+            if (a < 0 || b < 0 || a >= slots.Length || b >= slots.Length) return;
+
+            var held = slots[a];
+            slots[a] = slots[b];
+            slots[b] = held;
+
+            Changed?.Invoke();
+        }
+
         public int CountOf(ItemDefinition item)
         {
             if (item == null) return 0;

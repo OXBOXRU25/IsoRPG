@@ -95,6 +95,13 @@ namespace IsoRPG.Combat
         private RectTransform hudRoot;
         private GameObject abilityBarObject;
 
+        /// <summary>Полоса поедания: корень, заливка и подпись.</summary>
+        private GameObject eatBarObject;
+        private RectTransform eatFill;
+        private Text eatLabel;
+
+        private IsoRPG.Items.FoodConsumer food;
+
         private readonly System.Collections.Generic.List<AbilitySlot> slots =
             new System.Collections.Generic.List<AbilitySlot>();
 
@@ -180,6 +187,7 @@ namespace IsoRPG.Combat
             if (hudRoot == null) return;
 
             BuildAbilityBar(hudRoot);
+            BuildEatBar(hudRoot);
 
             // Состояния кнопок (откаты, нехватка энергии) обновляются каждый
             // кадр — достаточно дать им один проход сразу, чтобы новая панель
@@ -205,6 +213,41 @@ namespace IsoRPG.Combat
         private void Update()
         {
             UpdateCooldowns();
+            UpdateEatBar();
+        }
+
+        /// <summary>
+        /// Показывает, сколько осталось есть.
+        ///
+        /// Без полосы поедание выглядит как зависание: персонаж сел, ничего
+        /// не происходит, и непонятно, идёт ли процесс и когда кончится.
+        /// Полоса ставится над панелью способностей — там же, где игрок
+        /// и так следит за откатами.
+        /// </summary>
+        private void UpdateEatBar()
+        {
+            if (eatBarObject == null) return;
+
+            if (food == null) food = GetComponentInParent<IsoRPG.Items.FoodConsumer>();
+
+            bool eating = food != null && food.IsEating;
+
+            if (eatBarObject.activeSelf != eating) eatBarObject.SetActive(eating);
+            if (!eating) return;
+
+            if (eatFill != null)
+            {
+                // Через масштаб, а не ширину: у полосы точка опоры слева,
+                // и масштабирование не заставляет пересобирать раскладку
+                // каждый кадр.
+                eatFill.localScale = new Vector3(food.Progress, 1f, 1f);
+            }
+
+            if (eatLabel != null)
+            {
+                string name = food.Current != null ? food.Current.displayName : "Ест";
+                eatLabel.text = name + "  " + food.Remaining.ToString("0.0") + " с";
+            }
         }
 
         // ------------------------------------------------------------------
@@ -361,6 +404,58 @@ namespace IsoRPG.Combat
         /// Панель способностей внизу по центру — там, где её ищет глаз
         /// в любой игре этого жанра.
         /// </summary>
+        /// <summary>Полоса поедания над панелью способностей.</summary>
+        private void BuildEatBar(RectTransform root)
+        {
+            if (eatBarObject != null) Destroy(eatBarObject);
+
+            var go = new GameObject("EatBar", typeof(RectTransform));
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(root, false);
+
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+
+            // Над панелью способностей: она сама стоит на высоте полосы
+            // опыта плюс отступ, а мы поднимаемся ещё на её высоту.
+            rect.anchoredPosition = new Vector2(0f, ScreenMargin + ExpBarHeight + SlotSize + 18f);
+            rect.sizeDelta = new Vector2(240f, 14f);
+
+            var track = new GameObject("Track", typeof(Image));
+            var trackRect = (RectTransform)track.transform;
+            trackRect.SetParent(rect, false);
+            Stretch(trackRect);
+            track.GetComponent<Image>().color = new Color32(0x14, 0x12, 0x0E, 0xC8);
+
+            var fill = new GameObject("Fill", typeof(Image));
+            eatFill = (RectTransform)fill.transform;
+            eatFill.SetParent(rect, false);
+
+            // Точка опоры слева: заливка растёт слева направо, как читают.
+            eatFill.anchorMin = new Vector2(0f, 0f);
+            eatFill.anchorMax = new Vector2(1f, 1f);
+            eatFill.pivot = new Vector2(0f, 0.5f);
+            eatFill.offsetMin = new Vector2(2f, 2f);
+            eatFill.offsetMax = new Vector2(-2f, -2f);
+            eatFill.localScale = new Vector3(0f, 1f, 1f);
+
+            // Зелёный — тот же, что у цифр лечения: одно действие должно
+            // читаться одним цветом.
+            fill.GetComponent<Image>().color = new Color32(0x7A, 0xD8, 0x72, 0xFF);
+
+            // Подпись над полосой: положение и размер идут в сам вызов —
+            // такова здешняя фабрика текста.
+            eatLabel = CreateText(rect, "Label", "", 12,
+                                  new Color32(0xE8, 0xE2, 0xD4, 0xFF),
+                                  new Vector2(0f, 17f), new Vector2(240f, 16f));
+
+            eatLabel.alignment = TextAnchor.LowerCenter;
+
+            eatBarObject = go;
+            go.SetActive(false);
+        }
+
         private void BuildAbilityBar(RectTransform root)
         {
             hudRoot = root;
@@ -664,6 +759,15 @@ namespace IsoRPG.Combat
 
         private void OnExperienceChanged(int current, int needed)
         {
+            // Подпись уровня обновляем здесь же.
+            //
+            // Она ставилась один раз при старте, а сохранение подгружается
+            // после — и на портрете навсегда оставался первый уровень, хотя
+            // в окне персонажа честно стоял шестой. Событие о смене уровня
+            // для этого не годится: при загрузке игрок уровень не получает,
+            // он его уже имеет, и звук повышения был бы неуместен.
+            if (playerExperience != null) ShowPlayerLevel(playerExperience.Level);
+
             if (expFill != null)
             {
                 float fraction = needed > 0 ? Mathf.Clamp01((float)current / needed) : 1f;

@@ -22,17 +22,21 @@ namespace IsoRPG.Items
     {
         private int index;
         private Inventory inventory;
-        private RectTransform window;
         private Canvas canvas;
 
         /// <summary>Иконка, которая едет за курсором.</summary>
         private GameObject ghost;
 
+        /// <summary>
+        /// Окно передавать больше не нужно: куда попал указатель, знает само
+        /// событие. Границу окна мы сначала считали руками, но она отвечала
+        /// не на тот вопрос — «внутри рамки» и «над ячейкой» это разные
+        /// вещи, и вещь, отпущенная над лавкой, улетала на землю.
+        /// </summary>
         public void Setup(int slotIndex, Inventory bag, RectTransform windowRect)
         {
             index = slotIndex;
             inventory = bag;
-            window = windowRect;
             canvas = GetComponentInParent<Canvas>();
         }
 
@@ -80,19 +84,32 @@ namespace IsoRPG.Items
             if (ghost != null) Destroy(ghost);
             ghost = null;
 
-            if (inventory == null || window == null) return;
+            if (inventory == null) return;
 
-            // Холст в режиме наложения на экран: камеру передавать не нужно,
-            // и передача ненулевой камеры как раз всё и ломает — проверка
-            // начинает считать в другой системе координат.
-            var camera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
-                ? canvas.worldCamera
-                : null;
+            // Что под курсором, спрашиваем у самого события: оно уже знает, во
+            // что попал указатель. Искать ячейку по координатам пришлось бы
+            // перебором всех сорока, и результат разошёлся бы с тем, что видит
+            // игрок.
+            var under = eventData.pointerCurrentRaycast.gameObject;
 
-            bool insideWindow = RectTransformUtility.RectangleContainsScreenPoint(
-                window, eventData.position, camera);
+            if (under != null)
+            {
+                // Другая ячейка — перекладываем.
+                var other = under.GetComponentInParent<SlotDragSource>();
 
-            if (insideWindow) return;
+                if (other != null && other != this)
+                {
+                    inventory.Swap(index, other.index);
+                    return;
+                }
+
+                // Любой другой кусок интерфейса — не делаем ничего.
+                //
+                // Считать «отпустил не над сумкой» выбросом нельзя: человек,
+                // перетащивший вещь на окно лавки, хотел её продать, а получил
+                // бы мешок на земле. Вещи выбрасываются только на игровое поле.
+                if (under.GetComponentInParent<Graphic>() != null) return;
+            }
 
             var dropper = inventory.GetComponent<ItemDropper>();
             if (dropper == null) return;

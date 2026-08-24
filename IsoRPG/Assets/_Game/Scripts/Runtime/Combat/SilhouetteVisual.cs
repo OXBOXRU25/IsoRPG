@@ -47,6 +47,10 @@ namespace IsoRPG.Combat
         {
             if (silhouette == null) return;
 
+            // Здоровье — чтобы не подсвечивать труп. Может отсутствовать:
+            // силуэт носят и мешки с добычей, у которых здоровья нет.
+            health = GetComponent<Health>();
+
             view = Camera.main;
 
             // Собираем рендереры один раз: модель после сборки не меняется,
@@ -62,6 +66,8 @@ namespace IsoRPG.Combat
             }
         }
 
+        private Health health;
+
         private void Update()
         {
             if (silhouette == null || targets.Count == 0) return;
@@ -72,7 +78,14 @@ namespace IsoRPG.Combat
             if (view == null) view = Camera.main;
             if (view == null) return;
 
-            bool blocked = IsBlocked();
+            // Мёртвого не подсвечиваем.
+            //
+            // Силуэт означает «здесь опасность, которую ты не видишь».
+            // Скелет, убитый за стеной, продолжал светиться красным до
+            // самого возрождения — то есть полторы минуты сообщал об угрозе,
+            // которой нет, и заодно прятал настоящую.
+            bool alive = health == null || health.IsAlive;
+            bool blocked = alive && IsBlocked();
 
             if (blocked != shown)
             {

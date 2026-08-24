@@ -16,6 +16,9 @@ namespace IsoRPG.Combat
         private static readonly Color CritColor = new Color32(0xFF, 0xC4, 0x4A, 0xFF);
         private static readonly Color MissColor = new Color32(0x9A, 0x96, 0x8E, 0xFF);
 
+        /// <summary>Зелёный лечения. Светлее травы, иначе теряется на земле.</summary>
+        private static readonly Color HealColor = new Color32(0x7A, 0xD8, 0x72, 0xFF);
+
         private const float Lifetime = 0.9f;
         private const float RiseSpeed = 1.4f;
         private const float SideDrift = 0.35f;
@@ -26,8 +29,26 @@ namespace IsoRPG.Combat
         private float born;
         private Vector3 drift;
 
+        /// <summary>
+        /// Показать восстановленное здоровье.
+        ///
+        /// Отдельный метод, а не ещё одно значение в перечислении попаданий:
+        /// лечение — не разновидность удара, и складывать их в один список
+        /// значило бы потом всюду проверять «а это точно урон».
+        /// </summary>
+        public static void ShowHeal(Vector3 worldPosition, int amount)
+        {
+            Spawn(worldPosition, amount, HitResult.Normal, true);
+        }
+
         /// <summary>Показать число над точкой мира.</summary>
         public static void Show(Vector3 worldPosition, int amount, HitResult result)
+        {
+            Spawn(worldPosition, amount, result, false);
+        }
+
+        private static void Spawn(Vector3 worldPosition, int amount,
+                                  HitResult result, bool heal)
         {
             var go = new GameObject("DamagePopup", typeof(Canvas), typeof(CanvasGroup));
             go.transform.position = worldPosition;
@@ -39,10 +60,10 @@ namespace IsoRPG.Combat
             rect.sizeDelta = new Vector2(2f, 0.6f);
 
             var popup = go.AddComponent<DamagePopup>();
-            popup.Build(amount, result);
+            popup.Build(amount, result, heal);
         }
 
-        private void Build(int amount, HitResult result)
+        private void Build(int amount, HitResult result, bool heal)
         {
             group = GetComponent<CanvasGroup>();
             group.blocksRaycasts = false;
@@ -68,7 +89,8 @@ namespace IsoRPG.Combat
             // Три исхода читаются по-разному: крит крупный с восклицанием,
             // отражённый удар тусклый и мелкий, обычный посередине.
             label.text = result == HitResult.Crit ? amount + "!" : amount.ToString();
-            label.color = result == HitResult.Crit ? CritColor
+            label.color = heal ? HealColor
+                        : result == HitResult.Crit ? CritColor
                         : result == HitResult.Miss ? MissColor
                         : NormalColor;
             label.alignment = TextAnchor.MiddleCenter;

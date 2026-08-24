@@ -148,12 +148,34 @@ namespace IsoRPG.Items
         private void OnEnable()
         {
             if (equipment != null) equipment.Changed += Refresh;
+
+            // Не только снаряжение: в окне стоят уровень, здоровье и
+            // характеристики, а они меняются сами по себе — от нового
+            // уровня, от таланта, от загрузки сохранения. Раньше окно
+            // показывало то, что было в момент открытия: игрок брал
+            // седьмой уровень и продолжал видеть шестой.
+            if (experience != null) experience.Changed += OnExperienceChanged;
+
             Refresh();
         }
 
         private void OnDisable()
         {
             if (equipment != null) equipment.Changed -= Refresh;
+            if (experience != null) experience.Changed -= OnExperienceChanged;
+        }
+
+        /// <summary>
+        /// Событие несёт числа, а Refresh их не принимает — переходник.
+        ///
+        /// Опыт капает после каждого убитого, и этого достаточно: к моменту,
+        /// когда игрок откроет окно после боя, оно уже пересобрано. Обновляем
+        /// только при открытом окне — перестраивать содержимое закрытого
+        /// после каждого удара незачем.
+        /// </summary>
+        private void OnExperienceChanged(int current, int needed)
+        {
+            if (IsOpen) Refresh();
         }
 
         public bool IsOpen => window != null && window.activeSelf;

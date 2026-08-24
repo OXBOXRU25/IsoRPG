@@ -94,6 +94,18 @@ namespace IsoRPG.Cameras
             float scroll = mouse.scroll.ReadValue().y;
             if (Mathf.Approximately(scroll, 0f)) return;
 
+            // Над окном интерфейса колесо принадлежит окну.
+            //
+            // Камера читает колесо напрямую у мыши, а не через систему
+            // событий, поэтому список в лавке не может «съесть» прокрутку:
+            // крутишь товары — и заодно отъезжает весь мир. Спрашиваем сами,
+            // не стоит ли указатель над интерфейсом.
+            if (UnityEngine.EventSystems.EventSystem.current != null &&
+                UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
             // Колесо отдаёт 120 за щелчок на большинстве мышей, но не на всех —
             // поэтому берём только знак, иначе зум прыгает на разном железе.
             desiredOrthoSize = Mathf.Clamp(

@@ -49,10 +49,31 @@ namespace IsoRPG.Items
         private float healPerSecond;
         private float healDebt;
 
+        /// <summary>Сколько восстановлено с прошлой показанной цифры.</summary>
+        private int healedSinceTick;
+        private float nextTick;
+
+        /// <summary>Когда началась еда — для полосы хода.</summary>
+        private float startTime;
+        private float totalTime;
+
         public bool IsEating => current != null;
 
         /// <summary>Сколько осталось есть. Ноль — не ест.</summary>
         public float Remaining => IsEating ? Mathf.Max(0f, endTime - Time.time) : 0f;
+
+        /// <summary>Доля съеденного, от нуля до единицы. Для полосы на экране.</summary>
+        public float Progress
+        {
+            get
+            {
+                if (!IsEating || totalTime <= 0f) return 0f;
+                return Mathf.Clamp01((Time.time - startTime) / totalTime);
+            }
+        }
+
+        /// <summary>Что едим — название нужно подписи над полосой.</summary>
+        public ItemDefinition Current => current;
 
         private void Awake()
         {
@@ -104,6 +125,9 @@ namespace IsoRPG.Items
                 CombatLog.Add(food.displayName + ": +" + food.healAmount + " здоровья", LogKind.System);
                 IsoRPG.Audio.Sfx.Pickup(transform.position);
 
+                IsoRPG.Combat.DamagePopup.ShowHeal(
+                    transform.position + Vector3.up * 2f, food.healAmount);
+
                 return true;
             }
 
@@ -113,6 +137,12 @@ namespace IsoRPG.Items
             endTime = Time.time + food.healDuration;
             healPerSecond = food.healAmount / food.healDuration;
             healDebt = 0f;
+
+            startTime = Time.time;
+            totalTime = food.healDuration;
+
+            healedSinceTick = 0;
+            nextTick = Time.time + 1f;
 
             CombatLog.Add("Ест: " + food.displayName, LogKind.System);
             StartVoice();
@@ -159,6 +189,21 @@ namespace IsoRPG.Items
             {
                 health.Heal(whole);
                 healDebt -= whole;
+                healedSinceTick += whole;
+            }
+
+            // Цифру показываем раз в секунду, а не на каждую единицу.
+            //
+            // Яблоко лечит по несколько единиц в секунду, и попап на каждую
+            // превратился бы в мельтешение из единиц и двоек, за которым не
+            // видно ни персонажа, ни того, сколько всего восстановлено.
+            if (Time.time >= nextTick && healedSinceTick > 0)
+            {
+                IsoRPG.Combat.DamagePopup.ShowHeal(
+                    transform.position + Vector3.up * 2f, healedSinceTick);
+
+                healedSinceTick = 0;
+                nextTick = Time.time + 1f;
             }
 
             if (health.Current >= health.Max)

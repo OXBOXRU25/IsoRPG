@@ -257,7 +257,17 @@ namespace IsoRPG.UI
                 if (sfxValue != null) sfxValue.text = Percent(value);
             });
 
-            MakeGap(6f);
+            MakeGap(10f);
+
+            // Язык между звуком и управлением: это тоже настройка «как
+            // игра со мной разговаривает», и место ей рядом с громкостью,
+            // а не в конце списка клавиш.
+            var languageTitle = MakeText("LanguageTitle", "Язык", 13, TitleColor);
+            languageTitle.alignment = TextAnchor.MiddleLeft;
+
+            BuildLanguageRow();
+
+            MakeGap(10f);
 
             var controls = MakeText("ControlsTitle", "Управление", 13, TitleColor);
             controls.alignment = TextAnchor.MiddleLeft;
@@ -299,6 +309,24 @@ namespace IsoRPG.UI
             var whatText = MakeTextIn(row, "What", what, 12, DimColor);
             whatText.alignment = TextAnchor.MiddleRight;
             Stretch((RectTransform)whatText.transform);
+        }
+
+        /// <summary>Ряд выбора языка внутри окна настроек.</summary>
+        private void BuildLanguageRow()
+        {
+            var host = new GameObject("LanguageRow", typeof(RectTransform));
+            var rect = (RectTransform)host.transform;
+            rect.SetParent(content, false);
+            rect.sizeDelta = new Vector2(0f, 34f);
+
+            var picker = IsoRPG.Localization.LanguagePicker.Attach(
+                rect, font, Width - 40f, 28f);
+
+            var pickerRect = (RectTransform)picker.transform;
+            pickerRect.anchorMin = new Vector2(0f, 0.5f);
+            pickerRect.anchorMax = new Vector2(0f, 0.5f);
+            pickerRect.pivot = new Vector2(0f, 0.5f);
+            pickerRect.anchoredPosition = Vector2.zero;
         }
 
         private Text MakeSlider(string label, float value, UnityEngine.Events.UnityAction<float> onChange)

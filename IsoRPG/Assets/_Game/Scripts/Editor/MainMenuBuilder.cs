@@ -469,6 +469,29 @@ namespace IsoRPG.EditorTools
             // метода — ровно то, что делает рука в инспекторе.
             UnityEventTools.AddPersistentListener(start.onClick, menu.StartGame);
             UnityEventTools.AddPersistentListener(quit.onClick, menu.Quit);
+
+            Localize(start, "НАЧАТЬ ИГРУ");
+            Localize(quit, "ВЫХОД");
+
+            BuildLanguagePicker(root, font);
+        }
+
+        /// <summary>
+        /// Выбор языка на стартовом экране.
+        ///
+        /// Внизу под кнопками, а не в отдельном окне настроек: человек,
+        /// открывший игру не на своём языке, должен найти переключатель
+        /// сразу, не разбираясь в незнакомых надписях.
+        /// </summary>
+        private static void BuildLanguagePicker(RectTransform root, Font font)
+        {
+            var picker = IsoRPG.Localization.LanguagePicker.Attach(root, font, 330f, 30f);
+            var rect = (RectTransform)picker.transform;
+
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 64f);
         }
 
         private static void BuildCredits(RectTransform root)
@@ -494,6 +517,22 @@ namespace IsoRPG.EditorTools
         }
 
         // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Вешает на подпись перевод.
+        ///
+        /// Текст кнопки попадает в сцену при сборке и больше не
+        /// пересоздаётся, поэтому язык меняет отдельный компонент —
+        /// он помнит русский оригинал и подставляет перевод.
+        /// </summary>
+        private static void Localize(Component target, string russian)
+        {
+            var text = target.GetComponentInChildren<Text>();
+            if (text == null) return;
+
+            var localized = text.gameObject.AddComponent<IsoRPG.Localization.LocalizedText>();
+            localized.Setup(russian);
+        }
 
         private static Button MakeButton(RectTransform root, string name, string label,
                                          Color background, Color textColor, Font font,

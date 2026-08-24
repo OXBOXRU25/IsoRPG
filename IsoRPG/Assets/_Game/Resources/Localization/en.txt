@@ -1,0 +1,76 @@
+# Английский перевод интерфейса.
+#
+# По строке на запись: русский текст, знак равенства, перевод.
+# Строки, начинающиеся с решётки, пропускаются.
+#
+# Русский текст слева должен совпадать с тем, что в коде, дословно —
+# это и есть ключ поиска.
+
+# --- Главное меню ---
+НАЧАТЬ ИГРУ = START GAME
+ВЫХОД = QUIT
+птицы высокого полёта = birds of high flight
+альфа = alpha
+
+# --- Настройки ---
+Настройки = Settings
+Звуки = Sound effects
+Музыка = Music
+Управление = Controls
+Язык = Language
+В главное меню = Main menu
+Выйти из игры = Quit game
+Закрыть = Close
+Понятно = Got it
+
+# --- Подсказки по управлению ---
+Левая кнопка мыши = Left mouse button
+идти, выбрать цель, атаковать = move, select target, attack
+Пробел = Space
+подпрыгнуть = jump
+приёмы = abilities
+сумка = bag
+персонаж = character
+журнал заданий = quest log
+таланты = talents
+закрыть окно, настройки = close window, settings
+
+# --- Окна ---
+Персонаж = Character
+Сумка = Bag
+Лавка = Shop
+Таланты = Talents
+Журнал заданий = Quest log
+Товар = Goods
+Твоя сумка = Your bag
+Лавка пуста = Shop is empty
+Сумка пуста = Bag is empty
+
+# --- Характеристики ---
+Общее = General
+Уровень = Level
+Здоровье = Health
+Энергия = Energy
+Броня = Armor
+Характеристики = Attributes
+Сила = Strength
+Ловкость = Agility
+Выносливость = Stamina
+Ближний бой = Melee
+Урон = Damage
+Скорость = Speed
+Урон в секунду = Damage per second
+Шанс крита = Crit chance
+Сила крита = Crit power
+Шанс промаха = Miss chance
+
+# --- Слоты снаряжения ---
+Голова = Head
+Грудь = Chest
+Кисти = Hands
+Ноги = Legs
+Ступни = Feet
+Кольцо = Ring
+
+# --- Смерть ---
+Возродиться = Respawn

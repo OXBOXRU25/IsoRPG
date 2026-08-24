@@ -163,6 +163,32 @@ if (process.argv.includes('--sfx') && fs.existsSync(SEVEN_ZIP)) {
   }
 }
 
+// --- Архив одной игры, для обновлений --------------------------------------
+//
+// Отдельно от полного пакета, потому что лаунчер обновляет только игру.
+// Себя он перезаписать не может: файл занят запущенным процессом, и Windows
+// не даст. Обновление самого лаунчера — отдельная задача, и до неё он
+// меняется вместе с установщиком.
+
+const gameArchive = path.join(PACKAGE_ROOT, NAME + " игра " + version + ".zip");
+if (fs.existsSync(gameArchive)) fs.rmSync(gameArchive);
+
+if (fs.existsSync(SEVEN_ZIP)) {
+  // Кладём содержимое папки Game без неё самой: распаковывать это будут
+  // поверх уже установленной игры, и лишний уровень вложенности превратил
+  // бы обновление в Game/Game.
+  const result = spawnSync(SEVEN_ZIP,
+    ["a", "-tzip", "-mx=7", gameArchive, "*"],
+    { encoding: "utf8", cwd: path.join(target, "Game") });
+
+  if (result.status === 0) {
+    const size = (fs.statSync(gameArchive).size / 1024 / 1024).toFixed(1);
+    console.log("  Архив игры для обновлений: " + size + " МБ");
+  } else {
+    console.log("  Архив игры не собрался: " + (result.stderr || "").trim());
+  }
+}
+
 // --- Установщик ------------------------------------------------------------
 
 if (process.argv.includes('--installer')) {

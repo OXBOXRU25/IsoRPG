@@ -65,7 +65,11 @@ function references() {
   const core = path.join(WPF, 'PresentationCore.dll');
   if (fs.existsSync(core)) list.push(core); else missing.push('PresentationCore');
 
-  for (const name of ['System.dll', 'System.Core.dll', 'System.Xml.dll']) {
+  // System.IO.Compression нужен для распаковки обновлений: обе сборки, потому
+  // что типы архива и работы с файлами лежат в разных.
+  for (const name of ['System.dll', 'System.Core.dll', 'System.Xml.dll',
+                      'System.IO.Compression.dll',
+                      'System.IO.Compression.FileSystem.dll']) {
     const found = path.join(FW, name);
     if (fs.existsSync(found)) list.push(found); else missing.push(name);
   }

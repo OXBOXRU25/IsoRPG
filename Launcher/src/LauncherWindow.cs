@@ -45,6 +45,17 @@ namespace HighFlyingBird.Launcher
         private ContentControl stage;
         private TextBlock statusText;
         private Border playButton;
+        private TextBlock playLabel;
+
+        /// <summary>Полоса хода скачивания. Появляется только на время работы.</summary>
+        private Border progressTrack;
+        private Border progressFill;
+
+        /// <summary>Что известно про обновление. Пусто — обновляться не нужно.</summary>
+        private UpdateInfo pendingUpdate;
+
+        /// <summary>Идёт установка: второе нажатие кнопки не должно её начать заново.</summary>
+        private bool installing;
         private readonly List<SidebarButton> tabs = new List<SidebarButton>();
 
         public LauncherWindow()
@@ -261,11 +272,41 @@ namespace HighFlyingBird.Launcher
             Grid.SetColumn(playButton, 0);
             footer.Children.Add(playButton);
 
+            var middle = new StackPanel
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(18, 0, 0, 0),
+            };
+
             statusText = Theme.Label(string.Empty, 13, Theme.DimBrush);
-            statusText.VerticalAlignment = VerticalAlignment.Center;
-            statusText.Margin = new Thickness(18, 0, 0, 0);
-            Grid.SetColumn(statusText, 1);
-            footer.Children.Add(statusText);
+            middle.Children.Add(statusText);
+
+            // Полоса хода. Скрыта, пока ничего не качается: пустая полоска
+            // в покое читается как «что-то не доделано».
+            progressFill = new Border
+            {
+                Background = Theme.PlayFill(),
+                CornerRadius = new CornerRadius(2),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Width = 0,
+            };
+
+            progressTrack = new Border
+            {
+                Height = 4,
+                Width = 320,
+                CornerRadius = new CornerRadius(2),
+                Background = new SolidColorBrush(Theme.Line),
+                Margin = new Thickness(0, 8, 0, 0),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Visibility = Visibility.Collapsed,
+                Child = progressFill,
+            };
+
+            middle.Children.Add(progressTrack);
+
+            Grid.SetColumn(middle, 1);
+            footer.Children.Add(middle);
 
             string gameStamp;
 
@@ -286,9 +327,11 @@ namespace HighFlyingBird.Launcher
 
         private Border BuildPlayButton()
         {
-            var label = Theme.Label("ИГРАТЬ", 19, new SolidColorBrush(Color.FromRgb(0x24, 0x18, 0x08)), true);
-            label.HorizontalAlignment = HorizontalAlignment.Center;
-            label.VerticalAlignment = VerticalAlignment.Center;
+            playLabel = Theme.Label("ИГРАТЬ", 19, new SolidColorBrush(Color.FromRgb(0x24, 0x18, 0x08)), true);
+            playLabel.HorizontalAlignment = HorizontalAlignment.Center;
+            playLabel.VerticalAlignment = VerticalAlignment.Center;
+
+            var label = playLabel;
 
             var button = new Border
             {
@@ -304,7 +347,7 @@ namespace HighFlyingBird.Launcher
 
             button.MouseEnter += (s, e) => button.Opacity = 0.9;
             button.MouseLeave += (s, e) => button.Opacity = 1;
-            button.MouseLeftButtonUp += (s, e) => Play();
+            button.MouseLeftButtonUp += (s, e) => OnMainButton();
 
             return button;
         }
@@ -672,15 +715,77 @@ namespace HighFlyingBird.Launcher
         {
             if (string.IsNullOrEmpty(config.UpdateUrl)) return;
 
-            string remote = await Updates.LatestVersion(config.UpdateUrl);
-            if (string.IsNullOrEmpty(remote)) return;
+            var info = await Updater.Check(config.UpdateUrl);
+            if (!info.IsValid) return;
 
             string local = string.IsNullOrEmpty(game.InstalledVersion)
                 ? "0.0.0" : game.InstalledVersion;
 
-            if (Changelog.Compare(remote, local) <= 0) return;
+            if (Changelog.Compare(info.Version, local) <= 0) return;
 
-            statusText.Text = "Доступна версия " + remote + " — у тебя " + local;
+            pendingUpdate = info;
+
+            statusText.Text = "Нужно обновление до версии " + info.Version +
+                              " — у тебя " + local;
+            statusText.Foreground = new SolidColorBrush(Theme.Good);
+
+            // Кнопка меняет назначение, а не появляется рядом второй.
+            // Пока обновление не поставлено, играть нельзя: старая сборка
+            // не сойдётся с сервером, когда игра станет сетевой, а до тех
+            // пор просто не покажет того, что мы уже починили.
+            playLabel.Text = "ОБНОВИТЬ";
+        }
+
+        /// <summary>Одна кнопка на два действия — по состоянию.</summary>
+        private void OnMainButton()
+        {
+            if (installing) return;
+
+            if (pendingUpdate != null) InstallUpdate();
+            else Play();
+        }
+
+        private async void InstallUpdate()
+        {
+            if (!game.Found)
+            {
+                statusText.Text = "Игра не найдена — обновлять нечего";
+                statusText.Foreground = new SolidColorBrush(Theme.Warn);
+                return;
+            }
+
+            installing = true;
+            playButton.Opacity = 0.5;
+            progressTrack.Visibility = Visibility.Visible;
+
+            string folder = System.IO.Path.GetDirectoryName(game.ExecutablePath);
+
+            bool done = await Updater.Install(pendingUpdate, folder, (text, share) =>
+            {
+                statusText.Text = text;
+                progressFill.Width = progressTrack.Width * Math.Max(0, Math.Min(1, share));
+            });
+
+            installing = false;
+            playButton.Opacity = 1;
+
+            if (!done)
+            {
+                statusText.Foreground = new SolidColorBrush(Theme.Warn);
+                progressTrack.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            // Перечитываем версию с диска, а не верим той, что обещал сервер:
+            // обновление могло встать наполовину, и тогда честнее показать то,
+            // что есть на самом деле.
+            game.Refresh();
+
+            pendingUpdate = null;
+            playLabel.Text = "ИГРАТЬ";
+            progressTrack.Visibility = Visibility.Collapsed;
+
+            statusText.Text = "Обновлено до версии " + game.InstalledVersion;
             statusText.Foreground = new SolidColorBrush(Theme.Good);
         }
 

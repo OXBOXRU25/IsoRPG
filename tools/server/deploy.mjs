@@ -10,6 +10,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -19,8 +20,15 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '..', '..');
 
 const HOST = 'root@5.129.195.139';
+
+// Адрес, по которому сервер виден снаружи. Он попадает в описание обновления,
+// поэтому меняется здесь же при переезде на домен — и только здесь.
+const SITE_URL = 'http://5.129.195.139';
 const KEY = 'C:/Users/OXBOX/.ssh/id_ed25519_game';
 const REMOTE_ROOT = '/var/www/game';
+
+// Имя пакета — такое же, как в сборщике. Файлы на диске названы по нему.
+const NAME = 'Приключения разбойника Жени';
 
 const SITE = path.join(repo, 'site', 'index.html');
 const CHANGELOG = path.join(repo, 'CHANGELOG.md');
@@ -109,6 +117,58 @@ if (process.argv.includes('--builds')) {
     // шестьдесят мегабайт незачем держать дважды.
     ssh('ln -sfn ' + REMOTE_ROOT + '/downloads/' + remoteName + ' ' +
         REMOTE_ROOT + '/downloads/' + latestName);
+  }
+
+  // --- Описание обновления для лаунчера ---------------------------------
+  //
+  // Отдельный файл, а не CHANGELOG: лаунчеру нужен адрес архива, его размер
+  // и контрольная сумма. Сумма здесь не для порядка — лаунчер кладёт
+  // скачанное прямо в папку игры, то есть ставит на компьютер исполняемый
+  // код, и без проверки любой сбой при передаче становится запуском
+  // неизвестно чего.
+
+  const gameArchive = path.join(PACKAGE_ROOT, NAME + ' игра ' + current + '.zip');
+
+  if (!fs.existsSync(gameArchive)) {
+    console.log('  архива игры нет — обновление лаунчер не увидит');
+  } else {
+    const remoteName = 'HighFlyingBird-game-' + current + '.zip';
+    const size = fs.statSync(gameArchive).size;
+
+    console.log('  архив игры для обновлений, ' +
+                (size / 1024 / 1024).toFixed(1) + ' МБ — заливаю');
+
+    const sent = scp(gameArchive, REMOTE_ROOT + '/downloads/' + remoteName);
+
+    if (!sent.ok) {
+      console.log('  НЕ УДАЛОСЬ: ' + sent.output);
+    } else {
+      const hash = crypto.createHash('sha256')
+        .update(fs.readFileSync(gameArchive))
+        .digest('hex');
+
+      const q = String.fromCharCode(34);
+
+      // Собираем JSON построчно с кавычкой из кода символа: экранированные
+      // кавычки внутри строк внутри генератора читаются отвратительно и
+      // ломаются при первой же правке.
+      const manifest = [
+        '{',
+        '  ' + q + 'version' + q + ': ' + q + current + q + ',',
+        '  ' + q + 'url' + q + ': ' + q + SITE_URL + '/downloads/' + remoteName + q + ',',
+        '  ' + q + 'size' + q + ': ' + size + ',',
+        '  ' + q + 'sha256' + q + ': ' + q + hash + q,
+        '}',
+        '',
+      ].join(NL);
+
+      const local = path.join(repo, 'site', 'update.json');
+      fs.writeFileSync(local, manifest);
+
+      const put = scp(local, REMOTE_ROOT + '/update.json');
+      console.log(put.ok ? '  описание обновления' : '  НЕ УДАЛОСЬ описание: ' + put.output);
+      console.log('  сумма: ' + hash.slice(0, 16) + '...');
+    }
   }
 
   // Прошлые выкладки с кириллицей в имени, если они остались.

@@ -15,6 +15,7 @@
 // Запуск:
 //   node tools/make-package.mjs          собрать папку и zip
 //   node tools/make-package.mjs --sfx    плюс самораспаковывающийся exe
+//   node tools/make-package.mjs --installer   плюс настоящий установщик
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -32,6 +33,15 @@ const PACKAGE_ROOT = path.join(repo, 'Package');
 const NAME = 'Приключения разбойника Жени';
 
 const SEVEN_ZIP = 'C:/Program Files/7-Zip/7z.exe';
+
+// Inno Setup стоит портативно; путь ищем, а не считаем известным —
+// на другой машине он окажется в другом месте.
+const ISCC_CANDIDATES = [
+  'H:/Games/Inno Setup 6/ISCC.exe',
+  'C:/Program Files (x86)/Inno Setup 6/ISCC.exe',
+  'C:/Program Files/Inno Setup 6/ISCC.exe',
+  'D:/AI/InnoSetup/ISCC.exe',
+];
 
 // --- Версия ----------------------------------------------------------------
 
@@ -152,5 +162,42 @@ if (process.argv.includes('--sfx') && fs.existsSync(SEVEN_ZIP)) {
     console.log('  Самораспаковка: ' + exe + '  (' + size + ' МБ)');
   }
 }
+
+// --- Установщик ------------------------------------------------------------
+
+if (process.argv.includes('--installer')) {
+  const iscc = ISCC_CANDIDATES.find((candidate) => fs.existsSync(candidate));
+
+  if (!iscc) {
+    console.log('  Inno Setup не найден — установщик пропущен.');
+  } else {
+    const script = path.join(repo, 'Launcher', 'installer', 'game.iss');
+
+    const result = spawnSync(iscc, [
+      '/DAppVersion=' + version,
+      '/DPackageDir=' + target,
+      '/DOutputDir=' + PACKAGE_ROOT,
+      script,
+    ], { encoding: 'utf8' });
+
+    if (result.status === 0) {
+      const installer = path.join(PACKAGE_ROOT,
+        'Установка ' + NAME + ' ' + version + '.exe');
+
+      if (fs.existsSync(installer)) {
+        const size = (fs.statSync(installer).size / 1024 / 1024).toFixed(1);
+        console.log('  Установщик: ' + installer + '  (' + size + ' МБ)');
+      }
+    } else {
+      // Показываем хвост вывода: у Inno Setup ошибка всегда в последних
+      // строках, а перед ней идёт список всех упакованных файлов.
+      const output = ((result.stdout || '') + (result.stderr || '')).trim();
+      console.log('  Установщик не собрался:');
+      console.log(output.split(nlChar()).slice(-6).join(nlChar()));
+    }
+  }
+}
+
+function nlChar() { return String.fromCharCode(10); }
 
 console.log(NL + 'Готово.');

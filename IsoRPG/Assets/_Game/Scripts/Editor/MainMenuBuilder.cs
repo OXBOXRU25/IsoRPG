@@ -224,18 +224,6 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
-            var screen = AssetDatabase.LoadAssetAtPath<RenderTexture>(ScreenPath);
-
-            if (screen == null)
-            {
-                // Половина разрешения кадра: на фоне за логотипом разницы не
-                // видно, а памяти под текстуру уходит вчетверо меньше.
-                screen = new RenderTexture(1280, 720, 0, RenderTextureFormat.ARGB32);
-                screen.name = "MainMenuScreen";
-
-                AssetDatabase.CreateAsset(screen, ScreenPath);
-                AssetDatabase.SaveAssets();
-            }
 
             var go = new GameObject("VideoBackground", typeof(RawImage),
                                     typeof(UnityEngine.Video.VideoPlayer));
@@ -249,8 +237,11 @@ namespace IsoRPG.EditorTools
             rect.offsetMax = Vector2.zero;
 
             var image = go.GetComponent<RawImage>();
-            image.texture = screen;
             image.raycastTarget = false;
+
+            // Текстуру не назначаем: кадры отдаёт сам проигрыватель, а
+            // ставит их компонент фона. Промежуточная текстура была лишним
+            // звеном, в котором ролик и застревал после первого прохода.
 
             // Обрезаем по краям, как и неподвижную картинку: растянутое
             // видео выдаёт себя мгновенно.
@@ -260,8 +251,7 @@ namespace IsoRPG.EditorTools
 
             var player = go.GetComponent<UnityEngine.Video.VideoPlayer>();
             player.clip = clip;
-            player.renderMode = UnityEngine.Video.VideoRenderMode.RenderTexture;
-            player.targetTexture = screen;
+            player.renderMode = UnityEngine.Video.VideoRenderMode.APIOnly;
             player.isLooping = true;
             player.playOnAwake = true;
             player.waitForFirstFrame = true;
@@ -270,11 +260,11 @@ namespace IsoRPG.EditorTools
             // получилась бы каша из двух дорожек.
             player.audioOutputMode = UnityEngine.Video.VideoAudioOutputMode.None;
 
-            // Сторож на случай остановки. Собственное зацикливание
-            // проигрывателя включено, но ролик всё равно замирал после
-            // первого прохода — проигрыватель останавливается и по другим
-            // поводам, и ни один из них не сообщает о себе ошибкой.
-            go.AddComponent<IsoRPG.UI.VideoLoopGuard>();
+            // Компонент фона: он забирает кадры у проигрывателя и следит,
+            // чтобы они шли. Собственное зацикливание проигрывателя тут
+            // не помогало — ролик замирал, продолжая считать себя
+            // работающим.
+            go.AddComponent<IsoRPG.UI.VideoBackground>();
 
             EditorUtility.SetDirty(player);
 

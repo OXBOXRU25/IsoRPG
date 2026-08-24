@@ -52,10 +52,20 @@ namespace IsoRPG.Save
         /// <summary>Состояние мира — общее, живёт рядом с персонажем.</summary>
         private WorldState world = new WorldState();
 
+        /// <summary>
+        /// Есть ли сохранение у этого игрока.
+        ///
+        /// Выясняется в Awake, то есть до Start любого компонента, — иначе
+        /// спросить об этом вовремя было бы нельзя.
+        /// </summary>
+        public static bool SaveExists { get; private set; }
+
         private void Awake()
         {
             Instance = this;
             backend = new FileSaveBackend();
+
+            SaveExists = backend.HasSave;
 
             experience = GetComponent<Experience>();
             health = GetComponent<Health>();

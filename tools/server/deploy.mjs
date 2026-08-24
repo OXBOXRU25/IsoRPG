@@ -50,6 +50,29 @@ function scp(local, remote) {
   return run('scp', ['-i', KEY, path.resolve(local), HOST + ':' + remote]);
 }
 
+/**
+ * Заливка через временное имя.
+ *
+ * Пока файл едет, он лежит под именем с точкой впереди — скачивающий его
+ * не видит и продолжает получать прежнюю версию целиком. В конце файл
+ * переименовывается, а переименование внутри одной файловой системы
+ * мгновенно и неделимо: половины файла не бывает.
+ *
+ * Без этого выкладка восьмидесяти мегабайт — это полторы минуты, в течение
+ * которых любой, кто нажал «Обновить», скачивает файл, меняющийся у него
+ * под руками. Проверка суммы такое ловит, и человек видит «файл повреждён»
+ * на совершенно исправном сервере.
+ */
+function scpAtomic(local, remoteDir, name) {
+  const temp = remoteDir + '/.uploading-' + name;
+
+  const sent = scp(local, temp);
+  if (!sent.ok) return sent;
+
+  return ssh('mv -f ' + JSON.stringify(temp) + ' ' +
+             JSON.stringify(remoteDir + '/' + name));
+}
+
 function ssh(command) {
   return run('ssh', ['-i', KEY, HOST, command]);
 }
@@ -155,7 +178,7 @@ if (process.argv.includes('--builds')) {
     console.log('  архив игры для обновлений, ' +
                 (size / 1024 / 1024).toFixed(1) + ' МБ — заливаю');
 
-    const sent = scp(gameArchive, REMOTE_ROOT + '/downloads/' + remoteName);
+    const sent = scpAtomic(gameArchive, REMOTE_ROOT + '/downloads', remoteName);
 
     if (!sent.ok) {
       console.log('  НЕ УДАЛОСЬ: ' + sent.output);
@@ -182,7 +205,7 @@ if (process.argv.includes('--builds')) {
       const local = path.join(repo, 'site', 'update.json');
       fs.writeFileSync(local, manifest);
 
-      const put = scp(local, REMOTE_ROOT + '/update.json');
+      const put = scpAtomic(local, REMOTE_ROOT, 'update.json');
       console.log(put.ok ? '  описание обновления' : '  НЕ УДАЛОСЬ описание: ' + put.output);
       console.log('  сумма: ' + hash.slice(0, 16) + '...');
     }

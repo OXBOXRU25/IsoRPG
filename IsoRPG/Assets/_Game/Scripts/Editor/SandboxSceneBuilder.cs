@@ -633,18 +633,32 @@ namespace IsoRPG.EditorTools
                 monster.transform.SetParent(root.transform);
                 monster.transform.position = pos;
 
-                CreateMonsterVisual(monster.transform, prefab, material);
+                // Главарь крупнее своих.
+                //
+                // Признак — собственная таблица добычи: «_Chief» заводят
+                // только тому, кто стоит во главе. Проверять по имени было
+                // бы гаданием, а таблица — это роль, записанная в данных.
+                //
+                // Без разницы в росте атаман неотличим от рядового
+                // разбойника, и игрок понимает, что перед ним главарь,
+                // только когда тот не умирает с двух ударов.
+                float scale = loot != null && loot.EndsWith("_Chief") ? 1.3f : 1f;
+
+                CreateMonsterVisual(monster.transform, prefab, material, scale);
 
                 // Коллайдер вешаем на корень: по нему игрок кликает, выбирая
                 // цель, и по нему же монстров находят чужие сканирования.
+                // Коллайдер и полоска здоровья растут вместе с моделью.
+                // Иначе у крупного главаря голова и плечи не нажимаются,
+                // а полоска висит поперёк груди.
                 var body = monster.AddComponent<CapsuleCollider>();
-                body.center = Vector3.up;
-                body.height = 2f;
-                body.radius = 0.5f;
+                body.center = Vector3.up * scale;
+                body.height = 2f * scale;
+                body.radius = 0.5f * scale;
 
                 var targetable = monster.AddComponent<Targetable>();
                 targetable.Setup(name, Faction.Hostile);
-                targetable.SetOverheadHeight(2.2f);
+                targetable.SetOverheadHeight(2.2f * scale);
 
                 // Портрет берётся по имени модели: один источник для того,
                 // что игрок видит в мире и на панели цели.

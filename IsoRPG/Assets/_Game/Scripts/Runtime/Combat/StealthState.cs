@@ -174,7 +174,17 @@ namespace IsoRPG.Combat
             m.SetFloat("_Blend", 0f);            // Alpha
             m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
             m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            m.SetInt("_ZWrite", 0);
+            // Глубину пишем даже в прозрачном режиме.
+            //
+            // Обычно её выключают, и для стекла это верно. Но персонаж
+            // состоит из десятка кусков — голова, тело, руки, оружие, — и
+            // без записи глубины они рисуются в произвольном порядке и
+            // просвечивают друг сквозь друга. Со стороны это не «ушёл
+            // в тень», а разобранная модель: видно затылок сквозь лицо.
+            //
+            // С записью глубины ближняя часть закрывает дальнюю, и герой
+            // остаётся цельным, просто полупрозрачным.
+            m.SetInt("_ZWrite", 1);
             m.DisableKeyword("_ALPHATEST_ON");
             m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;

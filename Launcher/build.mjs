@@ -160,10 +160,15 @@ function collectAssets() {
   }
 
   const config = path.join(dist, 'launcher.json');
+  const template = path.join(here, 'launcher.json');
 
-  if (!fs.existsSync(config)) {
-    // Адреса пустые намеренно: пока сайта нет, проверять обновления негде,
-    // и лаунчер молча этого не делает вместо того, чтобы стучаться в никуда.
+  // Настройки берём из эталона рядом с исходниками, а не пишем заново.
+  // Иначе адрес сервера живёт только в собранной папке, теряется при её
+  // очистке и восстанавливается по памяти — то есть неверно.
+  if (fs.existsSync(template)) {
+    fs.copyFileSync(template, config);
+    console.log('  launcher.json');
+  } else if (!fs.existsSync(config)) {
     fs.writeFileSync(config, [
       '{',
       '  "updateUrl": "",',
@@ -172,7 +177,7 @@ function collectAssets() {
       '',
     ].join(NL));
 
-    console.log('  launcher.json (адреса пока пустые)');
+    console.log('  launcher.json (адреса пустые — эталона нет)');
   }
 }
 

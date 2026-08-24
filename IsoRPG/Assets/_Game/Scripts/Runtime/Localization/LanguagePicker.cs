@@ -90,8 +90,58 @@ namespace IsoRPG.Localization
                 label.raycastTarget = false;
                 labels.Add(label);
 
-                var captured = language;
-                go.GetComponent<Button>().onClick.AddListener(() => Choose(captured));
+                // Обработчик здесь НЕ вешаем.
+                //
+                // Обычный слушатель живёт в памяти и в сцену не пишется.
+                // Сборщик работает в редакторе, сцена сохраняется — и
+                // сохраняется с пустыми обработчиками. В редакторе это
+                // незаметно, потому что сцена ещё в памяти; в собранной
+                // игре кнопки оказываются мёртвыми.
+                //
+                // Поэтому подписываемся при запуске, в Awake: компонент к
+                // тому моменту уже в сцене вместе со своими кнопками.
+            }
+
+            Highlight();
+        }
+
+        private void Awake()
+        {
+            Subscribe();
+        }
+
+        /// <summary>
+        /// Находит свои кнопки и вешает на них выбор языка.
+        ///
+        /// Ищем по дочерним объектам, а не храним ссылки: список ссылок
+        /// тоже пришлось бы сохранять в сцену, и он разошёлся бы с тем,
+        /// что там на самом деле, при первой же пересборке меню.
+        /// </summary>
+        private void Subscribe()
+        {
+            plates.Clear();
+            labels.Clear();
+
+            for (int i = 0; i < Order.Length; i++)
+            {
+                var child = transform.Find("Lang_" + Order[i]);
+                if (child == null) continue;
+
+                var plate = child.GetComponent<Image>();
+                if (plate != null) plates.Add(plate);
+
+                var label = child.GetComponentInChildren<Text>();
+                if (label != null) labels.Add(label);
+
+                var button = child.GetComponent<Button>();
+                if (button == null) continue;
+
+                var captured = Order[i];
+
+                // На всякий случай снимаем прежние: при пересборке меню
+                // в редакторе компонент мог что-то унаследовать.
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => Choose(captured));
             }
 
             Highlight();

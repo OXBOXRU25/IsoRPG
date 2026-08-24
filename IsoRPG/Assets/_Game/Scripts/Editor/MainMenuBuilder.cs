@@ -19,6 +19,7 @@ namespace IsoRPG.EditorTools
         private const string ScenePath = "Assets/_Game/Scenes/MainMenu.unity";
         private const string GameScenePath = "Assets/_Game/Scenes/Sandbox.unity";
         private const string BackgroundPath = "Assets/_Game/Art/UI/MainMenuBackground.png";
+        private const string MusicPath = "Assets/_Game/Audio/Music/MainMenuTheme.mp3";
 
         private static readonly Color TitleColor = new Color32(0xF2, 0xE6, 0xC8, 0xFF);
         private static readonly Color SubtitleColor = new Color32(0xC8, 0xA8, 0x70, 0xFF);
@@ -58,6 +59,7 @@ namespace IsoRPG.EditorTools
             menu.SetGameScene(Path.GetFileNameWithoutExtension(GameScenePath));
 
             BuildBackground(root);
+            BuildMusic();
 
             // Название набирается текстом, только если картинки нет:
             // на самом лого оно уже написано, и дубль под ним читался бы
@@ -136,6 +138,44 @@ namespace IsoRPG.EditorTools
             }
 
             if (dirty) importer.SaveAndReimport();
+        }
+
+        /// <summary>
+        /// Музыка стартового экрана.
+        ///
+        /// Отдельным объектом в сцене, а не частью холста: звук не имеет
+        /// отношения к интерфейсу, и при первой же перестройке кнопок его
+        /// иначе снесло бы вместе с ними.
+        ///
+        /// Играет сразу и по кругу. Громкость заметно ниже единицы: тема
+        /// на полной громкости перекрывает всё, а первое, что делает
+        /// человек, — тянется убавить звук, вместо того чтобы нажать
+        /// «Начать игру».
+        /// </summary>
+        private static void BuildMusic()
+        {
+            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(MusicPath);
+
+            if (clip == null)
+            {
+                Debug.LogWarning("[IsoRPG] Нет музыки " + MusicPath +
+                                 " — меню будет тихим.");
+                return;
+            }
+
+            var go = new GameObject("Music", typeof(AudioSource));
+            var source = go.GetComponent<AudioSource>();
+
+            source.clip = clip;
+            source.loop = true;
+            source.playOnAwake = true;
+            source.volume = 0.45f;
+
+            // Плоский звук: у объёмного громкость зависела бы от того, где
+            // стоит камера, а в меню камеры как таковой нет.
+            source.spatialBlend = 0f;
+
+            EditorUtility.SetDirty(source);
         }
 
         private static void BuildBackground(RectTransform root)

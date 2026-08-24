@@ -43,6 +43,15 @@ namespace IsoRPG.UI
             player = GetComponent<VideoPlayer>();
             image = GetComponent<RawImage>();
 
+            // Пока кадра нет — картинка прозрачная.
+            //
+            // Картинка без текстуры рисуется белым непрозрачным
+            // прямоугольником и накрывает всё, что под ней. Пока кадры шли
+            // через отдельную текстуру, она стояла с самого начала и белого
+            // не было; теперь текстура появляется только с первым кадром,
+            // и до него фон становился белым листом.
+            if (image != null) image.color = new Color(1f, 1f, 1f, 0f);
+
             if (player == null) return;
 
             // Кадры забираем сами, без промежуточной текстуры.
@@ -92,7 +101,14 @@ namespace IsoRPG.UI
 
             // Кадр отдаётся как текстура и меняется каждый раз — присваиваем
             // без проверок, это дешевле сравнения.
-            if (player.texture != null) image.texture = player.texture;
+            if (player.texture != null)
+            {
+                image.texture = player.texture;
+
+                // Первый пришедший кадр проявляет картинку. До него под ней
+                // видна неподвижная заставка — она и служит первым кадром.
+                if (image.color.a < 1f) image.color = Color.white;
+            }
 
             if (Time.unscaledTime < nextCheck) return;
             nextCheck = Time.unscaledTime + CheckInterval;

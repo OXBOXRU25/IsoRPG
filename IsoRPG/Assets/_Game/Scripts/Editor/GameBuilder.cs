@@ -174,10 +174,46 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
-            // Одной картинки достаточно: Unity сама уменьшит её под все
-            // нужные размеры, от ярлыка до значка в панели задач.
-            PlayerSettings.SetIcons(NamedBuildTarget.Standalone,
-                                    new[] { icon }, IconKind.Application);
+            // Текстуру нужно разрешить читать из кода, иначе Unity не сможет
+            // уменьшить её под мелкие размеры и оставит иконку по умолчанию.
+            string path = AssetDatabase.GetAssetPath(icon);
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+
+            if (importer != null && !importer.isReadable)
+            {
+                importer.isReadable = true;
+                importer.SaveAndReimport();
+
+                icon = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            }
+
+            // Массив обязан быть ровно той длины, сколько размеров просит
+            // платформа. Одна картинка в массиве из одного элемента не
+            // подходит: Unity молча ничего не делает, настройка остаётся
+            // пустой, и в сборке висит логотип движка. Именно так это и
+            // выглядело — ошибки нет, предупреждения нет, иконки тоже нет.
+            var sizes = PlayerSettings.GetIconSizes(NamedBuildTarget.Standalone,
+                                                    IconKind.Application);
+
+            var icons = new Texture2D[sizes.Length];
+            for (int i = 0; i < icons.Length; i++) icons[i] = icon;
+
+            PlayerSettings.SetIcons(NamedBuildTarget.Standalone, icons,
+                                    IconKind.Application);
+
+            // Проверяем результат, а не факт вызова: настройка записывается
+            // в файл проекта, и её видно оттуда же, откуда прочитает сборка.
+            var written = PlayerSettings.GetIcons(NamedBuildTarget.Standalone,
+                                                  IconKind.Application);
+
+            bool applied = written != null && written.Length > 0 && written[0] != null;
+
+            if (!applied)
+            {
+                Debug.LogWarning("[IsoRPG] Иконка не применилась. Проверь " +
+                                 "Assets/_Game/Art/UI/AppIcon.png — она должна " +
+                                 "быть квадратной и читаемой.");
+            }
         }
 
         private static string nl => Environment.NewLine;

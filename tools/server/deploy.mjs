@@ -23,7 +23,7 @@ const HOST = 'root@5.129.195.139';
 
 // Адрес, по которому сервер виден снаружи. Он попадает в описание обновления,
 // поэтому меняется здесь же при переезде на домен — и только здесь.
-const SITE_URL = 'http://5.129.195.139';
+const SITE_URL = 'https://5.129.195.139.sslip.io';
 const KEY = 'C:/Users/OXBOX/.ssh/id_ed25519_game';
 const REMOTE_ROOT = '/var/www/game';
 
@@ -119,6 +119,23 @@ if (process.argv.includes('--builds')) {
         REMOTE_ROOT + '/downloads/' + latestName);
   }
 
+  // --- Лаунчер отдельным файлом -----------------------------------------
+  //
+  // Три мегабайта против шестидесяти у установщика. Лаунчер меняется своим
+  // темпом и переустанавливать ради него всю игру незачем: достаточно
+  // заменить несколько файлов рядом с ней.
+
+  const launcherZip = path.join(PACKAGE_ROOT, 'HighFlyingBird-Launcher.zip');
+
+  if (fs.existsSync(launcherZip)) {
+    const size = (fs.statSync(launcherZip).size / 1024 / 1024).toFixed(1);
+    const sent = scp(launcherZip, REMOTE_ROOT + '/downloads/HighFlyingBird-Launcher.zip');
+
+    console.log(sent.ok
+      ? '  лаунчер отдельно, ' + size + ' МБ'
+      : '  НЕ УДАЛОСЬ лаунчер: ' + sent.output);
+  }
+
   // --- Описание обновления для лаунчера ---------------------------------
   //
   // Отдельный файл, а не CHANGELOG: лаунчеру нужен адрес архива, его размер
@@ -190,4 +207,4 @@ const check = ssh('curl -sS -o /dev/null -w "%{http_code}" http://localhost/ ; '
                   'curl -sS -o /dev/null -w "%{http_code}" http://localhost/CHANGELOG.md');
 
 console.log(NL + 'Ответы сервера (страница, файл версий): ' + check.output.trim());
-console.log('Адрес: http://5.129.195.139/');
+console.log('Адрес: https://5.129.195.139.sslip.io/');

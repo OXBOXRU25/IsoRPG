@@ -1,4 +1,4 @@
 {
-  "updateUrl": "http://5.129.195.139/update.json",
-  "siteUrl": "http://5.129.195.139/"
+  "updateUrl": "https://5.129.195.139.sslip.io/update.json",
+  "siteUrl": "https://5.129.195.139.sslip.io/"
 }

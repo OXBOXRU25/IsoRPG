@@ -1037,7 +1037,14 @@ namespace IsoRPG.EditorTools
 
             // Поворачивается к подошедшему: стоящий спиной торговец читается
             // как декорация, а по декорациям не кликают.
-            go.AddComponent<IsoRPG.Items.FacePlayer>();
+            // Разворачиваем лицом в зал. Начальная поза важна не меньше
+            // разворота к игроку: именно в неё торговец возвращается, когда
+            // игрок отошёл, — и раньше это была поза спиной ко всему залу.
+            FaceTowards(go, RuinsLayout.HallCentre);
+
+            var facing = go.AddComponent<IsoRPG.Items.FacePlayer>();
+            facing.SetNoticeRange(16f);
+            EditorUtility.SetDirty(facing);
 
             var shop = go.AddComponent<IsoRPG.Items.Merchant>();
 
@@ -1094,6 +1101,23 @@ namespace IsoRPG.EditorTools
         /// поисков. Игрок появляется, видит знак над головой в двух шагах —
         /// и дальше игра объясняет себя сама.
         /// </summary>
+        /// <summary>
+        /// Разворачивает объект лицом к точке, не наклоняя его.
+        ///
+        /// Без обнуления высоты персонаж, стоящий чуть выше или ниже цели,
+        /// заваливается вперёд или назад — скелет при этом выглядит
+        /// сломанным, а не смотрящим.
+        /// </summary>
+        private static void FaceTowards(GameObject go, Vector3 target)
+        {
+            var direction = target - go.transform.position;
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.01f) return;
+
+            go.transform.rotation = Quaternion.LookRotation(direction);
+        }
+
         private static void CreateQuestGiver()
         {
             var quest = QuestBuilder.LoadFirst();
@@ -1105,9 +1129,14 @@ namespace IsoRPG.EditorTools
             }
 
             var go = new GameObject("Старый оружейник");
+
             // В стороне от места появления игрока, но в том же зале:
             // заказчик должен попадаться на глаза, а не искаться.
-            go.transform.position = RuinsLayout.HallCentre + new Vector3(-6f, 0f, 4f);
+            //
+            // Прежнее место было ближе к стене, и рядом с мебелью он
+            // выглядел зажатым в угол — будто прячется, а не ждёт.
+            // Метра хватило, чтобы он читался как стоящий в зале.
+            go.transform.position = RuinsLayout.HallCentre + new Vector3(-4f, 0f, 1f);
 
             // Модель мирного человека, а не скелета: заказчик должен
             // отличаться от того, кого он просит убивать.
@@ -1158,10 +1187,20 @@ namespace IsoRPG.EditorTools
             box.height = 2f;
             box.radius = 0.5f;
 
-            // Изначально смотрит на точку появления игрока: первое, что тот
-            // увидит, — обращённое к нему лицо, а не спина.
-            go.transform.rotation = Quaternion.LookRotation(
-                (Vector3.zero - go.transform.position).normalized);
+            // Разворачиваем в зал.
+            //
+            // Раньше здесь стоял поворот на Vector3.zero — начало координат
+            // мира. Но зал стоит не в начале координат, а примерно в точке
+            // (-22, 0, 12), поэтому оружейник исправно смотрел мимо всего
+            // зала, куда-то в лес. Со стороны это читалось как «зажат
+            // в углу и отвернулся».
+            FaceTowards(go, RuinsLayout.HallCentre);
+
+            // И поворачивается к подошедшему, как торговец. Собеседник,
+            // говорящий в стену, — это то, что замечают сразу.
+            var facing = go.AddComponent<IsoRPG.Items.FacePlayer>();
+            facing.SetNoticeRange(16f);
+            EditorUtility.SetDirty(facing);
 
             var giver = go.AddComponent<IsoRPG.Quests.QuestGiver>();
             giver.SetupMarkerMaterial(MarkerMaterial());

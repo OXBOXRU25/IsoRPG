@@ -32,6 +32,15 @@ namespace IsoRPG.Items
         private Quaternion home;
         private float nextSearch;
 
+        /// <summary>
+        /// С какого расстояния замечать. Шесть метров, стоявшие тут
+        /// изначально, оказались меньше того, что видно на экране: камера
+        /// показывает около тридцати, и торговец разворачивался, только
+        /// когда игрок подходил вплотную. Всё остальное время он стоял
+        /// спиной посреди зала и читался как декорация.
+        /// </summary>
+        public void SetNoticeRange(float range) => noticeRange = range;
+
         private void Awake()
         {
             home = transform.rotation;

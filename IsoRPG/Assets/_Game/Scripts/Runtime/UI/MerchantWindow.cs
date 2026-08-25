@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using IsoRPG.Localization;
 using UnityEngine;
 using UnityEngine.UI;
 using IsoRPG.Combat;
@@ -61,11 +62,20 @@ namespace IsoRPG.UI
 
         private void OnEnable()
         {
+
+            // Смена языка перерисовывает окно.
+            //
+            // Подписи с переводом обновляются сами, но всё, что собрано из
+            // кусков — «Сумка 12 / 40», названия с количеством, строки
+            // наград, — пересобирается только здесь. Без этого человек
+            // переключал язык и видел половину окна на прежнем.
+            Loc.Changed += RefreshIfOpen;
             if (inventory != null) inventory.Changed += RefreshIfOpen;
         }
 
         private void OnDisable()
         {
+            Loc.Changed -= RefreshIfOpen;
             if (inventory != null) inventory.Changed -= RefreshIfOpen;
         }
 
@@ -84,6 +94,10 @@ namespace IsoRPG.UI
 
         public void Open(Merchant merchant)
         {
+            // Голос торговца — от него самого, а не из ниоткуда: звук с
+            // положением в мире слышно с той стороны, где стоит человек.
+            if (merchant != null) IsoRPG.Audio.Sfx.MerchantVoice(merchant.transform.position);
+
             if (window == null || merchant == null) return;
 
             current = merchant;
@@ -116,7 +130,7 @@ namespace IsoRPG.UI
 
             if (current == null || inventory == null) return;
 
-            goldText.text = "У тебя: " + inventory.Gold + " золота";
+            goldText.text = Loc.F("У тебя: {0} золота", inventory.Gold);
 
             // Товар торговца
             int row = 0;
@@ -214,7 +228,7 @@ namespace IsoRPG.UI
                 artImage.raycastTarget = false;
             }
 
-            string label = item.displayName;
+            string label = Loc.T(item.displayName);
             if (count > 1) label += "  x" + count;
 
             var name = MakeText(rect, "Name", label, 12, item.RarityColor);
@@ -272,7 +286,13 @@ namespace IsoRPG.UI
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var go = new GameObject("MerchantWindow", typeof(Image));
             var rect = (RectTransform)go.transform;
@@ -394,7 +414,7 @@ namespace IsoRPG.UI
             text.font = font;
             text.fontSize = size;
             text.color = color;
-            text.text = value;
+            LocalizedText.Bind(text, value);
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.verticalOverflow = VerticalWrapMode.Overflow;

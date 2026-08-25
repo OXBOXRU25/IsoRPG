@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using IsoRPG.Localization;
 
 namespace IsoRPG.Combat
 {
@@ -30,8 +31,65 @@ namespace IsoRPG.Combat
 
         // --- Геометрия. Отступ от края одинаковый везде: один токен, не три ---
         private const float ScreenMargin = 18f;
-        private const float PanelWidth = 250f;
-        private const float PanelHeight = 66f;
+        // Ширина панели и её высота связаны пропорцией картинки: 1932 на 814.
+        // Задавать высоту отдельно нельзя — рамка растянется и торцы поплывут.
+        private const float PanelWidth = 300f;
+        private const float PanelHeight = PanelWidth * 718f / 1865f;
+
+        /// <summary>
+        /// Где внутри нарисованной рамки лежат гнёзда — доли от её размера.
+        ///
+        /// Сняты с самой картинки: круг портрета по центру слева, два жёлоба
+        /// справа от него. Пока рамку не перерисовали, эти числа не меняются.
+        /// </summary>
+        // Числа сняты с картинки замером: от центра гнезда наружу до
+        // золотого канта. На глаз по сетке они выходили на пару процентов
+        // мимо — и полосы вылезали за жёлоба.
+        private const float PortraitCenterX = 0.198f;
+        private const float PortraitCenterY = 0.477f;
+        private const float PortraitDiameter = 0.252f;   // от ширины рамки
+
+        private const float BarsFrom = 0.355f;
+        private const float BarsTo = 0.903f;
+        private const float TopBarFrom = 0.329f;
+        private const float TopBarTo = 0.460f;
+        private const float LowBarFrom = 0.550f;
+        private const float LowBarTo = 0.680f;
+
+        /// <summary>
+        /// Рамка цели: 2172 на 724, полоса одна и лежит правее портрета.
+        /// </summary>
+        // Шире геройской намеренно: у рамки врага портрет занимает меньшую
+        // долю ширины (0.184 против 0.252), и при равной ширине панелей его
+        // портрет выходил заметно мельче. Подобрано так, чтобы круги на
+        // экране получились одного размера.
+        private const float EnemyPanelWidth = 420f;
+        private const float EnemyPanelHeight = EnemyPanelWidth * 675f / 2140f;
+
+        private const float EnemyPortraitCenterX = 0.191f;
+        private const float EnemyPortraitCenterY = 0.470f;
+        private const float EnemyPortraitDiameter = 0.184f;
+
+        /// <summary>
+        /// Рамка мирного: 2117 на 685, вместо жёлоба — табличка под имя.
+        /// Круг у неё сквозной, поэтому портрет там виден целиком.
+        /// </summary>
+        private const float NeutralPanelWidth = 400f;
+        private const float NeutralPanelHeight = NeutralPanelWidth * 685f / 2117f;
+
+        private const float NeutralPortraitCenterX = 0.160f;
+        private const float NeutralPortraitCenterY = 0.481f;
+        private const float NeutralPortraitDiameter = 0.193f;
+
+        private const float NeutralPlateFrom = 0.327f;
+        private const float NeutralPlateTo = 0.960f;
+        private const float NeutralPlateTop = 0.388f;
+        private const float NeutralPlateBottom = 0.677f;
+
+        private const float EnemyBarFrom = 0.351f;
+        private const float EnemyBarTo = 0.911f;
+        private const float EnemyBarTop = 0.400f;
+        private const float EnemyBarBottom = 0.578f;
         private const float PanelGap = 12f;
         private const float BarHeight = 20f;      // толще: в WoW полоска — главный элемент панели
         private const float BarGap = 4f;
@@ -74,6 +132,10 @@ namespace IsoRPG.Combat
         private Text playerNameText;
         private Image playerPortrait;
         private Image targetPortrait;
+        private GameObject neutralPanel;
+        private Image neutralPortrait;
+        private Text neutralNameText;
+
         private RectTransform playerEnergyFill;
         private Text playerEnergyText;
 
@@ -131,6 +193,10 @@ namespace IsoRPG.Combat
 
         private void OnEnable()
         {
+            // Имя героя с уровнем собрано из шаблона и числа, поэтому само
+            // себя не переведёт: пересобираем при смене языка.
+            Loc.Changed += RelabelPlayer;
+
             if (playerHealth != null)
             {
                 playerHealth.Changed += OnPlayerHealthChanged;
@@ -197,6 +263,7 @@ namespace IsoRPG.Combat
 
         private void OnDisable()
         {
+            Loc.Changed -= RelabelPlayer;
             if (abilities != null) abilities.BarChanged -= OnBarChanged;
             if (playerHealth != null) playerHealth.Changed -= OnPlayerHealthChanged;
             if (playerEnergy != null) playerEnergy.Changed -= OnEnergyChanged;
@@ -246,7 +313,7 @@ namespace IsoRPG.Combat
             if (eatLabel != null)
             {
                 string name = food.Current != null ? food.Current.displayName : "Ест";
-                eatLabel.text = name + "  " + food.Remaining.ToString("0.0") + " с";
+                eatLabel.text = Loc.T(name) + "  " + Loc.F("{0} с", food.Remaining.ToString("0.0"));
             }
         }
 
@@ -268,7 +335,13 @@ namespace IsoRPG.Combat
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var root = (RectTransform)canvasGo.transform;
 
@@ -278,21 +351,32 @@ namespace IsoRPG.Combat
             float secondY = healthY - BarHeight - BarGap;
 
             // --- Панель игрока ---
-            var player = CreatePanel(root, "PlayerPanel",
+            var player = CreateFramedPanel(root, "PlayerPanel", "UI/Frame_Player",
                 new Vector2(ScreenMargin, -ScreenMargin));
 
-            playerPortrait = CreatePortrait(player);
+            playerPortrait = CreateSlotPortrait(player);
 
-            playerNameText = CreateText(player, "Name", "Разбойник", 14, TextColor,
-                new Vector2(BarsLeft, nameY), new Vector2(barsWidth, 16f));
+            var heroFace = Portraits.For("Разбойник");
 
-            var healthBar = CreateBar(player, "Health", AllyHealthBack, AllyHealthColor,
-                new Vector2(BarsLeft, healthY), barsWidth);
+            if (heroFace != null)
+            {
+                playerPortrait.sprite = heroFace;
+                playerPortrait.enabled = true;
+            }
+
+            // Имя с уровнем — над рамкой, а не внутри: внутри рамки места нет,
+            // всё занято портретом и жёлобами.
+            playerNameText = CreateText(player, "Name", "Разбойник", 13, TextColor,
+                new Vector2(PanelWidth * BarsFrom, 2f),
+                new Vector2(PanelWidth * (BarsTo - BarsFrom), 16f));
+
+            var healthBar = CreateGrooveBar(player, "Health", AllyHealthColor,
+                                            TopBarFrom, TopBarTo);
             playerHealthFill = healthBar.fill;
             playerHealthText = healthBar.label;
 
-            var energyBar = CreateBar(player, "Energy", EnergyBack, EnergyColor,
-                new Vector2(BarsLeft, secondY), barsWidth);
+            var energyBar = CreateGrooveBar(player, "Energy", EnergyColor,
+                                            LowBarFrom, LowBarTo);
             playerEnergyFill = energyBar.fill;
             playerEnergyText = energyBar.label;
 
@@ -301,23 +385,56 @@ namespace IsoRPG.Combat
             playerEnergyText.color = new Color32(0x3A, 0x30, 0x14, 0xFF);
 
             // --- Панель цели: справа от панели игрока, скрыта без цели ---
-            var target = CreatePanel(root, "TargetPanel",
-                new Vector2(ScreenMargin + PanelWidth + PanelGap, -ScreenMargin));
+            var target = CreateFramedPanel(root, "TargetPanel", "UI/Frame_Enemy",
+                new Vector2(ScreenMargin + PanelWidth + PanelGap, -ScreenMargin),
+                EnemyPanelWidth, EnemyPanelHeight);
             targetPanel = target.gameObject;
 
-            targetPortrait = CreatePortrait(target);
+            targetPortrait = CreateSlotPortrait(target, EnemyPanelWidth, EnemyPanelHeight,
+                                                EnemyPortraitCenterX, EnemyPortraitCenterY,
+                                                EnemyPortraitDiameter);
 
-            targetNameText = CreateText(target, "Name", "", 14, TextColor,
-                new Vector2(BarsLeft, nameY), new Vector2(barsWidth, 16f));
+            targetNameText = CreateText(target, "Name", "", 13, TextColor,
+                new Vector2(EnemyPanelWidth * EnemyBarFrom, 2f),
+                new Vector2(EnemyPanelWidth * (EnemyBarTo - EnemyBarFrom), 16f));
 
-            var targetBar = CreateBar(target, "Health", HealthBack, HealthColor,
-                new Vector2(BarsLeft, healthY), barsWidth);
+            var targetBar = CreateGrooveBar(target, "Health", HealthColor,
+                                            EnemyBarTop, EnemyBarBottom,
+                                            EnemyBarFrom, EnemyBarTo);
             targetHealthFill = targetBar.fill;
             targetHealthText = targetBar.label;
 
-            BuildComboDots(target, new Vector2(BarsLeft, secondY - 2f), barsWidth);
+            // Точки комбо — под рамкой: внутри неё места нет, полоса одна.
+            BuildComboDots(target, new Vector2(EnemyPanelWidth * EnemyBarFrom,
+                                               -EnemyPanelHeight - 4f),
+                           EnemyPanelWidth * (EnemyBarTo - EnemyBarFrom));
 
             targetPanel.SetActive(false);
+
+            // --- Панель мирного: там же, где панель цели ---
+            var neutral = CreateFramedPanel(root, "NeutralPanel", "UI/Frame_Neutral",
+                new Vector2(ScreenMargin + PanelWidth + PanelGap, -ScreenMargin),
+                NeutralPanelWidth, NeutralPanelHeight);
+            neutralPanel = neutral.gameObject;
+
+            neutralPortrait = CreateSlotPortrait(neutral,
+                NeutralPanelWidth, NeutralPanelHeight,
+                NeutralPortraitCenterX, NeutralPortraitCenterY,
+                NeutralPortraitDiameter);
+
+            // Имя внутри таблички, а не над рамкой: у мирного нет полосы,
+            // и табличка существует ровно ради имени.
+            neutralNameText = CreateText(neutral, "Name", "", 14, TextColor,
+                Vector2.zero, Vector2.zero);
+
+            var neutralNameRect = (RectTransform)neutralNameText.transform;
+            neutralNameRect.anchorMin = new Vector2(NeutralPlateFrom, 1f - NeutralPlateBottom);
+            neutralNameRect.anchorMax = new Vector2(NeutralPlateTo, 1f - NeutralPlateTop);
+            neutralNameRect.offsetMin = Vector2.zero;
+            neutralNameRect.offsetMax = Vector2.zero;
+            neutralNameText.alignment = TextAnchor.MiddleCenter;
+
+            neutralPanel.SetActive(false);
 
             BuildAbilityBar(root);
             BuildExperienceBar(root);
@@ -485,6 +602,49 @@ namespace IsoRPG.Combat
             barRect.anchoredPosition = new Vector2(0f, ScreenMargin + ExpBarHeight);
             barRect.sizeDelta = new Vector2(totalWidth, SlotSize);
 
+            // Нарисованная рамка под ряд иконок.
+            //
+            // Лежит ПОД слотами и шире их: у рамки собственные поля и торцы,
+            // и если подогнать её ровно по ряду, иконки лягут на золотой кант.
+            // Растягивается девятью кусками, поэтому число приёмов может
+            // меняться — рамка подстроится.
+            var plate = Resources.Load<Sprite>("UI/Frame_Abilities");
+
+            if (plate != null)
+            {
+                var frameGo = new GameObject("Frame", typeof(Image));
+                var frameRect = (RectTransform)frameGo.transform;
+                frameRect.SetParent(barRect, false);
+
+                frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+                frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+                frameRect.pivot = new Vector2(0.5f, 0.5f);
+                frameRect.anchoredPosition = Vector2.zero;
+                // Запас по высоте больше, чем кажется нужным: границы
+                // растяжения занимают по 32 точки сверху и снизу, и при
+                // высоте панели в 78 на середину оставалось два пикселя —
+                // рамка схлопывалась в золотую ниточку между иконками.
+                frameRect.sizeDelta = new Vector2(totalWidth + 96f, SlotSize + 34f);
+
+                var frameImage = frameGo.GetComponent<Image>();
+                frameImage.sprite = plate;
+                frameImage.type = Image.Type.Sliced;
+                frameImage.raycastTarget = false;
+
+                // Границы растяжения заданы в пикселях исходника, а он в семь
+                // раз крупнее того, что рисуется на экране: слева и справа по
+                // 210 точек при ширине панели в 290 — они не помещаются, и
+                // Unity рисует пустоту вместо рамки.
+                //
+                // Множитель уменьшает границы в отрисовке, оставляя пропорции
+                // картинки нетронутыми. Три — это ровно то отношение, при
+                // котором торцы садятся на место.
+                frameImage.pixelsPerUnitMultiplier = 3.6f;
+
+                // Первой в списке — значит под всеми иконками по отрисовке.
+                frameRect.SetAsFirstSibling();
+            }
+
             for (int i = 0; i < count; i++)
             {
                 var ability = abilities.Abilities[i];
@@ -587,6 +747,192 @@ namespace IsoRPG.Combat
                     cooldownText = cdText
                 });
             }
+        }
+
+        /// <summary>
+        /// Панель на нарисованной рамке.
+        ///
+        /// Размер задаётся шириной, высота считается из пропорции картинки:
+        /// растянуть рамку по одной оси нельзя, иначе поплывут заклёпки и
+        /// золотой кант.
+        ///
+        /// Если картинки нет, панель собирается по-старому — цветной
+        /// плашкой. Игра без интерфейса хуже игры с некрасивым интерфейсом,
+        /// а забытый файл в Resources ловится только запуском.
+        /// </summary>
+        private RectTransform CreateFramedPanel(RectTransform parent, string name,
+                                                string sprite, Vector2 position,
+                                                float width = 0f, float height = 0f)
+        {
+            if (width <= 0f) width = PanelWidth;
+            if (height <= 0f) height = PanelHeight;
+
+            var art = Resources.Load<Sprite>(sprite);
+
+            if (art == null)
+            {
+                Debug.LogWarning("[IsoRPG] Нет спрайта " + sprite +
+                                 " — панель нарисована плашкой. Прогони " +
+                                 "Tools/IsoRPG/Настроить панели интерфейса.");
+
+                return CreatePanel(parent, name, position);
+            }
+
+            var go = new GameObject(name, typeof(Image));
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(parent, false);
+
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = new Vector2(width, height);
+
+            var image = go.GetComponent<Image>();
+            image.sprite = art;
+            image.type = Image.Type.Simple;
+            image.raycastTarget = false;
+
+            return rect;
+        }
+
+        /// <summary>Круг для обрезки портрета. Делается один раз на всю игру.</summary>
+        private static Sprite circleSprite;
+
+        private static Sprite CircleSprite()
+        {
+            if (circleSprite != null) return circleSprite;
+
+            const int size = 128;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            float radius = size * 0.5f;
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x - radius + 0.5f;
+                    float dy = y - radius + 0.5f;
+                    float distance = Mathf.Sqrt(dx * dx + dy * dy);
+
+                    // Плавный край в один пиксель: жёсткая граница круга
+                    // рисуется лесенкой и видна даже на мелком портрете.
+                    float alpha = Mathf.Clamp01(radius - distance);
+
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+            texture.wrapMode = TextureWrapMode.Clamp;
+
+            circleSprite = Sprite.Create(texture, new Rect(0, 0, size, size),
+                                         new Vector2(0.5f, 0.5f));
+
+            return circleSprite;
+        }
+
+        /// <summary>Портрет в круглом гнезде нарисованной рамки.</summary>
+        private Image CreateSlotPortrait(RectTransform panel,
+                                         float width = 0f, float height = 0f,
+                                         float centerX = -1f, float centerY = -1f,
+                                         float diameter = 0f)
+        {
+            if (width <= 0f) width = PanelWidth;
+            if (height <= 0f) height = PanelHeight;
+            if (centerX < 0f) centerX = PortraitCenterX;
+            if (centerY < 0f) centerY = PortraitCenterY;
+            if (diameter <= 0f) diameter = PortraitDiameter;
+
+            // Круглое окно, за края которого портрет не вылезет.
+            //
+            // Портреты рисуются квадратными, а гнездо круглое: без обрезки
+            // плечи и капюшон торчат за золотое кольцо, и панель выглядит
+            // так, будто картинку положили сверху, а не вставили внутрь.
+            var maskGo = new GameObject("PortraitMask", typeof(Image), typeof(Mask));
+            var maskRect = (RectTransform)maskGo.transform;
+            maskRect.SetParent(panel, false);
+
+            var maskImage = maskGo.GetComponent<Image>();
+            maskImage.sprite = CircleSprite();
+            maskImage.raycastTarget = false;
+
+            var mask = maskGo.GetComponent<Mask>();
+            mask.showMaskGraphic = false;
+
+            var go = new GameObject("Portrait", typeof(Image));
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(maskRect, false);
+
+            float size = width * diameter;
+
+            // Окно стоит в гнезде, портрет заполняет его целиком.
+            maskRect.anchorMin = new Vector2(0f, 1f);
+            maskRect.anchorMax = new Vector2(0f, 1f);
+            maskRect.pivot = new Vector2(0.5f, 0.5f);
+            maskRect.anchoredPosition = new Vector2(width * centerX, -height * centerY);
+            maskRect.sizeDelta = new Vector2(size, size);
+
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            var image = go.GetComponent<Image>();
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+
+            // Под портретом ничего не рисуем: гнездо в рамке уже тёмное.
+            image.color = Color.white;
+
+            return image;
+        }
+
+        /// <summary>
+        /// Полоса, лежащая в жёлобе рамки.
+        ///
+        /// Подложки нет — жёлоб нарисован. Заливка растёт слева направо
+        /// внутри его границ, поэтому пустая полоса выглядит как пустой
+        /// жёлоб, а не как чёрный прямоугольник поверх рисунка.
+        /// </summary>
+        private (RectTransform fill, Text label) CreateGrooveBar(
+            RectTransform panel, string name, Color color, float fromY, float toY,
+            float fromX = -1f, float toX = -1f)
+        {
+            if (fromX < 0f) fromX = BarsFrom;
+            if (toX < 0f) toX = BarsTo;
+
+            var host = new GameObject(name, typeof(RectTransform));
+            var hostRect = (RectTransform)host.transform;
+            hostRect.SetParent(panel, false);
+
+            hostRect.anchorMin = new Vector2(fromX, 1f - toY);
+            hostRect.anchorMax = new Vector2(toX, 1f - fromY);
+            hostRect.offsetMin = Vector2.zero;
+            hostRect.offsetMax = Vector2.zero;
+
+            var fillGo = new GameObject("Fill", typeof(Image));
+            var fillRect = (RectTransform)fillGo.transform;
+            fillRect.SetParent(hostRect, false);
+            fillRect.anchorMin = new Vector2(0f, 0f);
+            fillRect.anchorMax = new Vector2(1f, 1f);
+            fillRect.offsetMin = new Vector2(1f, 1f);
+            fillRect.offsetMax = new Vector2(-1f, -1f);
+
+            var fillImage = fillGo.GetComponent<Image>();
+            fillImage.color = color;
+            fillImage.raycastTarget = false;
+
+            var label = CreateText(hostRect, "Value", "", 11, TextColor,
+                                   Vector2.zero, Vector2.zero);
+            var labelRect = (RectTransform)label.transform;
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+            label.alignment = TextAnchor.MiddleCenter;
+
+            return (fillRect, label);
         }
 
         private RectTransform CreatePanel(RectTransform parent, string name, Vector2 position)
@@ -726,7 +1072,7 @@ namespace IsoRPG.Combat
             text.font = font;
             text.fontSize = size;
             text.color = color;
-            text.text = content;
+            LocalizedText.Bind(text, content);
             text.alignment = TextAnchor.MiddleLeft;
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
@@ -775,7 +1121,7 @@ namespace IsoRPG.Combat
             }
 
             if (expText != null)
-                expText.text = needed > 0 ? current + " / " + needed : "максимальный уровень";
+                LocalizedText.Bind(expText, needed > 0 ? current + " / " + needed : "максимальный уровень");
         }
 
         /// <summary>
@@ -785,7 +1131,13 @@ namespace IsoRPG.Combat
         /// </summary>
         private void ShowPlayerLevel(int level)
         {
-            if (playerNameText != null) playerNameText.text = "Разбойник  ур. " + level;
+            if (playerNameText != null) playerNameText.text = Loc.F("Разбойник  ур. {0}", level);
+        }
+
+        /// <summary>Перерисовать имя героя — например, после смены языка.</summary>
+        private void RelabelPlayer()
+        {
+            if (playerExperience != null) ShowPlayerLevel(playerExperience.Level);
         }
 
         private void OnLevelUp(int level)
@@ -839,6 +1191,44 @@ namespace IsoRPG.Combat
             }
         }
 
+        /// <summary>
+        /// Показать мирного: портрет и имя, без полосы здоровья.
+        ///
+        /// Отдельный путь, а не подкрашенная боевая панель: полоса здоровья —
+        /// это обещание, что цель можно бить. У торговца её быть не должно,
+        /// иначе игрок пробует и получает молчание в ответ.
+        /// </summary>
+        public void ShowNeutral(string title, Sprite portrait)
+        {
+            if (neutralPanel == null) return;
+
+            // Боевую панель прячем: две панели рядом читались бы как две
+            // цели, а цель всегда одна.
+            if (targetPanel != null) targetPanel.SetActive(false);
+
+            if (string.IsNullOrEmpty(title))
+            {
+                neutralPanel.SetActive(false);
+                return;
+            }
+
+            neutralPanel.SetActive(true);
+
+            if (neutralPortrait != null)
+            {
+                neutralPortrait.sprite = portrait;
+                neutralPortrait.enabled = portrait != null;
+            }
+
+            if (neutralNameText != null) neutralNameText.text = Loc.T(title);
+        }
+
+        /// <summary>Убрать панель мирного — например, когда выбрали монстра.</summary>
+        public void HideNeutral()
+        {
+            if (neutralPanel != null) neutralPanel.SetActive(false);
+        }
+
         private void OnTargetChanged(Targetable target)
         {
             if (target == null)
@@ -848,14 +1238,19 @@ namespace IsoRPG.Combat
                 return;
             }
 
+            if (neutralPanel != null) neutralPanel.SetActive(false);
             if (targetPanel != null) targetPanel.SetActive(true);
 
             // Портрет цели меняется вместе с целью: панель одна, а
             // существ много.
             if (targetPortrait != null)
             {
-                targetPortrait.sprite = target.Portrait;
-                targetPortrait.enabled = target.Portrait != null;
+                // Нарисованный портрет, если он есть: снимок модели в круге
+                // 60 пикселей читается плохо, все скелеты в нём одинаковы.
+                var art = Portraits.For(target.DisplayName) ?? target.Portrait;
+
+                targetPortrait.sprite = art;
+                targetPortrait.enabled = art != null;
             }
 
             if (targetNameText != null)
@@ -864,7 +1259,7 @@ namespace IsoRPG.Combat
 
                 if (defense != null)
                 {
-                    targetNameText.text = target.DisplayName + "  ур. " + defense.Level;
+                    targetNameText.text = Loc.T(target.DisplayName) + "  " + Loc.F("ур. {0}", defense.Level);
 
                     // Цвет имени по разнице уровней. Игрок читает его быстрее,
                     // чем само число: серый значит «не трать время», красный —
@@ -874,7 +1269,7 @@ namespace IsoRPG.Combat
                 }
                 else
                 {
-                    targetNameText.text = target.DisplayName;
+                    LocalizedText.Bind(targetNameText, target.DisplayName);
                     targetNameText.color = TextColor;
                 }
             }

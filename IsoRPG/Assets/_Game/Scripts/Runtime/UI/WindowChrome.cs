@@ -1,4 +1,5 @@
 using UnityEngine;
+using IsoRPG.Localization;
 using UnityEngine.UI;
 
 namespace IsoRPG.UI
@@ -76,7 +77,7 @@ namespace IsoRPG.UI
             // Латинская «икс», а не символ умножения: встроенный шрифт Unity
             // рисует далеко не всё, и вместо крестика легко получить пустой
             // прямоугольник.
-            text.text = "x";
+            LocalizedText.Bind(text, "x");
             text.fontSize = 16;
             text.color = Idle;
             text.alignment = TextAnchor.MiddleCenter;

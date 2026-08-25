@@ -1,4 +1,5 @@
 using System;
+using IsoRPG.Localization;
 using System.Collections.Generic;
 using UnityEngine;
 using IsoRPG.Combat;
@@ -112,7 +113,7 @@ namespace IsoRPG.Progression
             int inBranch = SpentIn(talent.branch);
             if (inBranch < talent.RequiredInBranch)
             {
-                reason = "Нужно " + talent.RequiredInBranch + " очков в ветке, вложено " + inBranch;
+                reason = Loc.F("Нужно {0} очков в ветке, вложено {1}", talent.RequiredInBranch, inBranch);
                 return false;
             }
 
@@ -125,8 +126,9 @@ namespace IsoRPG.Progression
 
             ranks[talent] = RankOf(talent) + 1;
 
-            CombatLog.Add("Изучено: " + talent.displayName + " (" +
-                          ranks[talent] + " из " + talent.maxRank + ")", LogKind.System);
+            CombatLog.Add(Loc.F("Изучено: {0} ({1} из {2})",
+                                Loc.T(talent.displayName), ranks[talent], talent.maxRank),
+                          LogKind.System);
 
             Changed?.Invoke();
             return true;
@@ -215,8 +217,8 @@ namespace IsoRPG.Progression
 
         private void OnLevelUp(int level)
         {
-            CombatLog.Add("Получено очко талантов. Всего свободных: " +
-                          AvailablePoints, LogKind.System);
+            CombatLog.Add(Loc.F("Получено очко талантов. Всего свободных: {0}",
+                                AvailablePoints), LogKind.System);
 
             Changed?.Invoke();
         }

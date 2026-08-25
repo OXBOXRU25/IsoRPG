@@ -18,6 +18,9 @@ namespace IsoRPG.Audio
     public sealed class SoundBank : ScriptableObject
     {
         [Header("Бой")]
+        [Tooltip("Взмах оружием. Играет в начале замаха, до попадания.")]
+        public AudioClip[] swing;
+
         [Tooltip("Удар клинком — наш кинжал.")]
         public AudioClip[] bladeHit;
 
@@ -50,9 +53,26 @@ namespace IsoRPG.Audio
         public AudioClip[] stepStone;
         public AudioClip[] stepGrass;
 
+        [Tooltip("Скрип снега. Пока играет как шаги по земле.")]
+        public AudioClip[] stepSnow;
+
+        [Header("Голоса NPC")]
+        [Tooltip("Приветствие торговца. Звучит при открытии лавки.")]
+        public AudioClip[] voiceMerchant;
+
+        [Tooltip("Приветствие собеседницы с квестом.")]
+        public AudioClip[] voiceVillager;
+
+        [Tooltip("Рык главаря. Редкий и громкий — событие, а не фон.")]
+        public AudioClip[] bossRoar;
+
         [Header("Голоса")]
         [Tooltip("Скрип костей нежити. Для скелета он выразительнее рычания.")]
         public AudioClip[] boneVoice;
+
+        [Header("Окружение")]
+        [Tooltip("Непрерывный фон места: птицы, ветер, вода. Играет петлёй.")]
+        public AudioClip[] ambience;
 
         [Header("Музыка")]
         [Tooltip("Плейлист. Играется по кругу вперемешку.")]
@@ -62,10 +82,42 @@ namespace IsoRPG.Audio
         /// Случайный клип из набора. Пустой набор — тишина, и это законно:
         /// звук может быть ещё не подобран, а игра должна работать.
         /// </summary>
+        /// <summary>
+        /// Последний сыгранный звук в каждом наборе.
+        ///
+        /// Ключ — сам массив: наборы живут в банке и не пересоздаются, так
+        /// что ссылка стабильна на всю игру.
+        /// </summary>
+        private static readonly System.Collections.Generic.Dictionary<AudioClip[], int> lastPicked =
+            new System.Collections.Generic.Dictionary<AudioClip[], int>();
+
+        /// <summary>
+        /// Случайный звук из набора, но не тот же, что в прошлый раз.
+        ///
+        /// Чистая случайность честна и звучит плохо: из четырёх взмахов она
+        /// спокойно выдаёт один и тот же три раза подряд, а в бою взмах
+        /// звучит каждую секунду. Ухо ловит повтор мгновенно и читает его
+        /// как заевший звук, а не как совпадение.
+        ///
+        /// Достаточно запретить повтор соседнего: набор из двух звуков при
+        /// этом честно чередуется, из четырёх — остаётся случайным на слух.
+        /// </summary>
         public static AudioClip Pick(AudioClip[] set)
         {
             if (set == null || set.Length == 0) return null;
-            return set[Random.Range(0, set.Length)];
+            if (set.Length == 1) return set[0];
+
+            int previous;
+            if (!lastPicked.TryGetValue(set, out previous)) previous = -1;
+
+            int index = Random.Range(0, set.Length);
+
+            // Выпал прежний — берём следующий по кругу. Перебирать заново
+            // нельзя: у набора из двух звуков цикл может не кончиться.
+            if (index == previous) index = (index + 1) % set.Length;
+
+            lastPicked[set] = index;
+            return set[index];
         }
     }
 }

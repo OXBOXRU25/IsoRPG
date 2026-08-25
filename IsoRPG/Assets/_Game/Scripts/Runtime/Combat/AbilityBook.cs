@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using IsoRPG.Localization;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using IsoRPG.Player;
@@ -355,8 +356,11 @@ namespace IsoRPG.Combat
                 // В логе пишем название приёма — иначе не отличить, чем
                 // именно ударили, а это половина смысла лога.
                 CombatLog.Add(
-                    $"{pendingAbility.displayName} по {pendingVictim.DisplayName}: {actual}" +
-                    (result == HitResult.Crit ? " (крит)" : result == HitResult.Miss ? " (вскользь)" : ""),
+                    Loc.F("{0} по {1}: {2}{3}",
+                          Loc.T(pendingAbility.displayName),
+                          Loc.T(pendingVictim.DisplayName), actual,
+                          result == HitResult.Crit ? " " + Loc.T("(крит)")
+                        : result == HitResult.Miss ? " " + Loc.T("(вскользь)") : ""),
                     result == HitResult.Crit ? LogKind.Crit : LogKind.DamageDealt);
             }
 

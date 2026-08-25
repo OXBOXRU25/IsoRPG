@@ -1,4 +1,5 @@
 using UnityEngine;
+using IsoRPG.Localization;
 using IsoRPG.Combat;
 using IsoRPG.Player;
 
@@ -122,7 +123,7 @@ namespace IsoRPG.Items
             if (food.healDuration <= 0.05f)
             {
                 health.Heal(food.healAmount);
-                CombatLog.Add(food.displayName + ": +" + food.healAmount + " здоровья", LogKind.System);
+                CombatLog.Add(Loc.F("{0}: +{1} здоровья", Loc.T(food.displayName), food.healAmount), LogKind.System);
                 IsoRPG.Audio.Sfx.Pickup(transform.position);
 
                 IsoRPG.Combat.DamagePopup.ShowHeal(
@@ -144,7 +145,7 @@ namespace IsoRPG.Items
             healedSinceTick = 0;
             nextTick = Time.time + 1f;
 
-            CombatLog.Add("Ест: " + food.displayName, LogKind.System);
+            CombatLog.Add(Loc.F("Ест: {0}", Loc.T(food.displayName)), LogKind.System);
             StartVoice();
 
             return true;
@@ -154,7 +155,7 @@ namespace IsoRPG.Items
         {
             if (!IsEating) return;
 
-            CombatLog.Add("Еда прервана: " + reason, LogKind.System);
+            CombatLog.Add(Loc.F("Еда прервана: {0}", Loc.T(reason)), LogKind.System);
             Stop();
         }
 

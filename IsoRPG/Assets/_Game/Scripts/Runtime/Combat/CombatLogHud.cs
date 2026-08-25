@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using IsoRPG.Localization;
 using UnityEngine.UI;
 
 namespace IsoRPG.Combat
@@ -69,7 +70,13 @@ namespace IsoRPG.Combat
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var root = (RectTransform)canvasGo.transform;
 
@@ -156,7 +163,7 @@ namespace IsoRPG.Combat
                     continue;
                 }
 
-                lines[i].text = buffer[index];
+                lines[i].text = Loc.T(buffer[index]);
                 lines[i].color = ColorOf(kinds[index]);
             }
         }

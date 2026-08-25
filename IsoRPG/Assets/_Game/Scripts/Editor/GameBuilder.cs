@@ -23,8 +23,15 @@ namespace IsoRPG.EditorTools
     /// </summary>
     public static class GameBuilder
     {
-        private const string ProductName = "Птица высокого полёта";
-        private const string ExecutableName = "HighFlyingBird";
+        // Название по-английски: игру показывают не только своим, а
+        // «Ptitsa vysokogo polyota» в списке программ не читается никак.
+        // Русское имя осталось в интерфейсе — там, где его переводит словарь.
+        private const string ProductName = "Adventures of Zhenya";
+
+        // Имя файла без пробелов: по нему строятся пути в списке обновлений,
+        // в ярлыке и в командной строке, и каждый пробел там — лишний повод
+        // для чужой ошибки.
+        private const string ExecutableName = "AdventuresOfZhenya";
 
         /// <summary>Куда кладём сборку. Рядом с проектом, а не внутри него.</summary>
         private static string BuildRoot =>
@@ -71,6 +78,20 @@ namespace IsoRPG.EditorTools
             PlayerSettings.defaultScreenWidth = 1920;
             PlayerSettings.defaultScreenHeight = 1080;
             PlayerSettings.runInBackground = true;
+
+            // Запущенная игра держит свой файл, и Unity не может его
+            // переписать: сборка падает на «Access to the path denied»,
+            // а по этой строке не догадаешься, что игра просто открыта.
+            foreach (var running in System.Diagnostics.Process.GetProcessesByName(ExecutableName))
+            {
+                EditorUtility.DisplayDialog("Игра запущена",
+                    "Закрой окно игры — она держит свой файл, и перезаписать " +
+                    "его нельзя.", "Понятно");
+
+                Debug.LogError("[IsoRPG] Сборка отменена: игра запущена (процесс " +
+                               running.Id + ").");
+                return;
+            }
 
             string folder = Path.Combine(BuildRoot, ExecutableName);
             if (Directory.Exists(folder)) Directory.Delete(folder, true);

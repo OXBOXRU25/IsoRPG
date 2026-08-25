@@ -1,4 +1,5 @@
 using UnityEngine;
+using IsoRPG.Localization;
 using UnityEngine.UI;
 using IsoRPG.Combat;
 
@@ -90,7 +91,13 @@ namespace IsoRPG.UI
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var veilGo = new GameObject("Veil", typeof(Image));
             var veilRect = (RectTransform)veilGo.transform;
@@ -189,7 +196,7 @@ namespace IsoRPG.UI
             text.font = font;
             text.fontSize = size;
             text.color = color;
-            text.text = value;
+            LocalizedText.Bind(text, value);
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.verticalOverflow = VerticalWrapMode.Overflow;

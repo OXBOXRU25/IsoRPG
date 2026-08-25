@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using IsoRPG.Localization;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using IsoRPG.Combat;
@@ -120,7 +121,7 @@ namespace IsoRPG.Items
 
             if (current.Gold > 0)
             {
-                AddRow(index++, current.Gold + " золота", GoldColor, null, () =>
+                AddRow(index++, Loc.F("{0} золота", current.Gold), GoldColor, null, () =>
                 {
                     int taken = current.TakeGold(inventory);
                     if (taken <= 0) return;
@@ -199,7 +200,7 @@ namespace IsoRPG.Items
                 items++;
             }
 
-            if (gold > 0) CombatLog.Add("Получено золота: " + gold, LogKind.System);
+            if (gold > 0) CombatLog.Add(Loc.F("Получено золота: {0}", gold), LogKind.System);
 
             // Звук один на весь сбор, а не на каждую строку: пять наложенных
             // подборов подряд слышны как треск, а не как добыча.
@@ -288,7 +289,13 @@ namespace IsoRPG.Items
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var go = new GameObject("LootWindow", typeof(Image));
             var rect = (RectTransform)go.transform;
@@ -347,7 +354,7 @@ namespace IsoRPG.Items
             text.font = font;
             text.fontSize = size;
             text.color = color;
-            text.text = content;
+            LocalizedText.Bind(text, content);
             text.alignment = TextAnchor.MiddleLeft;
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;

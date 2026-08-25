@@ -37,6 +37,7 @@ namespace IsoRPG.EditorTools
                 AssetDatabase.CreateAsset(bank, BankPath);
             }
 
+            bank.swing      = Load("swing");
             bank.bladeHit   = Load("knifeSlice");
             bank.heavyHit   = Load("chop", "metalClick");
             bank.bowShot    = Load("drawKnife");          // сухой щелчок тетивы
@@ -50,17 +51,27 @@ namespace IsoRPG.EditorTools
 
             bank.openWindow  = Load("bookOpen", "bookFlip");
             bank.closeWindow = Load("bookClose");
-            bank.levelUp     = Load("jingles");
+            // Именно levelup, а не «все джингли»: старый набор оставлен в
+            // проекте, и Load по общему префиксу подхватил бы оба — звук
+            // повышения играл бы через раз то один, то другой.
+            bank.levelUp     = Load("levelup");
 
             // Только Impact-версии: набор footstep00-05 из RPG-пака звучит
             // деревянным стуком, а не шагом. Разница слышна сразу, и никакой
             // разброс тона её не спасает — это просто другой звук.
             bank.stepStone = Load("footstep_concrete");
-            bank.stepGrass = Load("footstep_grass");
+            bank.stepGrass = Load("footstep_snow");
+            bank.stepSnow = Load("footstep_snow");
 
             // Скрип — голос нежити. Он и придуман под двери, но на костях
             // звучит точнее любого рычания: скелету нечем рычать.
             bank.boneVoice = Load("creak");
+
+            bank.voiceMerchant = Load("npc_man");
+            bank.voiceVillager = Load("npc_woman");
+            bank.bossRoar = Load("boss_roar");
+
+            bank.ambience = Load("forest_birds");
 
             bank.music = LoadMusic();
 

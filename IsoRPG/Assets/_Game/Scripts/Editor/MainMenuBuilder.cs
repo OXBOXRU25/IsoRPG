@@ -53,7 +53,13 @@ namespace IsoRPG.EditorTools
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var root = (RectTransform)canvasGo.transform;
 
@@ -556,14 +562,45 @@ namespace IsoRPG.EditorTools
             rect.anchoredPosition = position;
             rect.sizeDelta = size;
 
-            go.GetComponent<Image>().color = background;
+            var image = go.GetComponent<Image>();
+
+            // Нарисованная кнопка вместо плоской заливки.
+            //
+            // Главная — золотая, вторая — тёмная: две золотые рядом спорят
+            // за внимание, и «Выход» кричит наравне с «Начать игру».
+            //
+            // Границы растяжения заданы в пикселях исходника, а он вчетверо
+            // крупнее кнопки на экране: без множителя торцы не помещаются и
+            // Unity рисует пустоту.
+            string art = name == "StartButton" ? "UI/Button_Gold" : "UI/Button_Plain";
+            var skin = Resources.Load<Sprite>(art);
+
+            if (skin != null)
+            {
+                image.sprite = skin;
+                image.type = Image.Type.Sliced;
+                image.pixelsPerUnitMultiplier = 3.2f;
+                image.color = Color.white;
+            }
+            else
+            {
+                image.color = background;
+                Debug.LogWarning("[IsoRPG] Нет спрайта " + art + " — кнопка осталась плашкой.");
+            }
 
             var button = go.GetComponent<Button>();
 
             // Отклик на наведение: кнопка без него читается как картинка.
+            //
+            // У нарисованной кнопки красим саму картинку: осветление читается
+            // как блик на металле, а не как смена цвета плашки.
+            var tint = skin != null ? Color.white : background;
+
             var colors = button.colors;
-            colors.highlightedColor = Color.Lerp(background, Color.white, 0.22f);
-            colors.pressedColor = Color.Lerp(background, Color.black, 0.18f);
+            colors.normalColor = tint;
+            colors.highlightedColor = Color.Lerp(tint, Color.white, 0.18f);
+            colors.pressedColor = Color.Lerp(tint, Color.black, 0.14f);
+            colors.selectedColor = tint;
             colors.fadeDuration = 0.12f;
             button.colors = colors;
 

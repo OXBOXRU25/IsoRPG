@@ -27,6 +27,54 @@ namespace IsoRPG.Progression
 
         private int baseMaxHealth;
 
+        [Header("Характеристики")]
+        [Tooltip("Выносливость на первом уровне без снаряжения.")]
+        [SerializeField] private int baseStamina = 10;
+
+        [Tooltip("Сила на первом уровне без снаряжения.")]
+        [SerializeField] private int baseStrength = 8;
+
+        [Tooltip("Ловкость на первом уровне без снаряжения.")]
+        [SerializeField] private int baseAgility = 12;
+
+        [Tooltip("Сколько каждой характеристики прибавляет уровень.")]
+        [SerializeField] private int staminaPerLevel = 2;
+        [SerializeField] private int strengthPerLevel = 1;
+        [SerializeField] private int agilityPerLevel = 2;
+
+        [Header("Во что превращаются")]
+        [Tooltip("Здоровья за единицу выносливости.")]
+        [SerializeField] private int healthPerStamina = 10;
+
+        [Tooltip("Здоровье, которое есть даже при нулевой выносливости.")]
+        [SerializeField] private int healthFloor = 100;
+
+        /// <summary>
+        /// Полные характеристики: основа, прирост за уровни и снаряжение.
+        ///
+        /// Считаются здесь, а не в трёх местах по отдельности: окно
+        /// персонажа, расчёт здоровья и боевые формулы обязаны показывать и
+        /// использовать одно и то же число, иначе игрок видит одно, а бьёт
+        /// по-другому.
+        /// </summary>
+        public StatBlock TotalStats
+        {
+            get
+            {
+                int level = experience != null ? experience.Level : 1;
+                int steps = Mathf.Max(0, level - 1);
+
+                var fromLevels = new StatBlock(
+                    baseStrength + strengthPerLevel * steps,
+                    baseAgility + agilityPerLevel * steps,
+                    baseStamina + staminaPerLevel * steps);
+
+                var fromGear = equipment != null ? equipment.TotalStatBonus() : new StatBlock(0, 0, 0);
+
+                return fromLevels + fromGear;
+            }
+        }
+
         private void Awake()
         {
             book = GetComponent<TalentBook>();
@@ -48,21 +96,48 @@ namespace IsoRPG.Progression
         private void OnEnable()
         {
             if (book != null) book.Changed += Apply;
+            if (experience != null) experience.LevelUp += OnLevelUp;
         }
 
         private void OnDisable()
         {
             if (book != null) book.Changed -= Apply;
+            if (experience != null) experience.LevelUp -= OnLevelUp;
+        }
+
+        /// <summary>
+        /// Новый уровень: пересчитать запас и долечить до полного.
+        ///
+        /// Долечиваем намеренно, хотя обычная прибавка от таланта этого не
+        /// делает. Повышение уровня — редкое событие и награда: получить его
+        /// посреди боя и остаться при тех же двадцати процентах здоровья
+        /// значит не заметить награды вовсе. Так устроено в большинстве игр
+        /// с уровнями, и игрок этого ждёт.
+        /// </summary>
+        private void OnLevelUp(int level)
+        {
+            Apply();
+
+            if (health != null) health.Heal(health.Max);
         }
 
         private void Apply()
         {
             if (book == null) return;
 
-            if (health != null && baseMaxHealth > 0)
+            if (health != null)
             {
+                // Здоровье = пол плюс выносливость, и уже на это ложатся
+                // проценты от талантов. Порядок важен: талант «плюс десять
+                // процентов» должен прибавлять от того, что есть сейчас, а
+                // не от того, с чем герой начинал игру.
+                //
+                // На первом уровне без снаряжения выходит ровно 200 — те же,
+                // что были заданы вручную до появления характеристик.
+                float fromStamina = healthFloor + TotalStats.Stamina * healthPerStamina;
+
                 int target = Mathf.RoundToInt(
-                    baseMaxHealth * (1f + book.Bonus(TalentEffect.MaxHealth)));
+                    fromStamina * (1f + book.Bonus(TalentEffect.MaxHealth)));
 
                 // Не долечиваем: прибавка даёт запас, а не бесплатное
                 // исцеление посреди боя.

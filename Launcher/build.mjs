@@ -34,7 +34,7 @@ const GAC = 'C:/Windows/Microsoft.NET/assembly/GAC_MSIL';
 const WPF = 'C:/Windows/Microsoft.NET/Framework64/v4.0.30319/WPF';
 const FW = 'C:/Windows/Microsoft.NET/Framework64/v4.0.30319';
 
-const OUTPUT = 'Приключения разбойника Жени.exe';
+const OUTPUT = 'Adventures of Zhenya.exe';
 
 // --- Ссылки на сборки ------------------------------------------------------
 //
@@ -82,9 +82,55 @@ function references() {
   return list;
 }
 
+// --- Номер версии ----------------------------------------------------------
+//
+// Источник один — Launcher/CHANGELOG.md, его верхний заголовок. Раньше версия
+// была константой в коде, и это ровно тот случай, когда номер поднимают, а
+// описание изменения написать забывают. Здесь версии без описания просто нет.
+
+function launcherVersion() {
+  const file = path.join(here, 'CHANGELOG.md');
+
+  if (!fs.existsSync(file)) {
+    console.error('Нет ' + file + ' — неоткуда взять версию лаунчера.');
+    process.exit(2);
+  }
+
+  const match = fs.readFileSync(file, 'utf8').match(/^##\s*(\d+\.\d+\.\d+)/m);
+
+  if (!match) {
+    console.error('В CHANGELOG.md лаунчера не нашёлся заголовок вида «## 1.2.3».');
+    process.exit(2);
+  }
+
+  return match[1];
+}
+
+function writeBuildInfo(version) {
+  const lines = [
+    'namespace HighFlyingBird.Launcher',
+    '{',
+    '    /// <summary>',
+    '    /// Номер версии лаунчера. Файл создаётся при сборке из',
+    '    /// Launcher/CHANGELOG.md — править руками бессмысленно, перезапишется.',
+    '    /// </summary>',
+    '    internal static class BuildInfo',
+    '    {',
+    '        public const string Version = ' + JSON.stringify(version) + ';',
+    '    }',
+    '}',
+    '',
+  ];
+
+  fs.writeFileSync(path.join(here, 'src', 'BuildInfo.cs'), lines.join(NL), 'utf8');
+  console.log('  версия лаунчера ' + version);
+}
+
 // --- Сборка ----------------------------------------------------------------
 
 function compile() {
+  writeBuildInfo(launcherVersion());
+
   if (!fs.existsSync(CSC)) {
     console.error('Не найден компилятор ' + CSC);
     process.exit(2);

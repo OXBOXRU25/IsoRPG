@@ -143,6 +143,15 @@ namespace IsoRPG.EditorTools
 
             setup.Setup(bank, bank != null ? bank.music : null);
             EditorUtility.SetDirty(setup);
+
+            // Фон места — отдельным объектом рядом с музыкой.
+            //
+            // Он играет непрерывно и своим источником: у музыки своя петля и
+            // своя громкость, и складывать их в один источник значило бы
+            // выключать вместе.
+            var ambience = new GameObject("Ambience");
+            ambience.transform.SetParent(go.transform, false);
+            ambience.AddComponent<IsoRPG.Audio.AmbienceLoop>();
         }
 
         private static void CreateLighting()
@@ -296,6 +305,18 @@ namespace IsoRPG.EditorTools
             agent.stoppingDistance = 0.05f;
             agent.autoBraking = true;
 
+            // Расталкивание с другими живыми.
+            //
+            // Коллайдеры тут не работают: агент двигает объект сам и о физику
+            // не спотыкается — герой входил в монстров и в торговца как в
+            // пустое место. Расталкивают друг друга именно агенты, и качество
+            // обхода надо задавать явно.
+            //
+            // Приоритет ниже числом — значит важнее: расступаются перед
+            // игроком монстры, а не наоборот.
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+            agent.avoidancePriority = 30;
+
             var controller = player.AddComponent<ClickToMoveController>();
 
             // Отметку клика подставляем через SerializedObject — поле приватное,
@@ -432,6 +453,10 @@ namespace IsoRPG.EditorTools
 
             ApplySilhouetteLayer(player);
             player.AddComponent<IsoRPG.Audio.FootstepPlayer>();
+
+            // Слушатель звука — здесь, на персонаже. Один на всю сцену:
+            // второй заставил бы Unity ругаться и глушить оба.
+            player.AddComponent<AudioListener>();
 
             // Уровень восстанавливает здоровье, еда лечит сидя, пробел
             // подбрасывает. Всё на игроке: им нужны его здоровье и модель.
@@ -676,7 +701,21 @@ namespace IsoRPG.EditorTools
                 agent.speed = 3.4f;          // медленнее игрока: от боя можно уйти
                 agent.angularSpeed = 600f;
                 agent.acceleration = 24f;
+
+                // Дистанцию остановки держим маленькой.
+                //
+                // Увеличивать её нельзя: погоня ведёт монстра не в игрока, а
+                // в точку перед ним, и до этой точки он не доезжает ещё на
+                // stoppingDistance. Два отступа складываются, и монстр
+                // останавливается дальше, чем достаёт рукой, — стоит рядом и
+                // не бьёт.
+                //
+                // От захода друг в друга спасает не она, а радиусы агентов:
+                // они расталкиваются сами.
                 agent.stoppingDistance = 0.1f;
+
+                agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+                agent.avoidancePriority = 45;
 
                 var selector = monster.AddComponent<TargetSelector>();
                 selector.SetFaction(Faction.Hostile);
@@ -916,8 +955,10 @@ namespace IsoRPG.EditorTools
             agent.speed = 2.6f;
             agent.angularSpeed = 520f;
             agent.acceleration = 30f;
-            agent.stoppingDistance = 0.1f;
             agent.radius = 0.4f;
+            agent.stoppingDistance = 0.1f;
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+            agent.avoidancePriority = 45;
 
             var selector = boss.AddComponent<TargetSelector>();
             selector.SetFaction(Faction.Hostile);
@@ -928,7 +969,12 @@ namespace IsoRPG.EditorTools
             caster.Setup(SpellBoltBuilder.Load());
             EditorUtility.SetDirty(caster);
 
-            boss.AddComponent<MonsterBrain>();
+            var bossBrain = boss.AddComponent<MonsterBrain>();
+
+            // Голос даём только главарю: рычащая толпа скелетов превращает
+            // редкий звук в шум, а он должен означать «вас заметил главный».
+            bossBrain.GiveVoice(14f);
+            EditorUtility.SetDirty(bossBrain);
             boss.AddComponent<CharacterAnimatorDriver>();
 
             var arms = boss.AddComponent<HandAttachments>();
@@ -1069,6 +1115,29 @@ namespace IsoRPG.EditorTools
             body.center = Vector3.up;
             body.height = 2f;
             body.radius = 0.5f;
+
+            // И препятствие для навигации.
+            //
+            // Коллайдера мало: игрок ходит агентом по навигационной сетке, а
+            // она про коллайдеры ничего не знает. Без этого герой заходил
+            // прямо внутрь торговца и стоял с ним в одной точке.
+            //
+            // Без carving.
+            //
+            // Вырезание дырки в сетке выглядело правильным решением, но у
+            // него есть обратная сторона: агент, оказавшийся внутри дырки,
+            // немедленно выталкивается наружу. Подошедший вплотную герой
+            // начинал дрожать на месте, не находя, где встать.
+            //
+            // Препятствие без вырезания монстры и герой всё равно обходят —
+            // через расталкивание агентов, — но сетка под ним остаётся
+            // целой, и стоять рядом можно спокойно.
+            var obstacle = go.AddComponent<UnityEngine.AI.NavMeshObstacle>();
+            obstacle.shape = UnityEngine.AI.NavMeshObstacleShape.Capsule;
+            obstacle.center = Vector3.up;
+            obstacle.height = 2f;
+            obstacle.radius = 0.45f;
+            obstacle.carving = false;
 
             // Поворачивается к подошедшему: стоящий спиной торговец читается
             // как декорация, а по декорациям не кликают.
@@ -1214,13 +1283,27 @@ namespace IsoRPG.EditorTools
                 Object.DestroyImmediate(body.GetComponent<Collider>());
             }
 
-            // Коллайдер для клика. Триггер, чтобы не мешать навигации: NPC
-            // стоит на проходе, и твёрдое тело заставляло бы его обходить.
+            // Коллайдер для клика. Триггер, чтобы луч клика по земле проходил
+            // сквозь него и персонаж мог идти «за» NPC.
             var box = go.AddComponent<CapsuleCollider>();
             box.isTrigger = true;
             box.center = Vector3.up;
             box.height = 2f;
             box.radius = 0.5f;
+
+            // А непроходимость даём навигацией, а не физикой: агент физику
+            // игнорирует, поэтому герой заходил прямо внутрь собеседника.
+            // Радиус чуть меньше коллайдера — чтобы подойти можно было
+            // вплотную, но не внутрь.
+            var block = go.AddComponent<NavMeshObstacle>();
+            block.shape = NavMeshObstacleShape.Capsule;
+            block.center = Vector3.up;
+            block.height = 2f;
+            block.radius = 0.42f;
+
+            // Без вырезания сетки — иначе герой, подошедший вплотную,
+            // оказывается внутри дырки и дрожит, выталкиваемый наружу.
+            block.carving = false;
 
             // Разворачиваем в зал.
             //
@@ -1356,7 +1439,16 @@ namespace IsoRPG.EditorTools
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color32(0xB6, 0xBA, 0xA8, 0xFF);
 
-            go.AddComponent<AudioListener>();
+            // Слушателя на камеру НЕ вешаем.
+            //
+            // В изометрии камера стоит в тридцати единицах от героя, а
+            // звуки играют там, где происходят. При затухании, рассчитанном
+            // на тридцать четыре, всё рядом с персонажем доходило до ушей с
+            // громкостью в тринадцать процентов: шаги пропадали вовсе, а
+            // голос торговца, стоящего вплотную, звучал как из-за стены.
+            //
+            // Уши переезжают к герою — туда, где стоит человек в игре, а не
+            // туда, откуда он смотрит.
 
             var rig = go.AddComponent<IsoCameraRig>();
             rig.SetTarget(target);

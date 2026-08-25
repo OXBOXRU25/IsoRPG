@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using IsoRPG.Localization;
 using UnityEngine;
 using IsoRPG.Combat;
 
@@ -160,7 +161,8 @@ namespace IsoRPG.Items
             // И в игровой лог тоже: консоль Unity игрок не видит, а знать
             // о выпавшем он должен сразу.
             if (gold > 0 || contents.Count > 0)
-                CombatLog.Add($"С «{name}» выпало: {gold} золота, предметов {contents.Count}",
+                CombatLog.Add(Loc.F("С «{0}» выпало: {1} золота, предметов {2}",
+                              Loc.T(name), gold, contents.Count),
                               LogKind.Loot);
 
             if (HasLoot)

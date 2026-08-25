@@ -42,7 +42,59 @@ namespace IsoRPG.Save
         private static string Path => System.IO.Path.Combine(Application.persistentDataPath, FileName);
         private static string TempPath => Path + ".tmp";
 
-        public bool HasSave => File.Exists(Path);
+        public bool HasSave
+        {
+            get
+            {
+                RescueOldSave();
+                return File.Exists(Path);
+            }
+        }
+
+        /// <summary>Прежнее имя игры — до перехода на английское.</summary>
+        private const string FormerProduct = "Птица высокого полёта";
+
+        private static bool rescued;
+
+        /// <summary>
+        /// Забирает сохранение из папки прежнего названия.
+        ///
+        /// Unity кладёт сохранения в папку с именем продукта, поэтому
+        /// переименование игры уводит их в другое место — прогресс остаётся
+        /// цел, но игра его не видит и начинает с нуля. Для игрока это
+        /// неотличимо от потери персонажа.
+        ///
+        /// Копируем, а не переносим: если что-то пойдёт не так, старая папка
+        /// остаётся нетронутой и к ней можно вернуться руками.
+        /// </summary>
+        private static void RescueOldSave()
+        {
+            if (rescued) return;
+            rescued = true;
+
+            try
+            {
+                if (File.Exists(Path)) return;
+
+                string current = Application.persistentDataPath;
+                string parent = System.IO.Path.GetDirectoryName(current);
+                if (string.IsNullOrEmpty(parent)) return;
+
+                string former = System.IO.Path.Combine(parent, FormerProduct);
+                string source = System.IO.Path.Combine(former, FileName);
+
+                if (!File.Exists(source)) return;
+
+                Directory.CreateDirectory(current);
+                File.Copy(source, Path, false);
+
+                Debug.Log("[IsoRPG] Сохранение перенесено из папки прежнего названия: " + source);
+            }
+            catch (Exception error)
+            {
+                Debug.LogWarning("[IsoRPG] Не вышло перенести старое сохранение: " + error.Message);
+            }
+        }
 
         public void Write(SaveFile data, Action<bool> done = null)
         {

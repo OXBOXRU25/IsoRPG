@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using IsoRPG.Localization;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -52,11 +53,20 @@ namespace IsoRPG.UI
 
         private void OnEnable()
         {
+
+            // Смена языка перерисовывает окно.
+            //
+            // Подписи с переводом обновляются сами, но всё, что собрано из
+            // кусков — «Сумка 12 / 40», названия с количеством, строки
+            // наград, — пересобирается только здесь. Без этого человек
+            // переключал язык и видел половину окна на прежнем.
+            Loc.Changed += RefreshIfOpen;
             if (log != null) log.Changed += RefreshIfOpen;
         }
 
         private void OnDisable()
         {
+            Loc.Changed -= RefreshIfOpen;
             if (log != null) log.Changed -= RefreshIfOpen;
         }
 
@@ -149,8 +159,8 @@ namespace IsoRPG.UI
 
             string suffix = state switch
             {
-                QuestState.ReadyToTurnIn => "   — можно сдать",
-                QuestState.Completed => "   — сдано",
+                QuestState.ReadyToTurnIn => "   " + Loc.T("— можно сдать"),
+                QuestState.Completed => "   " + Loc.T("— сдано"),
                 _ => "",
             };
 
@@ -169,7 +179,7 @@ namespace IsoRPG.UI
             {
                 int have = log.Progress(quest);
 
-                var goal = MakeText(content, "QuestGoal", "Цель:  " + quest.ObjectiveLine(have), 12,
+                var goal = MakeText(content, "QuestGoal", Loc.F("Цель:  {0}", quest.ObjectiveLine(have)), 12,
                     have >= quest.requiredCount ? ReadyColor : GoalColor);
 
                 spawned.Add(goal.gameObject);
@@ -178,7 +188,7 @@ namespace IsoRPG.UI
             string reward = RewardLine(quest);
             if (!string.IsNullOrEmpty(reward) && state != QuestState.Completed)
             {
-                var rewardText = MakeText(content, "QuestReward", "Награда:  " + reward, 12, RewardColor);
+                var rewardText = MakeText(content, "QuestReward", Loc.F("Награда:  {0}", reward), 12, RewardColor);
                 spawned.Add(rewardText.gameObject);
             }
         }
@@ -194,8 +204,8 @@ namespace IsoRPG.UI
                 parts.Add(name);
             }
 
-            if (quest.rewardExperience > 0) parts.Add(quest.rewardExperience + " опыта");
-            if (quest.rewardGold > 0) parts.Add(quest.rewardGold + " золота");
+            if (quest.rewardExperience > 0) parts.Add(Loc.F("{0} опыта", quest.rewardExperience));
+            if (quest.rewardGold > 0) parts.Add(Loc.F("{0} золота", quest.rewardGold));
 
             return string.Join(",  ", parts);
         }
@@ -229,7 +239,13 @@ namespace IsoRPG.UI
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var go = new GameObject("QuestJournalWindow", typeof(Image));
             var rect = (RectTransform)go.transform;
@@ -305,7 +321,7 @@ namespace IsoRPG.UI
             text.font = font;
             text.fontSize = size;
             text.color = color;
-            text.text = value;
+            LocalizedText.Bind(text, value);
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow;

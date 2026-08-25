@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using IsoRPG.Localization;
 
 namespace IsoRPG.Items
 {
@@ -60,7 +61,7 @@ namespace IsoRPG.Items
 
             var label = textGo.GetComponent<Text>();
             label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.text = text;
+            label.text = Loc.T(text);
             label.color = color;
             label.alignment = TextAnchor.MiddleCenter;
             label.raycastTarget = false;

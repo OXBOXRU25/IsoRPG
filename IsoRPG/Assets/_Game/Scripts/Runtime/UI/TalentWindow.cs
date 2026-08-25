@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using IsoRPG.Localization;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -68,11 +69,20 @@ namespace IsoRPG.UI
 
         private void OnEnable()
         {
+
+            // Смена языка перерисовывает окно.
+            //
+            // Подписи с переводом обновляются сами, но всё, что собрано из
+            // кусков — «Сумка 12 / 40», названия с количеством, строки
+            // наград, — пересобирается только здесь. Без этого человек
+            // переключал язык и видел половину окна на прежнем.
+            Loc.Changed += RefreshIfOpen;
             if (book != null) book.Changed += RefreshIfOpen;
         }
 
         private void OnDisable()
         {
+            Loc.Changed -= RefreshIfOpen;
             if (book != null) book.Changed -= RefreshIfOpen;
         }
 
@@ -126,14 +136,14 @@ namespace IsoRPG.UI
                 int free = book.AvailablePoints;
 
                 pointsText.text = free > 0
-                    ? "Свободных очков: " + free
+                    ? Loc.F("Свободных очков: {0}", free)
                     : "Очков нет — они приходят с уровнем";
 
                 pointsText.color = free > 0 ? PointsColor : DimColor;
             }
 
             for (int i = 0; i < branchTotals.Count; i++)
-                branchTotals[i].text = book.SpentIn((TalentBranch)i).ToString();
+                LocalizedText.Bind(branchTotals[i], book.SpentIn((TalentBranch)i).ToString());
 
             foreach (var entry in entries)
             {
@@ -154,7 +164,7 @@ namespace IsoRPG.UI
 
                 if (entry.art != null) entry.art.color = tint;
 
-                entry.rank.text = rank + " / " + entry.talent.maxRank;
+                LocalizedText.Bind(entry.rank, rank + " / " + entry.talent.maxRank);
                 entry.rank.color = maxed ? RankFull : (rank > 0 ? RankSome : DimColor);
 
                 entry.hover.Setup(entry.talent, rank, can || maxed ? "" : reason);
@@ -188,7 +198,13 @@ namespace IsoRPG.UI
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var go = new GameObject("TalentWindow", typeof(Image));
             var rect = (RectTransform)go.transform;
@@ -397,7 +413,7 @@ namespace IsoRPG.UI
             text.font = font;
             text.fontSize = size;
             text.color = color;
-            text.text = value;
+            LocalizedText.Bind(text, value);
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.verticalOverflow = VerticalWrapMode.Overflow;

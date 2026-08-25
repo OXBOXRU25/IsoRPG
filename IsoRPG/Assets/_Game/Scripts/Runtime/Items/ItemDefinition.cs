@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using IsoRPG.Combat;
+using IsoRPG.Localization;
 
 namespace IsoRPG.Items
 {
@@ -144,11 +145,11 @@ namespace IsoRPG.Items
         {
             var parts = new System.Collections.Generic.List<string>();
 
-            if (weaponDamage > 0) parts.Add("урон " + weaponDamage);
-            if (armor > 0) parts.Add("броня " + armor);
-            if (strength > 0) parts.Add("+" + strength + " силы");
-            if (agility > 0) parts.Add("+" + agility + " ловкости");
-            if (stamina > 0) parts.Add("+" + stamina + " выносливости");
+            if (weaponDamage > 0) parts.Add(Loc.F("урон {0}", weaponDamage));
+            if (armor > 0) parts.Add(Loc.F("броня {0}", armor));
+            if (strength > 0) parts.Add(Loc.F("+{0} силы", strength));
+            if (agility > 0) parts.Add(Loc.F("+{0} ловкости", agility));
+            if (stamina > 0) parts.Add(Loc.F("+{0} выносливости", stamina));
 
             return string.Join(", ", parts);
         }

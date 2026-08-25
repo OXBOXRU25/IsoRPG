@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using IsoRPG.Localization;
 using UnityEngine;
 using IsoRPG.Combat;
 using IsoRPG.Items;
@@ -136,7 +137,7 @@ namespace IsoRPG.Quests
             states[quest] = QuestState.Active;
             if (!known.Contains(quest)) known.Add(quest);
 
-            CombatLog.Add("Взят квест: " + quest.title, LogKind.Loot);
+            CombatLog.Add(Loc.F("Взят квест: {0}", Loc.T(quest.title)), LogKind.Loot);
 
             // Сразу пересчитываем: нужное могло уже лежать в сумке, и квест
             // выполнен в момент взятия. Редкий случай, но без пересчёта
@@ -174,7 +175,7 @@ namespace IsoRPG.Quests
 
             states[quest] = QuestState.Completed;
 
-            CombatLog.Add("Квест выполнен: " + quest.title, LogKind.Loot);
+            CombatLog.Add(Loc.F("Квест выполнен: {0}", Loc.T(quest.title)), LogKind.Loot);
             Changed?.Invoke();
 
             return true;
@@ -209,7 +210,7 @@ namespace IsoRPG.Quests
                 changed = true;
 
                 if (wanted == QuestState.ReadyToTurnIn)
-                    CombatLog.Add("Цель выполнена: " + quest.title + " — вернись к заказчику",
+                    CombatLog.Add(Loc.F("Цель выполнена: {0} — вернись к заказчику", Loc.T(quest.title)),
                                   LogKind.Loot);
             }
 

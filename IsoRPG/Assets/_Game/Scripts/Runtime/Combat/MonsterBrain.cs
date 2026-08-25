@@ -54,6 +54,22 @@ namespace IsoRPG.Combat
         private float nextScanTime;
         private bool returningHome;
 
+        [Header("Голос")]
+        [Tooltip("Рычит ли этот монстр при виде врага. Обычно только главарь.")]
+        [SerializeField] private bool roars;
+
+        [Tooltip("Сколько секунд молчит после рыка.")]
+        [SerializeField] private float roarCooldown = 12f;
+
+        private float nextRoar;
+
+        /// <summary>Включить голос — зовётся из сборщика сцены для главаря.</summary>
+        public void GiveVoice(float cooldown = 12f)
+        {
+            roars = true;
+            roarCooldown = cooldown;
+        }
+
         private void Awake()
         {
             targets = GetComponent<TargetSelector>();
@@ -137,6 +153,8 @@ namespace IsoRPG.Combat
 
                 targets.Select(found);
                 if (combat != null) combat.EngageTarget();
+
+                Roar();
             }
             else if (victim != null)
             {
@@ -147,6 +165,24 @@ namespace IsoRPG.Combat
             {
                 Patrol();
             }
+        }
+
+        /// <summary>
+        /// Рык при заходе в бой — только у главаря и только изредка.
+        ///
+        /// Звук на две секунды, и он должен читаться как событие: главарь вас
+        /// заметил. Если играть его при каждом захвате цели, за один бой он
+        /// прозвучит пять раз подряд — цель теряется и берётся заново на
+        /// каждом шаге погони, — и вместо угрозы получится заевшая пластинка.
+        /// Поэтому держим паузу и молчим, пока она не вышла.
+        /// </summary>
+        private void Roar()
+        {
+            if (!roars) return;
+            if (Time.time < nextRoar) return;
+
+            nextRoar = Time.time + roarCooldown;
+            IsoRPG.Audio.Sfx.BossRoar(transform.position);
         }
 
         private Targetable FindNearestEnemy()

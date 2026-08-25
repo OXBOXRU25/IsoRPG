@@ -23,10 +23,46 @@ namespace IsoRPG.Localization
 
         private Text label;
 
+        /// <summary>
+        /// Оригинал задан явно через Setup, пусть даже пустой.
+        ///
+        /// Различать это обязательно. Подписи в подсказках берутся из пула и
+        /// показываются повторно, и пустая подпись означает «здесь ничего не
+        /// пиши», а не «оригинал забыли». Без этого различия строка молча
+        /// оставляла текст от прошлого показа: в левой колонке висело
+        /// «Стоимость» от предыдущего приёма и накладывалось на пояснение,
+        /// которое в такой строке прижимается влево.
+        /// </summary>
+        private bool configured;
+
         public void Setup(string original)
         {
-            russian = original;
+            russian = original == null ? string.Empty : original;
+            configured = true;
             Apply();
+        }
+
+        /// <summary>
+        /// Ставит подпись и запоминает её оригинал.
+        ///
+        /// Разница с простым переводом на месте: там строка переводится один
+        /// раз, в момент постройки окна, и остаётся на прежнем языке до тех
+        /// пор, пока окно не пересоберут. Человек, переключивший язык при
+        /// открытой сумке, видел бы прежние надписи и решил, что кнопка не
+        /// работает, — а она работает.
+        ///
+        /// Здесь подпись помнит свой русский оригинал и переводит себя заново
+        /// при каждой смене языка. Компонент заводится один раз и остаётся
+        /// на объекте.
+        /// </summary>
+        public static void Bind(Text label, string russian)
+        {
+            if (label == null) return;
+
+            var holder = label.GetComponent<LocalizedText>();
+            if (holder == null) holder = label.gameObject.AddComponent<LocalizedText>();
+
+            holder.Setup(russian);
         }
 
         private void Awake()
@@ -35,7 +71,10 @@ namespace IsoRPG.Localization
 
             // Если оригинал не задали явно, берём то, что стоит в подписи
             // сейчас: при сборке там русский текст.
-            if (string.IsNullOrEmpty(russian) && label != null) russian = label.text;
+            if (!configured && string.IsNullOrEmpty(russian) && label != null)
+            {
+                russian = label.text;
+            }
         }
 
         private void OnEnable()
@@ -52,9 +91,10 @@ namespace IsoRPG.Localization
         private void Apply()
         {
             if (label == null) label = GetComponent<Text>();
-            if (label == null || string.IsNullOrEmpty(russian)) return;
+            if (label == null) return;
 
-            label.text = Loc.T(russian);
+            // Пустой оригинал — это пустая подпись, а не «нечего делать».
+            label.text = string.IsNullOrEmpty(russian) ? string.Empty : Loc.T(russian);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using IsoRPG.Localization;
 using IsoRPG.Combat;
 using IsoRPG.Items;
 
@@ -106,6 +107,34 @@ namespace IsoRPG.Player
         /// Обыскать труп. Работает только вблизи — иначе игрок собирал бы
         /// добычу с другого конца карты, и вся ценность подхода пропадает.
         /// </summary>
+        /// <summary>
+        /// Показать панель мирного, по которому щёлкнули.
+        ///
+        /// Игрок нажал на существо и вправе увидеть, кто это, — даже если
+        /// бить его нельзя.
+        /// </summary>
+        private void ShowNeutralTarget(Collider hit)
+        {
+            var hud = GetComponentInChildren<IsoRPG.Combat.CombatHud>();
+            if (hud == null) return;
+
+            var shop = hit.GetComponentInParent<IsoRPG.Items.Merchant>();
+
+            if (shop != null)
+            {
+                hud.ShowNeutral(shop.DisplayName,
+                                IsoRPG.Combat.Portraits.For(shop.DisplayName));
+                return;
+            }
+
+            var giver = hit.GetComponentInParent<IsoRPG.Quests.QuestGiver>();
+
+            if (giver != null)
+            {
+                hud.ShowNeutral(giver.DisplayName, IsoRPG.Combat.Portraits.QuestGiver());
+            }
+        }
+
         private void TryLoot(LootSource loot)
         {
             float distance = Vector3.Distance(transform.position, loot.transform.position);
@@ -129,7 +158,7 @@ namespace IsoRPG.Player
             {
                 if (gold > 0)
                 {
-                    LootPopup.Show(loot.transform.position, gold + " золота", GoldColor);
+                    LootPopup.Show(loot.transform.position, Loc.F("{0} золота", gold), GoldColor);
                     CombatLog.GainedGold(gold);
                 }
 
@@ -163,6 +192,10 @@ namespace IsoRPG.Player
                 // открывать разговор, а не проваливаться.
                 // Торговец раньше собеседника: у лавочника может быть и
                 // квест, но пришли к нему в первую очередь торговать.
+                // Панель цели для мирного: игрок нажал на существо и вправе
+                // увидеть, кто это, — даже если бить его нельзя.
+                ShowNeutralTarget(hit.collider);
+
                 var shop = hit.collider.GetComponentInParent<IsoRPG.Items.Merchant>();
                 if (shop != null)
                 {

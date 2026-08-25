@@ -91,6 +91,40 @@ namespace HighFlyingBird.Launcher
         }
 
         /// <summary>
+        /// Сколько файлов на диске разошлось со списком на сервере.
+        ///
+        /// Нужно потому, что номер версии — плохой признак свежести. 24 августа
+        /// исправление вышло под тем же номером 0.4.0, что и сборка часом
+        /// раньше: на сервере лежали правильные файлы, лаунчер видел прежний
+        /// номер и молча решал, что обновляться не нужно. Игрок при этом
+        /// смотрел на «установлена 0.4.0» и тестировал старый код.
+        ///
+        /// Сверка стоит одного чтения папки с диска — секунды против часов
+        /// поисков несуществующей ошибки.
+        /// </summary>
+        public static int CountDifferent(FileList list, string gameFolder)
+        {
+            int different = 0;
+
+            try
+            {
+                foreach (var file in list.Files)
+                {
+                    string local = Path.Combine(gameFolder,
+                        file.Path.Replace('/', Path.DirectorySeparatorChar));
+
+                    if (!Same(local, file)) different++;
+                }
+            }
+            catch (Exception error)
+            {
+                Log.Write("Не вышло сверить состав: " + error.Message);
+            }
+
+            return different;
+        }
+
+        /// <summary>
         /// Обновляет игру, скачивая только изменившееся.
         ///
         /// Возвращает false, если что-то не вышло, — тогда вызывающий может

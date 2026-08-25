@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using IsoRPG.Localization;
 
 namespace IsoRPG.Combat
 {
@@ -59,7 +60,7 @@ namespace IsoRPG.Combat
 
             var label = textGo.GetComponent<Text>();
             label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.text = "+" + amount + " опыта";
+            label.text = Loc.F("+{0} опыта", amount);
             label.color = ExpColor;
             label.alignment = TextAnchor.MiddleCenter;
             label.raycastTarget = false;

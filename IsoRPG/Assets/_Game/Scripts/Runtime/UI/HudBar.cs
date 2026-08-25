@@ -1,4 +1,5 @@
 using UnityEngine;
+using IsoRPG.Localization;
 using UnityEngine.UI;
 using IsoRPG.Items;
 
@@ -80,7 +81,13 @@ namespace IsoRPG.UI
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var root = (RectTransform)canvasGo.transform;
 
@@ -149,7 +156,10 @@ namespace IsoRPG.UI
             button.colors = colors;
 
             var tooltip = go.AddComponent<TextTooltipTrigger>();
-            tooltip.Setup(caption + "   [" + key + "]", hint);
+            // Переводим название до склейки с клавишей: «Настройки   [Esc]»
+            // целиком в словаре искать бессмысленно — таких строк было бы
+            // столько же, сколько кнопок, и каждая со своей скобкой.
+            tooltip.Setup(Loc.T(caption) + "   [" + key + "]", hint);
 
             AddKeyHint(rect, key);
         }
@@ -182,7 +192,7 @@ namespace IsoRPG.UI
             text.font = font;
             text.fontSize = 10;
             text.color = color;
-            text.text = value;
+            LocalizedText.Bind(text, value);
             text.raycastTarget = false;
             text.alignment = TextAnchor.LowerLeft;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;

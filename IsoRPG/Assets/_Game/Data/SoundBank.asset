@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71bd2cbbd6dd7fb4581a7dfd1dafbf13, type: 3}
   m_Name: SoundBank
   m_EditorClassIdentifier: Assembly-CSharp::IsoRPG.Audio.SoundBank
+  swing:
+  - {fileID: 8300000, guid: 438eba9935164754698758b6ad1dc11d, type: 3}
+  - {fileID: 8300000, guid: b7ab51c325a213b47a7e4b907bb201cc, type: 3}
+  - {fileID: 8300000, guid: 404779242ccfc704c9edb37522747dd6, type: 3}
+  - {fileID: 8300000, guid: 13d7525afe4b97140bfaaf4118729dd8, type: 3}
   bladeHit:
   - {fileID: 8300000, guid: e5b4e05578f3ff6428d426d000212b40, type: 3}
   - {fileID: 8300000, guid: bac207b8d91aa144caa1be212584460d, type: 3}
@@ -44,21 +49,40 @@ MonoBehaviour:
   closeWindow:
   - {fileID: 8300000, guid: 4ea2ec07349ebf842aad1b266fef3de8, type: 3}
   levelUp:
-  - {fileID: 8300000, guid: 845d361f7cac5704896f7e8c3298dfcf, type: 3}
+  - {fileID: 8300000, guid: 8462f7c4b0b429343b768956e263f5c3, type: 3}
   stepStone:
   - {fileID: 8300000, guid: 1878eaeba133fad4c8d2ca3d59c03906, type: 3}
   - {fileID: 8300000, guid: 88d3c6fb05a861a49a6624b0029ad0fd, type: 3}
   - {fileID: 8300000, guid: eb45272e81dbbf34d912dd33546f9871, type: 3}
   - {fileID: 8300000, guid: 72f9373ca7b10884cb4b0600e2e6f87e, type: 3}
   stepGrass:
-  - {fileID: 8300000, guid: c10ae7851f9fa72448cc230c7d837f45, type: 3}
-  - {fileID: 8300000, guid: 0181ef7d15074d24b95bb325c14c64b8, type: 3}
-  - {fileID: 8300000, guid: f34c3245f008eb94c98a6c50b6032ef3, type: 3}
-  - {fileID: 8300000, guid: 3c2655076088a6546b09a9e3f8e1b6df, type: 3}
+  - {fileID: 8300000, guid: 9b4f93e9ba122bc4ba17b501c6b8341f, type: 3}
+  - {fileID: 8300000, guid: eb1a9771aa45ea34ab3bbe7242402113, type: 3}
+  - {fileID: 8300000, guid: ade17278e2ad96140bf62f8329756f76, type: 3}
+  - {fileID: 8300000, guid: 038c789fb6bf6ef439d443f512ef3e5a, type: 3}
+  - {fileID: 8300000, guid: 0c7fe6421013e824e9fff2bdb0168b9a, type: 3}
+  - {fileID: 8300000, guid: 284a48422caae2445906cd83c1dc9cfb, type: 3}
+  stepSnow:
+  - {fileID: 8300000, guid: 9b4f93e9ba122bc4ba17b501c6b8341f, type: 3}
+  - {fileID: 8300000, guid: eb1a9771aa45ea34ab3bbe7242402113, type: 3}
+  - {fileID: 8300000, guid: ade17278e2ad96140bf62f8329756f76, type: 3}
+  - {fileID: 8300000, guid: 038c789fb6bf6ef439d443f512ef3e5a, type: 3}
+  - {fileID: 8300000, guid: 0c7fe6421013e824e9fff2bdb0168b9a, type: 3}
+  - {fileID: 8300000, guid: 284a48422caae2445906cd83c1dc9cfb, type: 3}
+  voiceMerchant:
+  - {fileID: 8300000, guid: 779d9e04fcc6d4441895759db946a1f1, type: 3}
+  voiceVillager:
+  - {fileID: 8300000, guid: 86adbd47acf2c194da581644ef48948f, type: 3}
+  bossRoar:
+  - {fileID: 8300000, guid: 55129f48bf466b3468364e2d156d0a6b, type: 3}
+  - {fileID: 8300000, guid: 0f5ba2170939aa54ba91ffce8478b703, type: 3}
   boneVoice:
   - {fileID: 8300000, guid: 2d7745551bed7f64fb52d19f6f807d66, type: 3}
   - {fileID: 8300000, guid: 3bcda3c81e314b24da02432761af836d, type: 3}
   - {fileID: 8300000, guid: b29fbb8950c84ac48abb76c4646ca4b8, type: 3}
+  ambience:
+  - {fileID: 8300000, guid: 24c61fbc7437c434eb630e9f5fafb237, type: 3}
   music:
   - {fileID: 8300000, guid: 42e2aa625208cfc46994328310d412f2, type: 3}
   - {fileID: 8300000, guid: 2e49ab319118e3642979448baaea7e1a, type: 3}
+  - {fileID: 8300000, guid: e7213704b69e3f24f92e1d4bd82d9402, type: 3}

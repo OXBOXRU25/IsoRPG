@@ -28,7 +28,7 @@ const KEY = 'C:/Users/OXBOX/.ssh/id_ed25519_game';
 const REMOTE_ROOT = '/var/www/game';
 
 // Имя пакета — такое же, как в сборщике. Файлы на диске названы по нему.
-const NAME = 'Приключения разбойника Жени';
+const NAME = 'Adventures of Zhenya';
 
 const SITE = path.join(repo, 'site', 'index.html');
 const CHANGELOG = path.join(repo, 'CHANGELOG.md');
@@ -91,10 +91,20 @@ if (!build.ok) { console.error(build.output); process.exit(1); }
 
 console.log('Выкладываю...');
 
+// Ролик и его первый кадр лежат рядом со страницей файлами, а не внутри неё:
+// полмегабайта в base64 распухают до семисот килобайт и задерживают показ
+// страницы целиком, хотя фон нужен не в первую очередь.
+const HERO_VIDEO = path.join(repo, 'site', 'menu-bg.mp4');
+const HERO_POSTER = path.join(repo, 'site', 'menu-bg.jpg');
+
 for (const [local, remote, label] of [
   [SITE, REMOTE_ROOT + '/index.html', 'страница истории'],
   [CHANGELOG, REMOTE_ROOT + '/CHANGELOG.md', 'файл версий для лаунчера'],
+  [HERO_VIDEO, REMOTE_ROOT + '/menu-bg.mp4', 'фоновый ролик'],
+  [HERO_POSTER, REMOTE_ROOT + '/menu-bg.jpg', 'кадр для фона'],
 ]) {
+  if (!fs.existsSync(local)) { console.log('  пропущено (нет файла): ' + label); continue; }
+
   const result = scp(local, remote);
   console.log(result.ok ? '  ' + label : '  НЕ УДАЛОСЬ: ' + label + NL + result.output);
 }
@@ -108,13 +118,13 @@ if (process.argv.includes('--builds')) {
   // превращается в три строки процентов, и такую ссылку нельзя ни прочитать,
   // ни надёжно переслать: половина мессенджеров рвёт её по пробелу.
   const files = [
-    ['Установка Приключения разбойника Жени ' + current + '.exe',
-     'HighFlyingBird-Setup-' + current + '.exe',
-     'HighFlyingBird-Setup-latest.exe', 'установщик'],
+    ['Установка Adventures of Zhenya ' + current + '.exe',
+     'AdventuresOfZhenya-Setup-' + current + '.exe',
+     'AdventuresOfZhenya-Setup-latest.exe', 'установщик'],
 
-    ['Приключения разбойника Жени ' + current + '.zip',
-     'HighFlyingBird-' + current + '.zip',
-     'HighFlyingBird-latest.zip', 'архив'],
+    ['Adventures of Zhenya ' + current + '.zip',
+     'AdventuresOfZhenya-' + current + '.zip',
+     'AdventuresOfZhenya-latest.zip', 'архив'],
   ];
 
   for (const [name, remoteName, latestName, label] of files) {
@@ -140,6 +150,19 @@ if (process.argv.includes('--builds')) {
     // шестьдесят мегабайт незачем держать дважды.
     ssh('ln -sfn ' + REMOTE_ROOT + '/downloads/' + remoteName + ' ' +
         REMOTE_ROOT + '/downloads/' + latestName);
+
+    // И ссылки под прежними именами.
+    //
+    // Игру переименовали, а ссылки на скачивание уже разошлись по людям.
+    // Ломать их незачем: символическая ссылка ничего не весит, а «страница
+    // не найдена» у того, кому ссылку переслали, выглядит как закрывшийся
+    // проект.
+    const former = latestName.replace('AdventuresOfZhenya', 'HighFlyingBird');
+
+    if (former !== latestName) {
+      ssh('ln -sfn ' + REMOTE_ROOT + '/downloads/' + remoteName + ' ' +
+          REMOTE_ROOT + '/downloads/' + former);
+    }
   }
 
   // --- Лаунчер отдельным файлом -----------------------------------------
@@ -148,15 +171,59 @@ if (process.argv.includes('--builds')) {
   // темпом и переустанавливать ради него всю игру незачем: достаточно
   // заменить несколько файлов рядом с ней.
 
-  const launcherZip = path.join(PACKAGE_ROOT, 'HighFlyingBird-Launcher.zip');
+  const launcherZip = path.join(PACKAGE_ROOT, 'AdventuresOfZhenya-Launcher.zip');
 
   if (fs.existsSync(launcherZip)) {
     const size = (fs.statSync(launcherZip).size / 1024 / 1024).toFixed(1);
-    const sent = scp(launcherZip, REMOTE_ROOT + '/downloads/HighFlyingBird-Launcher.zip');
+    const sent = scpAtomic(launcherZip, REMOTE_ROOT + '/downloads',
+                           'AdventuresOfZhenya-Launcher.zip');
 
     console.log(sent.ok
       ? '  лаунчер отдельно, ' + size + ' МБ'
       : '  НЕ УДАЛОСЬ лаунчер: ' + sent.output);
+
+    // --- Описание обновления самого лаунчера ----------------------------
+    //
+    // Без этого файла лаунчер не знает, что вышла его новая версия, и
+    // доезжает до игрока только копированием файлов руками. Версия берётся
+    // из Launcher/CHANGELOG.md — того же файла, из которого её берёт сборка,
+    // иначе программа и сервер начнут называть разные числа.
+
+    if (sent.ok) {
+      const launcherChangelog = path.join(repo, 'Launcher', 'CHANGELOG.md');
+      const match = fs.existsSync(launcherChangelog)
+        ? fs.readFileSync(launcherChangelog, 'utf8').match(/^##\s*(\d+\.\d+\.\d+)/m)
+        : null;
+
+      if (!match) {
+        console.log('  НЕТ версии лаунчера — самообновление не увидит новую');
+      } else {
+        const hash = crypto.createHash('sha256')
+          .update(fs.readFileSync(launcherZip))
+          .digest('hex');
+
+        const q = String.fromCharCode(34);
+
+        const manifest = [
+          '{',
+          '  ' + q + 'version' + q + ': ' + q + match[1] + q + ',',
+          '  ' + q + 'url' + q + ': ' + q + SITE_URL +
+            '/downloads/AdventuresOfZhenya-Launcher.zip' + q + ',',
+          '  ' + q + 'sha256' + q + ': ' + q + hash + q,
+          '}',
+          '',
+        ].join(NL);
+
+        const local = path.join(repo, 'site', 'launcher-update.json');
+        fs.writeFileSync(local, manifest);
+
+        const put = scpAtomic(local, REMOTE_ROOT, 'launcher-update.json');
+
+        console.log(put.ok
+          ? '  описание лаунчера ' + match[1]
+          : '  НЕ УДАЛОСЬ описание лаунчера: ' + put.output);
+      }
+    }
   }
 
   // --- Описание обновления для лаунчера ---------------------------------
@@ -172,7 +239,7 @@ if (process.argv.includes('--builds')) {
   if (!fs.existsSync(gameArchive)) {
     console.log('  архива игры нет — обновление лаунчер не увидит');
   } else {
-    const remoteName = 'HighFlyingBird-game-' + current + '.zip';
+    const remoteName = 'AdventuresOfZhenya-game-' + current + '.zip';
     const size = fs.statSync(gameArchive).size;
 
     console.log('  архив игры для обновлений, ' +
@@ -218,7 +285,7 @@ if (process.argv.includes('--builds')) {
   // мегабайт вместо семи. Список с размерами и суммами позволяет лаунчеру
   // взять только то, что у него отличается.
 
-  const buildFolder = path.join(repo, 'Build', 'HighFlyingBird');
+  const buildFolder = path.join(repo, 'Build', 'AdventuresOfZhenya');
 
   if (!fs.existsSync(buildFolder)) {
     console.log('  папки сборки нет — пофайловый список пропущен');

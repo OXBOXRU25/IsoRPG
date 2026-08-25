@@ -144,27 +144,53 @@ namespace IsoRPG.Combat
 
         private void ApplyVisual(bool fade)
         {
+            int touched = 0;
+
             foreach (var renderer in GetComponentsInChildren<Renderer>())
             {
                 foreach (var material in renderer.materials)
                 {
-                    if (!material.HasProperty("_BaseColor")) continue;
+                    // Имя свойства цвета зависит от шейдера: у URP это
+                    // _BaseColor, у встроенного — _Color. Материалы приезжают
+                    // внутри моделей KayKit, и какой из них там окажется,
+                    // решает импортёр, а не мы.
+                    //
+                    // Раньше проверялось только первое имя, и материал с
+                    // другим шейдером молча пропускался: скрытность работала,
+                    // герой оставался непрозрачным, в логе — ни строчки.
+                    string field = material.HasProperty("_BaseColor") ? "_BaseColor"
+                                 : material.HasProperty("_Color") ? "_Color"
+                                 : null;
+
+                    if (field == null) continue;
+
+                    touched++;
 
                     if (fade)
                     {
                         SetTransparent(material);
-                        Color c = material.GetColor("_BaseColor");
+                        Color c = material.GetColor(field);
                         c.a = visualAlpha;
-                        material.SetColor("_BaseColor", c);
+                        material.SetColor(field, c);
                     }
                     else
                     {
-                        Color c = material.GetColor("_BaseColor");
+                        Color c = material.GetColor(field);
                         c.a = 1f;
-                        material.SetColor("_BaseColor", c);
+                        material.SetColor(field, c);
                         SetOpaque(material);
                     }
                 }
+            }
+
+            // Ноль обработанных — значит у модели нет ни одного материала с
+            // цветом, и никакая правка альфы её не затронет. Молчать тут
+            // нельзя: со стороны это выглядит как «скрытность не работает».
+            if (touched == 0)
+            {
+                Debug.LogWarning("[IsoRPG] Скрытность: не нашлось материалов с цветом " +
+                                 "(_BaseColor или _Color) у " + name +
+                                 ". Модель останется непрозрачной.");
             }
         }
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using IsoRPG.Localization;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using IsoRPG.Audio;
@@ -18,7 +19,16 @@ namespace IsoRPG.UI
     public sealed class SettingsWindow : MonoBehaviour, IHudWindow
     {
         private const string MusicKey = "isorpg.volume.music";
+
+        /// <summary>
+        /// Общая громкость всего, кроме музыки. Осталась от времён двух
+        /// ползунков и теперь работает как общий потолок под каналами.
+        /// </summary>
         private const string SfxKey = "isorpg.volume.sfx";
+
+        private const string EffectsKey = "isorpg.volume.effects";
+        private const string SystemKey = "isorpg.volume.system";
+        private const string AmbienceKey = "isorpg.volume.ambience";
 
         private static readonly Color PanelColor = new Color32(0x1C, 0x1A, 0x16, 0xF2);
         private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0xFF);
@@ -40,6 +50,8 @@ namespace IsoRPG.UI
         private RectTransform content;
         private Text musicValue;
         private Text sfxValue;
+        private Text ambienceValue;
+        private Text systemValue;
 
         private IHudWindow[] others;
 
@@ -52,6 +64,9 @@ namespace IsoRPG.UI
             // Громкость восстанавливается ДО постройки окна: ползунки должны
             // встать на сохранённые значения, а не на середину.
             Sfx.MasterVolume = PlayerPrefs.GetFloat(SfxKey, 1f);
+            Sfx.EffectsVolume = PlayerPrefs.GetFloat(EffectsKey, 1f);
+            Sfx.SystemVolume = PlayerPrefs.GetFloat(SystemKey, 0.8f);
+            Sfx.AmbienceVolume = PlayerPrefs.GetFloat(AmbienceKey, 0.6f);
 
             Build();
         }
@@ -175,9 +190,11 @@ namespace IsoRPG.UI
         private void RefreshValues()
         {
             if (musicValue != null && AudioSetup.Instance != null)
-                musicValue.text = Percent(AudioSetup.Instance.MusicVolume);
+                LocalizedText.Bind(musicValue, Percent(AudioSetup.Instance.MusicVolume));
 
-            if (sfxValue != null) sfxValue.text = Percent(Sfx.MasterVolume);
+            if (sfxValue != null) sfxValue.text = Percent(Sfx.EffectsVolume);
+            if (ambienceValue != null) ambienceValue.text = Percent(Sfx.AmbienceVolume);
+            if (systemValue != null) systemValue.text = Percent(Sfx.SystemVolume);
         }
 
         private static string Percent(float value) => Mathf.RoundToInt(value * 100f) + "%";
@@ -200,7 +217,13 @@ namespace IsoRPG.UI
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var go = new GameObject("SettingsWindow", typeof(Image), typeof(VerticalLayoutGroup),
                                     typeof(ContentSizeFitter));
@@ -249,12 +272,28 @@ namespace IsoRPG.UI
                 if (musicValue != null) musicValue.text = Percent(value);
             });
 
-            sfxValue = MakeSlider("Звуки", Sfx.MasterVolume, value =>
+            ambienceValue = MakeSlider("Окружение", Sfx.AmbienceVolume, value =>
             {
-                Sfx.MasterVolume = value;
-                PlayerPrefs.SetFloat(SfxKey, value);
+                Sfx.AmbienceVolume = value;
+                PlayerPrefs.SetFloat(AmbienceKey, value);
+
+                if (ambienceValue != null) ambienceValue.text = Percent(value);
+            });
+
+            sfxValue = MakeSlider("Действия", Sfx.EffectsVolume, value =>
+            {
+                Sfx.EffectsVolume = value;
+                PlayerPrefs.SetFloat(EffectsKey, value);
 
                 if (sfxValue != null) sfxValue.text = Percent(value);
+            });
+
+            systemValue = MakeSlider("Интерфейс", Sfx.SystemVolume, value =>
+            {
+                Sfx.SystemVolume = value;
+                PlayerPrefs.SetFloat(SystemKey, value);
+
+                if (systemValue != null) systemValue.text = Percent(value);
             });
 
             MakeGap(10f);
@@ -264,6 +303,8 @@ namespace IsoRPG.UI
             // а не в конце списка клавиш.
             var languageTitle = MakeText("LanguageTitle", "Язык", 13, TitleColor);
             languageTitle.alignment = TextAnchor.MiddleLeft;
+
+            MakeGap(4f);
 
             BuildLanguageRow();
 
@@ -318,6 +359,17 @@ namespace IsoRPG.UI
             var rect = (RectTransform)host.transform;
             rect.SetParent(content, false);
             rect.sizeDelta = new Vector2(0f, 34f);
+
+            // Высоту объявляем раскладке отдельно.
+            //
+            // Дети ряда расставлены вручную, поэтому сам по себе он для
+            // вертикального списка «пустой» и получает нулевую высоту: ряд
+            // наползал на заголовок над собой. По-русски это было почти
+            // незаметно, а «Language» с хвостиком у «g» упёрлось в кнопки
+            // сразу.
+            var element = host.AddComponent<LayoutElement>();
+            element.preferredHeight = 34f;
+            element.minHeight = 34f;
 
             var picker = IsoRPG.Localization.LanguagePicker.Attach(
                 rect, font, Width - 40f, 28f);
@@ -474,7 +526,7 @@ namespace IsoRPG.UI
             text.font = font;
             text.fontSize = size;
             text.color = color;
-            text.text = value;
+            LocalizedText.Bind(text, value);
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow;

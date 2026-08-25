@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using IsoRPG.Localization;
 using UnityEngine.AI;
 using IsoRPG.Items;
 
@@ -159,7 +160,7 @@ namespace IsoRPG.Combat
             if (health != null) health.Revive();
 
             var self = GetComponent<Targetable>();
-            CombatLog.Add((self != null ? self.DisplayName : "Противник") + " вернулся", LogKind.System);
+            CombatLog.Add(Loc.F("{0} вернулся", Loc.T(self != null ? self.DisplayName : "Противник")), LogKind.System);
         }
 
         /// <summary>Поднять всех мёртвых разом. Отладочная команда.</summary>

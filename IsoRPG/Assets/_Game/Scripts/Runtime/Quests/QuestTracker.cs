@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using IsoRPG.Localization;
 using UnityEngine.UI;
 
 namespace IsoRPG.Quests
@@ -37,12 +38,21 @@ namespace IsoRPG.Quests
 
         private void OnEnable()
         {
+
+            // Смена языка перерисовывает окно.
+            //
+            // Подписи с переводом обновляются сами, но всё, что собрано из
+            // кусков — «Сумка 12 / 40», названия с количеством, строки
+            // наград, — пересобирается только здесь. Без этого человек
+            // переключал язык и видел половину окна на прежнем.
+            Loc.Changed += Refresh;
             if (log != null) log.Changed += Refresh;
             Refresh();
         }
 
         private void OnDisable()
         {
+            Loc.Changed -= Refresh;
             if (log != null) log.Changed -= Refresh;
         }
 
@@ -67,7 +77,7 @@ namespace IsoRPG.Quests
                 // Выполненная цель окрашивается, а не исчезает: игрок должен
                 // видеть, что осталось только дойти до заказчика.
                 AddLine(line++, "   " + quest.ObjectiveLine(have) +
-                                (done ? "  готово" : ""),
+                                (done ? "  " + Loc.T("готово") : ""),
                         done ? DoneColor : GoalColor, 12);
 
                 line++;   // пустая строка между квестами
@@ -93,7 +103,7 @@ namespace IsoRPG.Quests
             label.font = font;
             label.fontSize = size;
             label.color = color;
-            label.text = text;
+            LocalizedText.Bind(label, text);
             label.alignment = TextAnchor.MiddleLeft;
             label.raycastTarget = false;
             label.horizontalOverflow = HorizontalWrapMode.Overflow;
@@ -114,7 +124,13 @@ namespace IsoRPG.Quests
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var go = new GameObject("QuestTracker", typeof(RectTransform));
             root = (RectTransform)go.transform;

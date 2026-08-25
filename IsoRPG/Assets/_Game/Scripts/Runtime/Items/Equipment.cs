@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using IsoRPG.Localization;
 using UnityEngine;
 using IsoRPG.Combat;
 
@@ -74,7 +75,7 @@ namespace IsoRPG.Items
 
             if (item.requiredLevel > level)
             {
-                Rejected?.Invoke(item, "нужен " + item.requiredLevel + " уровень");
+                Rejected?.Invoke(item, Loc.F("нужен {0} уровень", item.requiredLevel));
                 return false;
             }
 

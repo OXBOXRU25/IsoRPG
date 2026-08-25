@@ -98,6 +98,51 @@ namespace IsoRPG.Localization
                 : russian;
         }
 
+        /// <summary>
+        /// Переводит строку с подстановками: Loc.F("{0} энергии", 5).
+        ///
+        /// Нужна там, где в текст входит число. Без неё ключом становилась бы
+        /// уже собранная строка — «5 энергии», «12 энергии», — и словарь
+        /// пришлось бы заполнять на каждое возможное значение. С шаблоном
+        /// ключ один, а число подставляется после перевода: в английском оно
+        /// может стоять и в другом месте фразы.
+        /// </summary>
+        public static string F(string russian, params object[] args)
+        {
+            string pattern = T(russian);
+
+            try
+            {
+                return string.Format(pattern, args);
+            }
+            catch (FormatException)
+            {
+                // Кривой перевод не должен ронять игру: в словарь пишет
+                // человек, и лишняя фигурная скобка там — вопрос времени.
+                return pattern;
+            }
+        }
+
+        /// <summary>
+        /// Возвращает переносы строк, записанные двумя знаками.
+        ///
+        /// Словарь читается построчно, поэтому настоящий перенос внутри
+        /// записи разорвал бы её пополам. А переносы нужны: реплики торговцев
+        /// и тексты квестов написаны абзацами, и без них диалог слипается в
+        /// одну простыню.
+        ///
+        /// Знак записан кодом, а не сам собой: обратный слеш в исходнике
+        /// имеет привычку исчезать при любой правке файла скриптом.
+        /// </summary>
+        private static string Unescape(string text)
+        {
+            string marker = ((char)92).ToString() + "n";
+
+            return text.IndexOf(marker, StringComparison.Ordinal) < 0
+                ? text
+                : text.Replace(marker, ((char)10).ToString());
+        }
+
         // ------------------------------------------------------------------
 
         private static void EnsureLoaded()
@@ -136,8 +181,8 @@ namespace IsoRPG.Localization
                 int split = line.IndexOf('=');
                 if (split <= 0) continue;
 
-                string key = line.Substring(0, split).Trim();
-                string value = line.Substring(split + 1).Trim();
+                string key = Unescape(line.Substring(0, split).Trim());
+                string value = Unescape(line.Substring(split + 1).Trim());
 
                 if (key.Length == 0 || value.Length == 0) continue;
 

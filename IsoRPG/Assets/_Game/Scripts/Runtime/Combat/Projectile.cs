@@ -147,7 +147,11 @@ namespace IsoRPG.Combat
             {
                 // Показываем то, что дошло после брони, а не то, чем стреляли.
                 int actual = target.Health.TakeDamage(damage, shooter);
-                DamagePopup.Show(target.OverheadPoint, actual, result);
+
+                if (target.Faction == Faction.Player)
+                    DamagePopup.ShowTaken(target.OverheadPoint, actual, result);
+                else
+                    DamagePopup.Show(target.OverheadPoint, actual, result);
                 ReportToLog(actual);
             }
 
@@ -168,7 +172,10 @@ namespace IsoRPG.Combat
 
             if (weArePlayer) CombatLog.DamageDealt(target.DisplayName, amount, result);
             else if (target.Faction == Faction.Player)
-                CombatLog.DamageTaken(self != null ? self.DisplayName : "Противник", amount);
+            {
+                CombatLog.DamageTaken(self != null ? self.DisplayName : "Противник",
+                                      amount, result);
+            }
         }
     }
 }

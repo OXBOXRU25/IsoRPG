@@ -130,7 +130,17 @@ namespace IsoRPG.Combat
             {
                 if (hit.collider == null) continue;
                 if (hit.collider.transform.IsChildOf(transform)) continue;
+
+                // Живые не считаются стеной.
+                //
+                // Targetable есть у всех, по кому можно бить, но не у мирных:
+                // торговец и квестодатель — обычные коллайдеры, и герой,
+                // подошедший к прилавку вплотную, загорался зелёным силуэтом
+                // как за колонной. Со стороны это выглядит поломкой подсветки,
+                // а на деле подсветка честно отработала.
                 if (hit.collider.GetComponentInParent<Targetable>() != null) continue;
+                if (hit.collider.GetComponentInParent<IsoRPG.Items.Merchant>() != null) continue;
+                if (hit.collider.GetComponentInParent<IsoRPG.Quests.QuestGiver>() != null) continue;
 
                 return true;
             }

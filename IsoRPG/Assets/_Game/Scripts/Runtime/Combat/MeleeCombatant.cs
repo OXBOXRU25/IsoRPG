@@ -29,6 +29,12 @@ namespace IsoRPG.Combat
 
         [Header("Исход удара")]
         [Range(0f, 1f)]
+        /// <summary>Доля урона за единицу силы.</summary>
+        private const float DamagePerStrength = 0.01f;
+
+        /// <summary>Доля крита за единицу ловкости.</summary>
+        private const float CritPerAgility = 0.003f;
+
         [SerializeField] private float critChance = CombatMath.DefaultCritChance;
         [SerializeField] private float critMultiplier = CombatMath.DefaultCritMultiplier;
 
@@ -129,7 +135,16 @@ namespace IsoRPG.Combat
             if (!targets.HasHostileTarget) return;
 
             var target = targets.Current;
-            float distance = Vector3.Distance(transform.position, target.transform.position);
+
+            // Меряем по земле, без высоты.
+            //
+            // Герой может стоять на обломке ограды или на ступени, и тогда
+            // прямое расстояние до монстра растёт на разницу высот. Монстр
+            // при этом стоит вплотную, но считает, что не достаёт, — со
+            // стороны это выглядит как «стоит рядом и не бьёт».
+            Vector3 flat = target.transform.position - transform.position;
+            flat.y = 0f;
+            float distance = flat.magnitude;
             float attackDistance = AttackDistanceTo(target);
 
             if (distance > attackDistance + chaseTolerance)
@@ -169,7 +184,10 @@ namespace IsoRPG.Combat
 
             if (weArePlayer) CombatLog.DamageDealt(victim.DisplayName, amount, result);
             else if (victimIsPlayer)
-                CombatLog.DamageTaken(self != null ? self.DisplayName : "Противник", amount);
+            {
+                CombatLog.DamageTaken(self != null ? self.DisplayName : "Противник",
+                                      amount, result);
+            }
         }
 
         private float AttackDistanceTo(Targetable target)
@@ -232,6 +250,10 @@ namespace IsoRPG.Combat
 
             if (animDriver != null) animDriver.PlayAttack();
 
+            // Звук замаха — сразу, вместе с анимацией. Попадание прозвучит
+            // отдельно и позже: между ними и живёт ощущение удара.
+            IsoRPG.Audio.Sfx.Swing(transform.position);
+
             // Урон отложен: он должен совпасть с моментом, когда клинок
             // достаёт цель, а не с началом замаха.
             pendingVictim = target;
@@ -281,6 +303,21 @@ namespace IsoRPG.Combat
                 // а не после перезахода в игру.
                 float bonusDamage = TalentBonus(IsoRPG.Progression.TalentEffect.Damage);
                 float bonusCrit = TalentBonus(IsoRPG.Progression.TalentEffect.CritChance);
+
+                // Характеристики. Сила добавляет урон, ловкость — крит.
+                //
+                // Проценты, а не плоские прибавки: плоские ломаются на
+                // обоих концах — на кулаках десять силы удваивают урон, а с
+                // хорошим кинжалом не значат ничего.
+                var stats = GetComponent<IsoRPG.Progression.TalentStats>();
+
+                if (stats != null)
+                {
+                    var total = stats.TotalStats;
+
+                    bonusDamage += total.Strength * DamagePerStrength;
+                    bonusCrit += total.Agility * CritPerAgility;
+                }
                 float bonusCritMult = TalentBonus(IsoRPG.Progression.TalentEffect.CritMultiplier);
 
                 baseDamage = Mathf.RoundToInt(baseDamage * (1f + bonusDamage));
@@ -292,7 +329,14 @@ namespace IsoRPG.Combat
 
                 // Показываем то, что дошло после брони, а не то, чем замахивались.
                 int actual = pendingVictim.Health.TakeDamage(dealt, gameObject);
-                DamagePopup.Show(pendingVictim.OverheadPoint, actual, result);
+
+                // Своё и чужое рисуем по-разному: числа летят с обеих сторон,
+                // и в свалке из шести монстров по одному только положению не
+                // понять, чьё здоровье уходит.
+                if (pendingVictim.Faction == Faction.Player)
+                    DamagePopup.ShowTaken(pendingVictim.OverheadPoint, actual, result);
+                else
+                    DamagePopup.Show(pendingVictim.OverheadPoint, actual, result);
 
                 // Звук в момент попадания, а не замаха: ухо связывает удар с
                 // тем, что увидело, и рассинхрон в полсекунды слышен сразу.

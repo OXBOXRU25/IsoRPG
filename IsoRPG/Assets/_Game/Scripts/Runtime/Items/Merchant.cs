@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using IsoRPG.Localization;
 using UnityEngine;
 using IsoRPG.Combat;
 
@@ -71,7 +72,7 @@ namespace IsoRPG.Items
 
             if (buyer.Gold < price)
             {
-                CombatLog.Add("Не хватает золота: нужно " + price + ".", LogKind.System);
+                CombatLog.Add(Loc.F("Не хватает золота: нужно {0}.", price), LogKind.System);
                 return false;
             }
 
@@ -87,7 +88,7 @@ namespace IsoRPG.Items
 
             buyer.Add(item, 1);
 
-            CombatLog.Looted(item.displayName + " куплен за " + price, item.RarityColor);
+            CombatLog.Looted(Loc.F("{0} куплен за {1}", Loc.T(item.displayName), price), item.RarityColor);
             IsoRPG.Audio.Sfx.Gold(transform.position);
 
             return true;
@@ -108,7 +109,7 @@ namespace IsoRPG.Items
 
             seller.AddGold(price);
 
-            CombatLog.Add("Продано: " + taken.Item.displayName + " за " + price + " золота",
+            CombatLog.Add(Loc.F("Продано: {0} за {1} золота", Loc.T(taken.Item.displayName), price),
                           LogKind.System);
             IsoRPG.Audio.Sfx.Gold(transform.position);
 

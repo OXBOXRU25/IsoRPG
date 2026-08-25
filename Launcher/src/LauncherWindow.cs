@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Threading.Tasks;
 
 // System.Windows.Shapes тоже содержит Path — фигуру, а не работу с путями.
 // Без этой строки любое обращение к путям файлов становится двусмысленным.
@@ -35,11 +36,17 @@ namespace HighFlyingBird.Launcher
         private const double BannerHeight = 196;
         private const double FooterHeight = 92;
 
-        /// <summary>Версия самого лаунчера. С версией игры не связана.</summary>
-        public const string LauncherVersion = "1.0.0";
+        /// <summary>
+        /// Версия самого лаунчера. С версией игры не связана.
+        ///
+        /// Значение приходит из Launcher/CHANGELOG.md — файл BuildInfo.cs
+        /// создаётся при сборке. Здесь оставлено имя, которым версия уже
+        /// названа в нескольких местах.
+        /// </summary>
+        public const string LauncherVersion = BuildInfo.Version;
 
         private readonly GameFinder game = new GameFinder();
-        private readonly List<Release> releases;
+        private List<Release> releases;
         private readonly LauncherConfig config = LauncherConfig.Load();
 
         private ContentControl stage;
@@ -53,6 +60,21 @@ namespace HighFlyingBird.Launcher
 
         /// <summary>Что известно про обновление. Пусто — обновляться не нужно.</summary>
         private UpdateInfo pendingUpdate;
+
+        /// <summary>Свежая версия самого лаунчера, если она есть.</summary>
+        private SelfUpdateInfo pendingSelf;
+
+        /// <summary>
+        /// Номер версии тот же, а файлы разошлись.
+        ///
+        /// Отдельно от обычного обновления только ради честной подписи на
+        /// кнопке: человеку, у которого «уже установлена 0.4.0», слово
+        /// «обновить» ничего не объясняет.
+        /// </summary>
+        private bool repairOnly;
+
+        /// <summary>Какой раздел открыт — чтобы перерисовать его на месте.</summary>
+        private Section current = Section.News;
 
         /// <summary>Идёт установка: второе нажатие кнопки не должно её начать заново.</summary>
         private bool installing;
@@ -98,6 +120,7 @@ namespace HighFlyingBird.Launcher
             // строке и до сети не доходил — поэтому поломка вылезла только
             // тогда, когда сервер появился.
             Loaded += (sender, args) => CheckForUpdate();
+            Loaded += (sender, args) => RefreshNews();
         }
 
         private enum Section { News, History, Settings }
@@ -374,6 +397,8 @@ namespace HighFlyingBird.Launcher
             // Сравниваем через Equals: раздел хранится в кнопке как object,
             // а для object оператор == сверяет ссылки, и перечисление в
             // коробке никогда не совпадёт само с собой.
+            current = section;
+
             foreach (var tab in tabs) tab.Active = Equals(tab.Section, section);
 
             switch (section)
@@ -728,15 +753,28 @@ namespace HighFlyingBird.Launcher
         {
             if (string.IsNullOrEmpty(config.UpdateUrl)) return;
 
+            // Лаунчер обновляется первым.
+            //
+            // Порядок не косметический: правки в самом лаунчере — это и есть
+            // правки в том, как он обновляет игру. Ставить игру старым
+            // лаунчером значит чинить дорогу той же телегой, которая на ней
+            // и застревает.
+            if (await CheckSelfUpdate()) return;
+
             var info = await Updater.Check(config.UpdateUrl);
             if (!info.IsValid) return;
 
             string local = string.IsNullOrEmpty(game.InstalledVersion)
                 ? "0.0.0" : game.InstalledVersion;
 
-            if (Changelog.Compare(info.Version, local) <= 0) return;
+            if (Changelog.Compare(info.Version, local) <= 0)
+            {
+                await CheckGameFiles(local);
+                return;
+            }
 
             pendingUpdate = info;
+            repairOnly = false;
 
             statusText.Text = "Нужно обновление до версии " + info.Version +
                               " — у тебя " + local;
@@ -749,13 +787,153 @@ namespace HighFlyingBird.Launcher
             playLabel.Text = "ОБНОВИТЬ";
         }
 
-        /// <summary>Одна кнопка на два действия — по состоянию.</summary>
+        /// <summary>
+        /// Подтягивает историю версий с сервера.
+        ///
+        /// Рядом с лаунчером лежит своя копия, но она застывает в момент
+        /// установки: игрок открывал лаунчер и видел новости позапрошлой
+        /// версии, хотя игра у него уже свежая. Патч-ноты — ровно то, ради
+        /// чего лаунчер и открывают, и брать их с сервера правильнее.
+        ///
+        /// Локальная копия остаётся запасным вариантом: без сети лаунчер
+        /// показывает то, что знает, а не пустую страницу.
+        /// </summary>
+        private async void RefreshNews()
+        {
+            if (string.IsNullOrEmpty(config.UpdateUrl)) return;
+
+            try
+            {
+                string url = config.UpdateUrl.Replace("update.json", "CHANGELOG.md");
+
+                string markdown = await Net.DownloadString(url);
+                if (string.IsNullOrEmpty(markdown)) return;
+
+                var fresh = Changelog.Parse(markdown);
+                if (fresh == null || fresh.Count == 0) return;
+
+                releases = fresh;
+
+                // Перерисовываем открытый раздел на месте: человек мог за это
+                // время уйти в историю версий, и подменять ему страницу под
+                // руками нельзя.
+                // Статус трогать нельзя: рядом идёт проверка обновлений, и
+                // она уже могла написать туда «нужно обновиться». Новости
+                // меняют страницу, а не подпись у кнопки.
+                Show(current);
+            }
+            catch (Exception error)
+            {
+                Log.Write("Новости с сервера не прочитались: " + error.Message);
+            }
+        }
+
+        /// <summary>
+        /// Нет ли версии лаунчера свежее. Вернёт true, если есть.
+        /// </summary>
+        private async Task<bool> CheckSelfUpdate()
+        {
+            string url = config.UpdateUrl.Replace("update.json", "launcher-update.json");
+
+            var info = await SelfUpdate.Check(url);
+            if (!info.IsValid) return false;
+
+            if (Changelog.Compare(info.Version, LauncherVersion) <= 0) return false;
+
+            pendingSelf = info;
+
+            statusText.Text = "Новый лаунчер " + info.Version +
+                              " — у тебя " + LauncherVersion;
+            statusText.Foreground = new SolidColorBrush(Theme.Good);
+
+            playLabel.Text = "ОБНОВИТЬ ЛАУНЧЕР";
+            return true;
+        }
+
+        /// <summary>
+        /// Сверяет состав игры со списком на сервере при том же номере версии.
+        ///
+        /// Номер версии обещает свежесть, но не доказывает её: исправление,
+        /// выпущенное под прежним номером, для лаунчера выглядит как «ничего
+        /// не изменилось». Сверка сумм отвечает на вопрос по существу — те ли
+        /// файлы лежат на диске.
+        /// </summary>
+        private async Task CheckGameFiles(string local)
+        {
+            if (!game.Found) return;
+
+            string filesUrl = config.UpdateUrl.Replace("update.json", "files.json");
+
+            var list = await FileUpdater.Fetch(filesUrl);
+            if (!list.IsValid || list.Version != local) return;
+
+            string folder = Path.GetDirectoryName(game.ExecutablePath);
+
+            // Сверка читает всю папку игры — это заметное время, и держать на
+            // нём поток окна нельзя: лаунчер выглядел бы зависшим.
+            int different = await Task.Run(() => FileUpdater.CountDifferent(list, folder));
+
+            if (different == 0) return;
+
+            Log.Write("Тот же номер " + local + ", а разошлось файлов: " + different);
+
+            pendingUpdate = new UpdateInfo
+            {
+                Version = list.Version,
+                Url = string.Empty,
+                Sha256 = string.Empty,
+            };
+
+            repairOnly = true;
+
+            statusText.Text = "Файлы игры разошлись с сервером — " + different +
+                              (different == 1 ? " файл" : " файлов");
+            statusText.Foreground = new SolidColorBrush(Theme.Warn);
+
+            playLabel.Text = "ДОКАЧАТЬ";
+        }
+
+        /// <summary>Одна кнопка на три действия — по состоянию.</summary>
         private void OnMainButton()
         {
             if (installing) return;
 
-            if (pendingUpdate != null) InstallUpdate();
+            if (pendingSelf != null) InstallSelfUpdate();
+            else if (pendingUpdate != null) InstallUpdate();
             else Play();
+        }
+
+        /// <summary>
+        /// Ставит новую версию лаунчера и уходит с дороги.
+        ///
+        /// Дальше работает уже скачанная копия: она дожидается, пока это окно
+        /// закроется, переносит файлы на место и запускает лаунчер снова.
+        /// </summary>
+        private async void InstallSelfUpdate()
+        {
+            installing = true;
+            playButton.Opacity = 0.5;
+            progressTrack.Visibility = Visibility.Visible;
+
+            Action<string, double> show = (text, share) =>
+            {
+                statusText.Text = text;
+                progressFill.Width = progressTrack.Width * Math.Max(0, Math.Min(1, share));
+            };
+
+            bool handedOver = await SelfUpdate.Launch(pendingSelf, show);
+
+            if (!handedOver)
+            {
+                installing = false;
+                playButton.Opacity = 1;
+                progressTrack.Visibility = Visibility.Collapsed;
+                statusText.Foreground = new SolidColorBrush(Theme.Warn);
+                return;
+            }
+
+            statusText.Text = "Перезапускаюсь";
+            Close();
         }
 
         private async void InstallUpdate()
@@ -800,15 +978,28 @@ namespace HighFlyingBird.Launcher
 
                 // Пофайловое могло сорваться на середине — тогда целый архив
                 // приведёт папку в согласованное состояние.
-                if (!done)
+                //
+                // Кроме случая, когда архива и нет: при докачке разошедшихся
+                // файлов номер версии прежний, скачивать заново шестьдесят
+                // мегабайт ради нескольких файлов незачем, и адрес архива в
+                // описании не заполняется.
+                if (!done && pendingUpdate.Url.Length > 0)
                 {
                     Log.Write("Пофайловое не удалось, беру архив целиком.");
                     done = await Updater.Install(pendingUpdate, folder, show);
                 }
             }
-            else
+            else if (pendingUpdate.Url.Length > 0)
             {
                 done = await Updater.Install(pendingUpdate, folder, show);
+            }
+            else
+            {
+                // Докачивать нечем: списка нет, архива нет. Молча ничего не
+                // делать здесь нельзя — кнопка выглядела бы сломанной.
+                Log.Write("Список файлов не прочитался, а архива для этой версии нет.");
+                show("Сервер не отдал список файлов — попробуй позже", 0);
+                done = false;
             }
 
             installing = false;
@@ -826,11 +1017,16 @@ namespace HighFlyingBird.Launcher
             // что есть на самом деле.
             game.Refresh();
 
+            bool repaired = repairOnly;
+
             pendingUpdate = null;
+            repairOnly = false;
             playLabel.Text = "ИГРАТЬ";
             progressTrack.Visibility = Visibility.Collapsed;
 
-            statusText.Text = "Обновлено до версии " + game.InstalledVersion;
+            statusText.Text = repaired
+                ? "Файлы игры приведены в порядок, версия " + game.InstalledVersion
+                : "Обновлено до версии " + game.InstalledVersion;
             statusText.Foreground = new SolidColorBrush(Theme.Good);
         }
 

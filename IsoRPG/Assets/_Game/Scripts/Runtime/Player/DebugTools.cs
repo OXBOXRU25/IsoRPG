@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using IsoRPG.Localization;
 using IsoRPG.Combat;
 using IsoRPG.Items;
 
@@ -80,7 +81,7 @@ namespace IsoRPG.Player
             {
                 int revived = Respawner.ReviveAll();
                 Debug.Log("[Отладка] Возрождено монстров: " + revived);
-                CombatLog.Add("Возрождено монстров: " + revived, LogKind.System);
+                CombatLog.Add(Loc.F("Возрождено монстров: {0}", revived), LogKind.System);
             }
 
             // Вывод сумки в консоль по J жил здесь, пока не было окна

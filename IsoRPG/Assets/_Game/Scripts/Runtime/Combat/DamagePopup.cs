@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using IsoRPG.Localization;
 
 namespace IsoRPG.Combat
 {
@@ -18,6 +19,16 @@ namespace IsoRPG.Combat
 
         /// <summary>Зелёный лечения. Светлее травы, иначе теряется на земле.</summary>
         private static readonly Color HealColor = new Color32(0x7A, 0xD8, 0x72, 0xFF);
+
+        /// <summary>
+        /// Урон по герою — красным.
+        ///
+        /// Тот же цвет, что у своей полосы здоровья: в свалке из шести
+        /// монстров числа летят со всех сторон, и по цвету должно быть
+        /// понятно, чьё здоровье уходит, не читая, над кем цифра.
+        /// </summary>
+        private static readonly Color TakenColor = new Color32(0xE8, 0x5A, 0x4A, 0xFF);
+        private static readonly Color TakenCritColor = new Color32(0xFF, 0x7A, 0x3A, 0xFF);
 
         private const float Lifetime = 0.9f;
         private const float RiseSpeed = 1.4f;
@@ -42,13 +53,22 @@ namespace IsoRPG.Combat
         }
 
         /// <summary>Показать число над точкой мира.</summary>
+        /// <summary>
+        /// Урон, полученный героем. Отдельно от Show, потому что читается
+        /// иначе: красным и крупнее обычного.
+        /// </summary>
+        public static void ShowTaken(Vector3 worldPosition, int amount, HitResult result)
+        {
+            Spawn(worldPosition, amount, result, heal: false, taken: true);
+        }
+
         public static void Show(Vector3 worldPosition, int amount, HitResult result)
         {
             Spawn(worldPosition, amount, result, false);
         }
 
         private static void Spawn(Vector3 worldPosition, int amount,
-                                  HitResult result, bool heal)
+                                  HitResult result, bool heal, bool taken = false)
         {
             var go = new GameObject("DamagePopup", typeof(Canvas), typeof(CanvasGroup));
             go.transform.position = worldPosition;
@@ -60,10 +80,10 @@ namespace IsoRPG.Combat
             rect.sizeDelta = new Vector2(2f, 0.6f);
 
             var popup = go.AddComponent<DamagePopup>();
-            popup.Build(amount, result, heal);
+            popup.Build(amount, result, heal, taken);
         }
 
-        private void Build(int amount, HitResult result, bool heal)
+        private void Build(int amount, HitResult result, bool heal, bool taken = false)
         {
             group = GetComponent<CanvasGroup>();
             group.blocksRaycasts = false;
@@ -90,6 +110,7 @@ namespace IsoRPG.Combat
             // отражённый удар тусклый и мелкий, обычный посередине.
             label.text = result == HitResult.Crit ? amount + "!" : amount.ToString();
             label.color = heal ? HealColor
+                        : taken ? (result == HitResult.Crit ? TakenCritColor : TakenColor)
                         : result == HitResult.Crit ? CritColor
                         : result == HitResult.Miss ? MissColor
                         : NormalColor;
@@ -103,7 +124,13 @@ namespace IsoRPG.Combat
             label.fontSize = 40;
             label.fontStyle = result == HitResult.Crit ? FontStyle.Bold : FontStyle.Normal;
 
-            float scale = result == HitResult.Crit ? 0.013f
+            // Крит вдвое крупнее обычного удара.
+            //
+            // Раньше разница была в полтора раза — и в бою, где числа летят
+            // очередью, она терялась: крит отличался только оттенком. Размер
+            // читается быстрее цвета и не зависит от того, на каком фоне
+            // оказалась цифра.
+            float scale = result == HitResult.Crit ? 0.018f
                         : result == HitResult.Miss ? 0.007f
                         : 0.009f;
             transform.localScale = Vector3.one * scale;

@@ -20,16 +20,16 @@
 #endif
 
 #ifndef PackageDir
-  #define PackageDir "..\..\Package\Приключения разбойника Жени"
+  #define PackageDir "..\..\Package\Adventures of Zhenya"
 #endif
 
 #ifndef OutputDir
   #define OutputDir "..\..\Package"
 #endif
 
-#define AppName "Приключения разбойника Жени"
+#define AppName "Adventures of Zhenya"
 #define AppPublisher "OXBOX"
-#define LauncherExe "Приключения разбойника Жени.exe"
+#define LauncherExe "Adventures of Zhenya.exe"
 
 [Setup]
 ; Идентификатор установки. Постоянный: по нему Windows понимает, что новая

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using IsoRPG.Localization;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using IsoRPG.Combat;
@@ -147,6 +148,14 @@ namespace IsoRPG.Items
 
         private void OnEnable()
         {
+
+            // Смена языка перерисовывает окно.
+            //
+            // Подписи с переводом обновляются сами, но всё, что собрано из
+            // кусков — «Сумка 12 / 40», названия с количеством, строки
+            // наград, — пересобирается только здесь. Без этого человек
+            // переключал язык и видел половину окна на прежнем.
+            Loc.Changed += Refresh;
             if (equipment != null) equipment.Changed += Refresh;
 
             // Не только снаряжение: в окне стоят уровень, здоровье и
@@ -161,6 +170,7 @@ namespace IsoRPG.Items
 
         private void OnDisable()
         {
+            Loc.Changed -= Refresh;
             if (equipment != null) equipment.Changed -= Refresh;
             if (experience != null) experience.Changed -= OnExperienceChanged;
         }
@@ -231,7 +241,13 @@ namespace IsoRPG.Items
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             // Высоту задают слоты — их число меняется редко и осознанно.
             // Числа под неё подстраиваются прокруткой: список характеристик
@@ -354,7 +370,7 @@ namespace IsoRPG.Items
                 if (stack.IsEmpty)
                 {
                     slotIcons[slot].color = SlotEmpty;
-                    slotLabels[slot].text = SlotNames[slot];
+                    LocalizedText.Bind(slotLabels[slot], SlotNames[slot]);
                     slotLabels[slot].color = TextDim;
 
                     // В пустом слоте показываем приглушённый силуэт того, что
@@ -375,7 +391,7 @@ namespace IsoRPG.Items
                 else
                 {
                     slotIcons[slot].color = stack.Item.RarityColor;
-                    slotLabels[slot].text = stack.Item.displayName;
+                    LocalizedText.Bind(slotLabels[slot], stack.Item.displayName);
                     slotLabels[slot].color = stack.Item.RarityColor;
 
                     if (slotArt.TryGetValue(slot, out var wornArt))
@@ -413,15 +429,24 @@ namespace IsoRPG.Items
             Set("energy", energy != null ? energy.Max.ToString() : "—");
             Set("armor", defense != null ? defense.Armor.ToString() : "0");
 
-            Set("strength", bonus.Strength.ToString());
-            Set("agility", bonus.Agility.ToString());
-            Set("stamina", bonus.Stamina.ToString());
+            // Показываем полные характеристики, а не прибавку от вещей.
+            //
+            // Раньше в окне стояло только то, что дало снаряжение: герой
+            // седьмого уровня видел «Сила 0» и справедливо считал, что
+            // характеристика не работает. Работает — просто основа и прирост
+            // за уровни в это число не входили.
+            var stats = GetComponentInParent<IsoRPG.Progression.TalentStats>();
+            var total = stats != null ? stats.TotalStats : bonus;
+
+            Set("strength", total.Strength.ToString());
+            Set("agility", total.Agility.ToString());
+            Set("stamina", total.Stamina.ToString());
 
             if (weapon != null)
             {
                 Set("weapon", weapon.WeaponName);
                 Set("damage", weapon.WeaponDamage.ToString());
-                Set("speed", weapon.AttackInterval.ToString("0.0") + " с");
+                Set("speed", Loc.F("{0} с", weapon.AttackInterval.ToString("0.0")));
 
                 // Урон в секунду — единственное число, которым сравнивают
                 // быстрый кинжал с медленным топором, не считая в уме.
@@ -671,8 +696,72 @@ namespace IsoRPG.Items
             value.alignment = TextAnchor.MiddleLeft;
 
             statValues[key] = value;
-
             return y - StatRow;
+        }
+
+        /// <summary>
+        /// Что делает каждая характеристика. Показывается по наведению.
+        ///
+        /// Держим здесь, рядом с окном, а не в данных: это описание правил
+        /// игры, и меняется оно вместе с формулами в коде, а не отдельно.
+        /// </summary>
+        private static string Explain(string key)
+        {
+            switch (key)
+            {
+                case "level":
+                    return "Растёт с опытом. Каждый уровень прибавляет характеристики " +
+                           "и очко талантов.";
+
+                case "health":
+                    return "Сколько урона выдержит герой. Даёт выносливость: " +
+                           "единица выносливости — десять здоровья.";
+
+                case "energy":
+                    return "Тратится на приёмы и восстанавливается сама. " +
+                           "Не зависит от снаряжения.";
+
+                case "armor":
+                    return "Снижает получаемый урон долей, а не вычитанием: " +
+                           "работает одинаково и против слабых ударов, и против " +
+                           "сильных. Чем выше уровень бьющего, тем меньше помогает.";
+
+                case "strength":
+                    return "Сила. Прибавляет урон в ближнем бою — процент за единицу. " +
+                           "Разбойнику полезна, но ловкость полезнее.";
+
+                case "agility":
+                    return "Ловкость. Главная характеристика разбойника: повышает шанс " +
+                           "критического удара и добавляет броню.";
+
+                case "stamina":
+                    return "Выносливость. Превращается в здоровье: единица — десять " +
+                           "здоровья. Не влияет ни на что другое.";
+
+                case "damage":
+                    return "Урон оружия за один удар, до брони цели. Крит умножает " +
+                           "его, броня уменьшает.";
+
+                case "speed":
+                    return "Секунд между ударами. Меньше — чаще бьёшь.";
+
+                case "dps":
+                    return "Урон в секунду: урон, делённый на скорость. Число для " +
+                           "сравнения оружия между собой, а не то, что увидишь в бою.";
+
+                case "crit":
+                    return "Вероятность критического удара. Растёт от ловкости " +
+                           "и талантов.";
+
+                case "critmult":
+                    return "Во сколько раз крит сильнее обычного удара.";
+
+                case "miss":
+                    return "Вероятность задеть вскользь и нанести меньше урона. " +
+                           "Растёт, если цель выше уровнем.";
+            }
+
+            return string.Empty;
         }
 
         private float StatLine(RectTransform parent, string key, string caption, float y)
@@ -702,6 +791,34 @@ namespace IsoRPG.Items
 
             statValues[key] = value;
 
+            string hint = Explain(key);
+
+            if (!string.IsNullOrEmpty(hint))
+            {
+                var hover = new GameObject(key + "Hover", typeof(Image));
+                hover.transform.SetParent(parent, false);
+
+                var hoverRect = (RectTransform)hover.transform;
+                hoverRect.anchorMin = new Vector2(0f, 1f);
+                hoverRect.anchorMax = new Vector2(0f, 1f);
+                hoverRect.pivot = new Vector2(0f, 1f);
+                hoverRect.anchoredPosition = new Vector2(StatInset, y);
+                hoverRect.sizeDelta = new Vector2(StatColumnWidth - StatInset * 2f, StatRow);
+
+                // Полностью прозрачная: она нужна только чтобы ловить
+                // указатель. Совсем без картинки объект указатель не ловит.
+                var plate = hover.GetComponent<Image>();
+                plate.color = new Color(1f, 1f, 1f, 0f);
+                plate.raycastTarget = true;
+
+                // Под подписями по порядку отрисовки — иначе перекрыла бы
+                // текст, будь у неё цвет.
+                hoverRect.SetAsFirstSibling();
+
+                var trigger = hover.AddComponent<IsoRPG.UI.TextTooltipTrigger>();
+                trigger.Setup(caption, hint);
+            }
+
             return y - StatRow;
         }
 
@@ -716,7 +833,7 @@ namespace IsoRPG.Items
             text.font = font;
             text.fontSize = size;
             text.color = color;
-            text.text = content;
+            LocalizedText.Bind(text, content);
             text.alignment = TextAnchor.MiddleLeft;
             text.raycastTarget = false;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;

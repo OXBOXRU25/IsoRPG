@@ -55,6 +55,13 @@ namespace IsoRPG.Quests
 
         public void Setup(QuestDefinition definition) => quest = definition;
 
+        /// <summary>
+        /// Как зовут собеседницу. Имя объекта в сцене, а не отдельное поле:
+        /// сборщик сцены называет объект осмысленно, и второе имя рядом
+        /// разошлось бы с первым при первой же правке.
+        /// </summary>
+        public string DisplayName => name;
+
         private void Start()
         {
             BuildMarker();

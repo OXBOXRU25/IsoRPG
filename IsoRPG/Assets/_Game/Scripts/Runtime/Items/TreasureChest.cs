@@ -1,4 +1,5 @@
 using UnityEngine;
+using IsoRPG.Localization;
 using IsoRPG.Combat;
 
 namespace IsoRPG.Items
@@ -80,7 +81,7 @@ namespace IsoRPG.Items
                 {
                     // Молчащий замок читается как сломанный сундук. Говорим,
                     // ЧТО именно нужно, а не просто «заперто».
-                    CombatLog.Add("Заперто. Нужен предмет: " + key.displayName, LogKind.System);
+                    CombatLog.Add(Loc.F("Заперто. Нужен предмет: {0}", Loc.T(key.displayName)), LogKind.System);
                     return false;
                 }
 

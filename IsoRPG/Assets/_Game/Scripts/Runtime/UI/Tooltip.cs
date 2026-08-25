@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using IsoRPG.Localization;
 using UnityEngine;
 using UnityEngine.UI;
 using IsoRPG.Combat;
@@ -77,10 +78,10 @@ namespace IsoRPG.UI
             Begin();
 
             SetIcon(ability.icon, ability.iconColor);
-            title.text = ability.displayName;
+            LocalizedText.Bind(title, ability.displayName);
             title.color = AbilityTitle;
 
-            subtitle.text = AbilityKind(ability);
+            LocalizedText.Bind(subtitle, AbilityKind(ability));
             subtitle.gameObject.SetActive(true);
 
             if (ability.dealsDamage)
@@ -106,24 +107,29 @@ namespace IsoRPG.UI
                 }
             }
 
-            if (ability.energyCost > 0) AddRow("Стоимость", ability.energyCost + " энергии", ValueColor);
-            if (ability.cooldown > 0.01f) AddRow("Откат", ability.cooldown.ToString("0.#") + " с", ValueColor);
-            if (ability.requiresTarget) AddRow("Дистанция", ability.reach.ToString("0.#") + " м", ValueColor);
+            if (ability.energyCost > 0) AddRow("Стоимость", Loc.F("{0} энергии", ability.energyCost), ValueColor);
+            if (ability.cooldown > 0.01f) AddRow("Откат", Loc.F("{0} с", ability.cooldown.ToString("0.#")), ValueColor);
+            if (ability.requiresTarget) AddRow("Дистанция", Loc.F("{0} м", ability.reach.ToString("0.#")), ValueColor);
 
             // Механика приёма. Это то, ради чего игрок и открывает подсказку:
             // из названия «Коварный удар» не следует, что бить надо со спины
             // и только из скрытности.
             if (ability.comboRole == ComboRole.Generator && ability.comboGain > 0)
-                AddRow("", "Даёт " + ability.comboGain + " очко комбо", GoodColor);
+                AddRow("", Loc.F("Даёт {0} очко комбо", ability.comboGain), GoodColor);
 
             if (ability.comboRole == ComboRole.Finisher)
                 AddRow("", "Тратит все очки комбо", GoodColor);
 
             if (ability.stunBase > 0.01f || ability.stunPerCombo > 0.01f)
             {
-                string stun = ability.stunBase.ToString("0.#") + " с";
-                if (ability.stunPerCombo > 0.01f)
-                    stun += " плюс " + ability.stunPerCombo.ToString("0.#") + " за очко";
+                // Собираем целиком, а не склеиваем переведённые куски: в
+                // другом языке порядок слов другой, и склейка из двух
+                // переводов даёт фразу, которой ни в одном языке нет.
+                string stun = ability.stunPerCombo > 0.01f
+                    ? Loc.F("{0} с плюс {1} за очко",
+                            ability.stunBase.ToString("0.#"),
+                            ability.stunPerCombo.ToString("0.#"))
+                    : Loc.F("{0} с", ability.stunBase.ToString("0.#"));
 
                 AddRow("Оглушение", stun, GoodColor);
             }
@@ -132,7 +138,7 @@ namespace IsoRPG.UI
             if (ability.requiresStealth) AddRow("", "Только из скрытности", WarnColor);
             if (ability.requiresBehindTarget) AddRow("", "Только со спины цели", WarnColor);
 
-            body.text = ability.description;
+            LocalizedText.Bind(body, ability.description);
             body.gameObject.SetActive(!string.IsNullOrEmpty(ability.description));
 
             End(at);
@@ -153,20 +159,20 @@ namespace IsoRPG.UI
 
             SetIcon(item.icon, item.iconColor);
 
-            title.text = item.displayName;
+            LocalizedText.Bind(title, item.displayName);
 
             // Заголовок красится в цвет редкости: это единственное место, где
             // редкость названа словом и цветом одновременно, — дальше игрок
             // узнаёт её по одному цвету рамки.
             title.color = item.RarityColor;
 
-            subtitle.text = ItemKind(item);
+            LocalizedText.Bind(subtitle, ItemKind(item));
             subtitle.gameObject.SetActive(!string.IsNullOrEmpty(subtitle.text));
 
             if (item.IsWeapon)
             {
                 AddRow("Урон", item.weaponDamage.ToString(), ValueColor);
-                AddRow("Скорость", item.attackInterval.ToString("0.0") + " с", ValueColor);
+                AddRow("Скорость", Loc.F("{0} с", item.attackInterval.ToString("0.0")), ValueColor);
 
                 // Урон в секунду — единственный способ сравнить быстрый кинжал
                 // с медленным топором, не считая в уме.
@@ -183,12 +189,12 @@ namespace IsoRPG.UI
             if (item.requiredLevel > 1)
             {
                 bool ok = playerLevel >= item.requiredLevel;
-                AddRow("Требуется", "уровень " + item.requiredLevel, ok ? SubtitleColor : WarnColor);
+                AddRow("Требуется", Loc.F("уровень {0}", item.requiredLevel), ok ? SubtitleColor : WarnColor);
             }
 
-            if (item.vendorPrice > 0) AddRow("Цена", item.vendorPrice + " золота", SubtitleColor);
+            if (item.vendorPrice > 0) AddRow("Цена", Loc.F("{0} золота", item.vendorPrice), SubtitleColor);
 
-            body.text = item.description;
+            LocalizedText.Bind(body, item.description);
             body.gameObject.SetActive(!string.IsNullOrEmpty(item.description));
 
             End(at);
@@ -211,11 +217,11 @@ namespace IsoRPG.UI
 
             SetIcon(talent.icon, Color.white);
 
-            title.text = talent.displayName;
+            LocalizedText.Bind(title, talent.displayName);
             title.color = IsoRPG.Progression.TalentDefinition.BranchColor(talent.branch);
 
-            subtitle.text = IsoRPG.Progression.TalentDefinition.BranchName(talent.branch)
-                            + ",  ранг " + rank + " из " + talent.maxRank;
+            subtitle.text = Loc.T(IsoRPG.Progression.TalentDefinition.BranchName(talent.branch))
+                            + Loc.F(",  ранг {0} из {1}", rank, talent.maxRank);
             subtitle.gameObject.SetActive(true);
 
             if (rank > 0) AddRow("Сейчас", talent.EffectLine(rank), ValueColor);
@@ -225,7 +231,7 @@ namespace IsoRPG.UI
 
             if (!string.IsNullOrEmpty(blockReason)) AddRow("", blockReason, WarnColor);
 
-            body.text = talent.description;
+            LocalizedText.Bind(body, talent.description);
             body.gameObject.SetActive(!string.IsNullOrEmpty(talent.description));
 
             End(at);
@@ -240,12 +246,12 @@ namespace IsoRPG.UI
 
             SetIcon(null, Color.clear);
 
-            title.text = caption;
+            LocalizedText.Bind(title, caption);
             title.color = AbilityTitle;
 
             subtitle.gameObject.SetActive(false);
 
-            body.text = hint;
+            LocalizedText.Bind(body, hint);
             body.gameObject.SetActive(!string.IsNullOrEmpty(hint));
 
             End(at);
@@ -378,8 +384,8 @@ namespace IsoRPG.UI
             rowsUsed++;
 
             var texts = go.GetComponentsInChildren<Text>(true);
-            texts[0].text = label;
-            texts[1].text = value;
+            LocalizedText.Bind(texts[0], label);
+            LocalizedText.Bind(texts[1], value);
             texts[1].color = valueColor;
 
             // Строка без названия — это пояснение механики, и оно занимает
@@ -435,7 +441,13 @@ namespace IsoRPG.UI
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Тянемся за шириной, а не за средним между шириной и высотой.
+            //
+            // При среднем масштаб выходит дробным на любом экране, который не
+            // 16:9: на 1920x1200 это 1.054, и шрифт растеризуется между
+            // пикселями — надписи выглядят размытыми, особенно мелкие.
+            // По ширине на том же экране масштаб ровно 1.0, и текст чёткий.
+            scaler.matchWidthOrHeight = 0f;
 
             var go = new GameObject("Tooltip", typeof(Image), typeof(VerticalLayoutGroup),
                                     typeof(ContentSizeFitter));

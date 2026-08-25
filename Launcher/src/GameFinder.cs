@@ -15,7 +15,15 @@ namespace HighFlyingBird.Launcher
     /// </summary>
     internal sealed class GameFinder
     {
-        private const string ExecutableName = "HighFlyingBird.exe";
+        private const string ExecutableName = "AdventuresOfZhenya.exe";
+
+        /// <summary>
+        /// Имя до переименования игры на английское.
+        ///
+        /// Ищем и его: у тех, кто поставил игру раньше, на диске лежит старый
+        /// файл, и лаунчер, знающий одно имя, объявил бы игру ненайденной.
+        /// </summary>
+        private const string FormerExecutable = "HighFlyingBird.exe";
 
         /// <summary>Полный путь к exe игры или пусто, если не нашли.</summary>
         public string ExecutablePath { get; private set; }
@@ -60,7 +68,13 @@ namespace HighFlyingBird.Launcher
             {
                 Path.Combine(home, ExecutableName),
                 Path.Combine(home, "Game", ExecutableName),
-                Path.Combine(home, "HighFlyingBird", ExecutableName),
+                Path.Combine(home, "AdventuresOfZhenya", ExecutableName),
+
+                // То же самое, но с прежним именем файла: у тех, кто поставил
+                // игру до переименования, на диске лежит именно оно.
+                Path.Combine(home, FormerExecutable),
+                Path.Combine(home, "Game", FormerExecutable),
+                Path.Combine(home, "HighFlyingBird", FormerExecutable),
                 Path.Combine(Path.GetFullPath(Path.Combine(home, "..")), ExecutableName),
                 Path.Combine(Path.GetFullPath(Path.Combine(home, "..")),
                              "HighFlyingBird", ExecutableName),

@@ -27,10 +27,10 @@ const NL = String.fromCharCode(10);
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '..');
 
-const GAME_BUILD = path.join(repo, 'Build', 'HighFlyingBird');
+const GAME_BUILD = path.join(repo, 'Build', 'AdventuresOfZhenya');
 const LAUNCHER_DIST = path.join(repo, 'Launcher', 'dist');
 const PACKAGE_ROOT = path.join(repo, 'Package');
-const NAME = 'Приключения разбойника Жени';
+const NAME = 'Adventures of Zhenya';
 
 const SEVEN_ZIP = 'C:/Program Files/7-Zip/7z.exe';
 
@@ -140,6 +140,31 @@ if (fs.existsSync(SEVEN_ZIP)) {
   }
 } else {
   console.log('  7-Zip не найден, архив пропущен.');
+}
+
+// --- Лаунчер отдельным архивом ---------------------------------------------
+//
+// Нужен для самообновления: лаунчер скачивает этот архив, распаковывает во
+// временную папку и передаёт установку новой копии. Файлы лежат в корне
+// архива, без обёртки-папки, — распаковщику незачем угадывать, где программа.
+//
+// Три мегабайта против шестидесяти у полного пакета: лаунчер меняется своим
+// темпом, и тянуть ради него игру целиком незачем.
+
+const launcherArchive = path.join(PACKAGE_ROOT, 'AdventuresOfZhenya-Launcher.zip');
+if (fs.existsSync(launcherArchive)) fs.rmSync(launcherArchive);
+
+if (fs.existsSync(SEVEN_ZIP)) {
+  const result = spawnSync(SEVEN_ZIP,
+    ['a', '-tzip', '-mx=7', launcherArchive, '*'],
+    { cwd: LAUNCHER_DIST, encoding: 'utf8' });
+
+  if (result.status === 0) {
+    const size = (fs.statSync(launcherArchive).size / 1024 / 1024).toFixed(1);
+    console.log('  Лаунчер отдельно: ' + launcherArchive + '  (' + size + ' МБ)');
+  } else {
+    console.log('  Архив лаунчера не собрался: ' + (result.stderr || '').trim());
+  }
 }
 
 // --- Самораспаковывающийся exe ---------------------------------------------

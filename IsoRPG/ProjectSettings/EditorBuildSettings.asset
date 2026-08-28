@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/_Game/Scenes/MainMenu.unity
     guid: cdc441f13a05e5946ae27c4cc5855e68
   - enabled: 1
-    path: Assets/_Game/Scenes/Sandbox.unity
-    guid: 3a22a27584c718144b311051b1100230
+    path: Assets/_Game/Scenes/Arena.unity
+    guid: 1db5328198c19b0498cd0b8070257b84
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

@@ -20,10 +20,20 @@ namespace IsoRPG.Player
     public sealed class JumpGesture : MonoBehaviour
     {
         [Tooltip("Насколько высоко подпрыгивает, в метрах.")]
-        [SerializeField] private float height = 0.55f;
+        [SerializeField] private float height = 1.7f;
 
-        [Tooltip("Сколько длится прыжок. Подогнано под клип Jump_Full_Short.")]
-        [SerializeField] private float duration = 0.75f;
+        [Tooltip("Сколько длится прыжок, вместе со взлётом и приземлением.")]
+        //
+        // Замер по WoW: там персонаж висит в воздухе около секунды и
+        // поднимается примерно на свой рост. У нас было 0.55 м за 0.75 с —
+        // и прыжок читался как клевок, будто герой споткнулся. Разница
+        // именно в ощущении веса: короткий низкий прыжок делает персонажа
+        // лёгким и суетливым.
+        //
+        // Клип Jump_Full_Short короче секунды, поэтому его скорость
+        // подгоняется под длительность — иначе персонаж успевает приземлиться
+        // анимацией, вися при этом в воздухе.
+        [SerializeField] private float duration = 1.0f;
 
         private CharacterAnimatorDriver animation;
         private IsoRPG.Combat.Health health;
@@ -86,6 +96,16 @@ namespace IsoRPG.Player
             {
                 float t = (Time.time - startTime) / duration;
                 lift = 4f * height * t * (1f - t);
+
+                // Переводим метры в локальные единицы модели.
+                //
+                // Подъём применяется к дочернему объекту, а он
+                // отмасштабирован — KayKit ужимался под наш рост. Записанные
+                // сюда метры превращались в мире в заметно меньшую высоту, и
+                // прыжок читался как «еле оторвался от земли», хотя в числах
+                // выглядел правильным.
+                float scale = model.lossyScale.y;
+                if (scale > 0.001f) lift /= scale;
             }
 
             var local = model.localPosition;

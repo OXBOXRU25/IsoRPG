@@ -31,65 +31,71 @@ namespace IsoRPG.Combat
 
         // --- Геометрия. Отступ от края одинаковый везде: один токен, не три ---
         private const float ScreenMargin = 18f;
-        // Ширина панели и её высота связаны пропорцией картинки: 1932 на 814.
-        // Задавать высоту отдельно нельзя — рамка растянется и торцы поплывут.
-        private const float PanelWidth = 300f;
-        private const float PanelHeight = PanelWidth * 718f / 1865f;
-
         /// <summary>
-        /// Где внутри нарисованной рамки лежат гнёзда — доли от её размера.
+        /// Размер панели — ОДИН на все три.
         ///
-        /// Сняты с самой картинки: круг портрета по центру слева, два жёлоба
-        /// справа от него. Пока рамку не перерисовали, эти числа не меняются.
+        /// Раньше у каждой был свой: 300 у героя, 420 у врага, 400 у мирного.
+        /// Так вышло потому, что картинки пришли разной пропорции, и ширину
+        /// подбирали, чтобы круги портретов совпали. На экране это читалось
+        /// сразу: три панели рядом, и все разной величины.
+        ///
+        /// Новые картинки нарезаны в один размер — 1689 на 706, — поэтому и
+        /// панель теперь одна. Высота выводится из пропорции: задавать её
+        /// отдельно нельзя, рамка растянется и торцы поплывут.
         /// </summary>
-        // Числа сняты с картинки замером: от центра гнезда наружу до
-        // золотого канта. На глаз по сетке они выходили на пару процентов
-        // мимо — и полосы вылезали за жёлоба.
-        private const float PortraitCenterX = 0.198f;
-        private const float PortraitCenterY = 0.477f;
-        private const float PortraitDiameter = 0.252f;   // от ширины рамки
-
-        private const float BarsFrom = 0.355f;
-        private const float BarsTo = 0.903f;
-        private const float TopBarFrom = 0.329f;
-        private const float TopBarTo = 0.460f;
-        private const float LowBarFrom = 0.550f;
-        private const float LowBarTo = 0.680f;
+        /// Триста четыре — это прежние 380 минус пятая часть. На 380 панели
+        /// съедали верх экрана и спорили с полосой умений; всё внутри них —
+        /// круг портрета, полосы, плашка имени — задано ДОЛЯМИ от этой
+        /// ширины, поэтому уменьшение идёт одним числом и разъехаться нечему.
+        private const float PanelWidth = 304f;
+        private const float PanelHeight = PanelWidth * 706f / 1689f;
 
         /// <summary>
-        /// Рамка цели: 2172 на 724, полоса одна и лежит правее портрета.
+        /// Где внутри рамки лежат гнёзда — доли от её размера.
+        ///
+        /// Сняты замером с самих картинок и проверены наложением: цветной
+        /// прямоугольник рисуется поверх панели, и если он лёг мимо жёлоба,
+        /// это видно. Прежние числа снимались на глаз по сетке и промахивались
+        /// на несколько процентов — полосы висели над жёлобами, а не в них.
         /// </summary>
-        // Шире геройской намеренно: у рамки врага портрет занимает меньшую
-        // долю ширины (0.184 против 0.252), и при равной ширине панелей его
-        // портрет выходил заметно мельче. Подобрано так, чтобы круги на
-        // экране получились одного размера.
-        private const float EnemyPanelWidth = 420f;
-        private const float EnemyPanelHeight = EnemyPanelWidth * 675f / 2140f;
+        private const float PortraitCenterX = 0.208f;
+        private const float PortraitCenterY = 0.491f;
+        private const float PortraitDiameter = 0.236f;   // от ширины рамки
 
-        private const float EnemyPortraitCenterX = 0.191f;
-        private const float EnemyPortraitCenterY = 0.470f;
-        private const float EnemyPortraitDiameter = 0.184f;
+        private const float BarsFrom = 0.300f;
+        private const float BarsTo = 0.980f;
+        private const float TopBarFrom = 0.225f;
+        private const float TopBarTo = 0.420f;
+        private const float LowBarFrom = 0.598f;
+        private const float LowBarTo = 0.800f;
+
+        /// <summary>Панель цели: полоса одна, лежит правее портрета.</summary>
+        private const float EnemyPanelWidth = PanelWidth;
+        private const float EnemyPanelHeight = PanelHeight;
+
+        private const float EnemyPortraitCenterX = 0.202f;
+        private const float EnemyPortraitCenterY = 0.469f;
+        private const float EnemyPortraitDiameter = 0.237f;
 
         /// <summary>
-        /// Рамка мирного: 2117 на 685, вместо жёлоба — табличка под имя.
-        /// Круг у неё сквозной, поэтому портрет там виден целиком.
+        /// Панель мирного: вместо жёлоба табличка под имя.
         /// </summary>
-        private const float NeutralPanelWidth = 400f;
-        private const float NeutralPanelHeight = NeutralPanelWidth * 685f / 2117f;
+        private const float NeutralPanelWidth = PanelWidth;
+        private const float NeutralPanelHeight = PanelHeight;
 
-        private const float NeutralPortraitCenterX = 0.160f;
-        private const float NeutralPortraitCenterY = 0.481f;
-        private const float NeutralPortraitDiameter = 0.193f;
+        private const float NeutralPortraitCenterX = 0.206f;
+        private const float NeutralPortraitCenterY = 0.496f;
+        private const float NeutralPortraitDiameter = 0.228f;
 
-        private const float NeutralPlateFrom = 0.327f;
-        private const float NeutralPlateTo = 0.960f;
-        private const float NeutralPlateTop = 0.388f;
-        private const float NeutralPlateBottom = 0.677f;
+        private const float NeutralPlateFrom = 0.290f;
+        private const float NeutralPlateTo = 0.980f;
+        private const float NeutralPlateTop = 0.330f;
+        private const float NeutralPlateBottom = 0.640f;
 
-        private const float EnemyBarFrom = 0.351f;
-        private const float EnemyBarTo = 0.911f;
-        private const float EnemyBarTop = 0.400f;
-        private const float EnemyBarBottom = 0.578f;
+        private const float EnemyBarFrom = 0.290f;
+        private const float EnemyBarTo = 0.980f;
+        private const float EnemyBarTop = 0.363f;
+        private const float EnemyBarBottom = 0.605f;
         private const float PanelGap = 12f;
         private const float BarHeight = 20f;      // толще: в WoW полоска — главный элемент панели
         private const float BarGap = 4f;
@@ -109,6 +115,23 @@ namespace IsoRPG.Combat
 
         private static readonly Color ComboEmpty = new Color32(0x2E, 0x2A, 0x22, 0xFF);
         private static readonly Color ComboFull = new Color32(0xE8, 0xC3, 0x5A, 0xFF);
+
+        /// <summary>
+        /// Ширина панели по наведению — 240 против 304 у боевых.
+        ///
+        /// Меньше намеренно: эта панель ходит за курсором и живёт полсекунды,
+        /// поэтому обязана закрывать собой как можно меньше поля боя. Высота,
+        /// как и у остальных, выводится из пропорции картинки 1689 на 706 —
+        /// задавать её отдельно нельзя, рамка растянется.
+        /// </summary>
+        private const float HoverPanelWidth = 240f;
+        private const float HoverPanelHeight = HoverPanelWidth * 706f / 1689f;
+
+        /// <summary>Отступ панели от кончика курсора.</summary>
+        private const float HoverCursorGap = 18f;
+
+        /// <summary>Цвет строки-подсказки под панелью. Тусклее имени.</summary>
+        private static readonly Color HintColor = new Color32(0xC8, 0xB0, 0x78, 0xFF);
         private static readonly Color CooldownVeil = new Color(0f, 0f, 0f, 0.65f);
 
         // Полоска опыта: тонкая, в самом низу экрана. Она растёт часами и
@@ -135,6 +158,17 @@ namespace IsoRPG.Combat
         private GameObject neutralPanel;
         private Image neutralPortrait;
         private Text neutralNameText;
+
+        private GameObject hoverPanel;
+        private RectTransform hoverPanelRect;
+        private Image hoverFrame;
+        private Image hoverPortrait;
+        private Text hoverNameText;
+        private Text hoverHintText;
+        private RectTransform hoverHealthFill;
+        private Text hoverHealthText;
+        private GameObject hoverHealthHost;
+        private Canvas hudCanvas;
 
         private RectTransform playerEnergyFill;
         private Text playerEnergyText;
@@ -232,9 +266,18 @@ namespace IsoRPG.Combat
             if (abilities != null) abilities.BarChanged += OnBarChanged;
 
             // Портрет игрока не меняется за игру, поэтому ставится один раз.
+            //
+            // Только если рисованного нет: этот код выполняется ПОСЛЕ сборки
+            // панели и раньше затирал нарисованное лицо плоской иконкой из
+            // компонента существа. Симптом был обманчивый — в панели висел
+            // старый значок, хотя и файл на месте, и загружался он исправно,
+            // и в логе ни слова. У целей приоритет расставлен верно
+            // (Portraits.For ?? target.Portrait), а здесь стояли два
+            // присваивания подряд, и побеждало второе.
             var self = GetComponent<Targetable>();
 
-            if (self != null && playerPortrait != null && self.Portrait != null)
+            if (self != null && playerPortrait != null && self.Portrait != null
+                && playerPortrait.sprite == null)
             {
                 playerPortrait.sprite = self.Portrait;
                 playerPortrait.enabled = true;
@@ -329,6 +372,7 @@ namespace IsoRPG.Combat
 
             var canvas = canvasGo.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            hudCanvas = canvas;
 
             // Масштабирование по ширине: интерфейс должен занимать одну и ту же
             // долю экрана и на ноутбуке, и на большом мониторе.
@@ -364,11 +408,14 @@ namespace IsoRPG.Combat
                 playerPortrait.enabled = true;
             }
 
-            // Имя с уровнем — над рамкой, а не внутри: внутри рамки места нет,
-            // всё занято портретом и жёлобами.
-            playerNameText = CreateText(player, "Name", "Разбойник", 13, TextColor,
-                new Vector2(PanelWidth * BarsFrom, 2f),
-                new Vector2(PanelWidth * (BarsTo - BarsFrom), 16f));
+            // Имени героя над панелью нет намеренно.
+            //
+            // Оно висело отдельной строкой НАД рамкой, ни к чему не привязанной
+            // — и читалось не частью панели, а подписью, забытой поверх неё.
+            // Игрок и так знает, кто он; уровень виден в окне персонажа.
+            //
+            // Поле оставлено: обновление уровня проверяет его на null и молча
+            // пропускает, так что ломать там нечего.
 
             var healthBar = CreateGrooveBar(player, "Health", AllyHealthColor,
                                             TopBarFrom, TopBarTo);
@@ -438,6 +485,77 @@ namespace IsoRPG.Combat
 
             BuildAbilityBar(root);
             BuildExperienceBar(root);
+
+            // Последней — значит поверх всего остального: панель по наведению
+            // выскакивает у курсора и обязана перекрывать то, над чем он
+            // оказался, а не прятаться под полосой умений.
+            BuildHoverPanel(root);
+        }
+
+        /// <summary>
+        /// Панель, которая выскакивает у курсора при наведении на существо
+        /// или предмет.
+        ///
+        /// Тем же артом, что панель мирного, и той же долевой геометрией —
+        /// поэтому уменьшение до 240 не требует ни новых замеров, ни новых
+        /// картинок. Врагу подменяется только спрайт рамки: панели героя,
+        /// цели и мирного нарезаны в один размер, поэтому доли остаются
+        /// верны при любой из них.
+        ///
+        /// У курсора, а не в общем ряду наверху. Смысл наведения в том, что
+        /// человек уже смотрит на кончик указателя; панель в другом углу
+        /// экрана заставила бы переводить взгляд туда и обратно — то есть
+        /// делала бы ровно то, от чего избавляет.
+        /// </summary>
+        private void BuildHoverPanel(RectTransform root)
+        {
+            hoverPanelRect = CreateFramedPanel(root, "HoverPanel", "UI/Frame_Neutral",
+                                               Vector2.zero, HoverPanelWidth, HoverPanelHeight);
+
+            hoverFrame = hoverPanelRect.GetComponent<Image>();
+            hoverPanel = hoverPanelRect.gameObject;
+
+            hoverPortrait = CreateSlotPortrait(hoverPanelRect,
+                                               HoverPanelWidth, HoverPanelHeight,
+                                               NeutralPortraitCenterX, NeutralPortraitCenterY,
+                                               NeutralPortraitDiameter);
+
+            // Имя — на плашке мирного: там для него и вырезано место.
+            hoverNameText = CreateText(hoverPanelRect, "Name", "", 12, TextColor,
+                                       Vector2.zero, Vector2.zero);
+
+            var nameRect = (RectTransform)hoverNameText.transform;
+            nameRect.anchorMin = new Vector2(NeutralPlateFrom, 1f - NeutralPlateBottom);
+            nameRect.anchorMax = new Vector2(NeutralPlateTo, 1f - NeutralPlateTop);
+            nameRect.offsetMin = Vector2.zero;
+            nameRect.offsetMax = Vector2.zero;
+            hoverNameText.alignment = TextAnchor.MiddleCenter;
+
+            // Полоса жизни — в том же жёлобе, что у панели цели. Живёт
+            // отдельным объектом, чтобы её можно было спрятать целиком:
+            // у мирных её нет намеренно — она обещала бы, что их можно бить.
+            var bar = CreateGrooveBar(hoverPanelRect, "Health", HealthColor,
+                                      EnemyBarTop, EnemyBarBottom,
+                                      EnemyBarFrom, EnemyBarTo);
+            hoverHealthFill = bar.fill;
+            hoverHealthText = bar.label;
+
+            // Прячем полосу за её общий узел: заполнение и подпись оба лежат
+            // в нём, поэтому одним переключателем уходит вся полоса, а не
+            // только цветная часть.
+            hoverHealthHost = bar.fill != null && bar.fill.parent != null
+                ? bar.fill.parent.gameObject
+                : null;
+
+            // Подсказка про действие — под панелью, а не внутри: внутри места
+            // нет, там уже имя и полоса, а под рамкой строка не спорит ни с
+            // чем и читается первой после имени.
+            hoverHintText = CreateText(hoverPanelRect, "Hint", "", 11, HintColor,
+                                       new Vector2(0f, -HoverPanelHeight - 2f),
+                                       new Vector2(HoverPanelWidth, 16f));
+            hoverHintText.alignment = TextAnchor.UpperCenter;
+
+            hoverPanel.SetActive(false);
         }
 
         /// <summary>
@@ -510,7 +628,21 @@ namespace IsoRPG.Combat
                 rect.sizeDelta = new Vector2(size, size);
 
                 var image = go.GetComponent<Image>();
-                image.color = ComboEmpty;
+
+                // Нарисованное гнездо, если оно есть. Цвет при этом белый:
+                // любой оттенок приглушил бы металл и камень.
+                var socket = Resources.Load<Sprite>("UI/Combo_Empty");
+
+                if (socket != null)
+                {
+                    image.sprite = socket;
+                    image.color = Color.white;
+                }
+                else
+                {
+                    image.color = ComboEmpty;
+                }
+
                 image.raycastTarget = false;
 
                 comboDots.Add(image);
@@ -587,10 +719,18 @@ namespace IsoRPG.Combat
                 abilityBarObject = null;
             }
 
-            if (abilities == null || abilities.Abilities.Count == 0) return;
+            if (abilities == null) return;
 
-            int count = abilities.Abilities.Count;
-            float totalWidth = count * SlotSize + (count - 1) * SlotGap;
+            // Слотов всегда десять, сколько бы приёмов ни было готово.
+            //
+            // Панель, которая растёт с каждым выученным приёмом, каждый раз
+            // прыгает и меняет ширину — и мышечная память игрока на пятый
+            // слот сбрасывается. Пустые гнёзда заодно честно говорят, сколько
+            // приёмов ещё будет.
+            const int BarSlots = 10;
+
+            int ready = abilities.Abilities.Count;
+            float totalWidth = BarSlots * SlotSize + (BarSlots - 1) * SlotGap;
 
             var bar = new GameObject("AbilityBar", typeof(RectTransform));
             abilityBarObject = bar;
@@ -608,7 +748,9 @@ namespace IsoRPG.Combat
             // и если подогнать её ровно по ряду, иконки лягут на золотой кант.
             // Растягивается девятью кусками, поэтому число приёмов может
             // меняться — рамка подстроится.
-            var plate = Resources.Load<Sprite>("UI/Frame_Abilities");
+            var plate = IsoRPG.UI.UiFrames.Enabled
+                ? Resources.Load<Sprite>("UI/Frame_Abilities")
+                : null;
 
             if (plate != null)
             {
@@ -620,11 +762,16 @@ namespace IsoRPG.Combat
                 frameRect.anchorMax = new Vector2(0.5f, 0.5f);
                 frameRect.pivot = new Vector2(0.5f, 0.5f);
                 frameRect.anchoredPosition = Vector2.zero;
-                // Запас по высоте больше, чем кажется нужным: границы
-                // растяжения занимают по 32 точки сверху и снизу, и при
-                // высоте панели в 78 на середину оставалось два пикселя —
-                // рамка схлопывалась в золотую ниточку между иконками.
-                frameRect.sizeDelta = new Vector2(totalWidth + 96f, SlotSize + 34f);
+                // Запас считается от границ растяжения, а не на глаз.
+                //
+                // Торцы не тянутся: при множителе 3.6 каждый занимает 210/3.6,
+                // то есть 58 точек, вместе 116. Прежний запас в 96 был МЕНЬШЕ
+                // этой суммы — значит иконкам доставалось меньше места, чем
+                // они занимают, и крайние вылезали на золото торца. С десятью
+                // слотами это стало видно сразу.
+                //
+                // Даём 116 на торцы плюс 34 на воздух по краям ряда.
+                frameRect.sizeDelta = new Vector2(totalWidth + 150f, SlotSize + 34f);
 
                 var frameImage = frameGo.GetComponent<Image>();
                 frameImage.sprite = plate;
@@ -643,12 +790,71 @@ namespace IsoRPG.Combat
 
                 // Первой в списке — значит под всеми иконками по отрисовке.
                 frameRect.SetAsFirstSibling();
+
+                // Ромб на кромке — отдельным элементом.
+                //
+                // В картинке он был нарисован ровно посередине, то есть в
+                // растяжимой части, и на панели в десять слотов уезжал вбок
+                // и вылезал за верхний край. Границами это не лечится: любой
+                // узор в середине девятикусочной картинки обречён. Вырезан из
+                // рамки и кладётся своим размером.
+                var gem = Resources.Load<Sprite>("UI/Abilities_Gem");
+
+                if (gem != null)
+                {
+                    var gemGo = new GameObject("Gem", typeof(Image));
+                    var gemRect = (RectTransform)gemGo.transform;
+                    gemRect.SetParent(frameRect, false);
+
+                    gemRect.anchorMin = new Vector2(0.5f, 1f);
+                    gemRect.anchorMax = new Vector2(0.5f, 1f);
+                    gemRect.pivot = new Vector2(0.5f, 1f);
+
+                    // Тот же множитель, что у рамки: тогда ромб совпадает с
+                    // кромкой, из которой вырезан.
+                    gemRect.sizeDelta = new Vector2(gem.rect.width / 3.6f,
+                                                    gem.rect.height / 3.6f);
+
+                    // Опущен на треть своей высоты: в исходнике он торчал над
+                    // кромкой, и на панели это читалось случайным треугольником
+                    // над иконками, а не украшением на ней.
+                    gemRect.anchoredPosition = new Vector2(0f, gemRect.sizeDelta.y * 0.34f);
+
+                    var gemImage = gemGo.GetComponent<Image>();
+                    gemImage.sprite = gem;
+                    gemImage.raycastTarget = false;
+                }
             }
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < BarSlots; i++)
             {
-                var ability = abilities.Abilities[i];
                 float x = i * (SlotSize + SlotGap);
+
+                // Гнездо под приём, которого ещё нет: пустая плашка без
+                // рисунка, без цифры и без нажатия. Подсказки у него тоже
+                // нет — рассказывать нечего, а пустое всплывающее окно
+                // читается как поломка.
+                if (i >= ready)
+                {
+                    var emptyGo = new GameObject("Slot" + (i + 1) + "Empty", typeof(Image));
+                    var emptyRect = (RectTransform)emptyGo.transform;
+                    emptyRect.SetParent(barRect, false);
+                    emptyRect.anchorMin = Vector2.zero;
+                    emptyRect.anchorMax = Vector2.zero;
+                    emptyRect.pivot = Vector2.zero;
+                    emptyRect.anchoredPosition = new Vector2(x, 0f);
+                    emptyRect.sizeDelta = new Vector2(SlotSize, SlotSize);
+
+                    var emptyImage = emptyGo.GetComponent<Image>();
+                    emptyImage.color = SlotPlate;
+
+                    // Не ловит указатель: иначе пустое гнездо перехватывало бы
+                    // клики, которые предназначены полю боя под панелью.
+                    emptyImage.raycastTarget = false;
+                    continue;
+                }
+
+                var ability = abilities.Abilities[i];
 
                 var slotGo = new GameObject("Slot" + (i + 1), typeof(Image));
                 var slotRect = (RectTransform)slotGo.transform;
@@ -767,15 +973,18 @@ namespace IsoRPG.Combat
             if (width <= 0f) width = PanelWidth;
             if (height <= 0f) height = PanelHeight;
 
-            var art = Resources.Load<Sprite>(sprite);
+            // Рамки могут быть выключены общим рубильником. Тогда сюда же
+            // приходим без картинки — и панель собирается плашкой ТОГО ЖЕ
+            // размера, а не через CreatePanel: тот жёстко берёт размеры
+            // панели игрока, и панель цели с её собственной шириной уехала бы
+            // вместе со всем содержимым.
+            var art = IsoRPG.UI.UiFrames.Enabled ? Resources.Load<Sprite>(sprite) : null;
 
-            if (art == null)
+            if (art == null && IsoRPG.UI.UiFrames.Enabled)
             {
                 Debug.LogWarning("[IsoRPG] Нет спрайта " + sprite +
                                  " — панель нарисована плашкой. Прогони " +
                                  "Tools/IsoRPG/Настроить панели интерфейса.");
-
-                return CreatePanel(parent, name, position);
             }
 
             var go = new GameObject(name, typeof(Image));
@@ -789,9 +998,31 @@ namespace IsoRPG.Combat
             rect.sizeDelta = new Vector2(width, height);
 
             var image = go.GetComponent<Image>();
-            image.sprite = art;
-            image.type = Image.Type.Simple;
             image.raycastTarget = false;
+
+            if (art != null)
+            {
+                image.sprite = art;
+                image.type = Image.Type.Simple;
+            }
+            else
+            {
+                image.color = PanelColor;
+
+                // Тонкая светлая кромка — как у обычной панели: без неё
+                // тёмный прямоугольник на оливковой земле читается как грязь.
+                var edge = new GameObject("Edge", typeof(Image));
+                var edgeRect = (RectTransform)edge.transform;
+                edgeRect.SetParent(rect, false);
+                Stretch(edgeRect);
+                edgeRect.offsetMin = new Vector2(-1f, -1f);
+                edgeRect.offsetMax = new Vector2(1f, 1f);
+                edge.transform.SetAsFirstSibling();
+
+                var edgeImage = edge.GetComponent<Image>();
+                edgeImage.color = PanelEdge;
+                edgeImage.raycastTarget = false;
+            }
 
             return rect;
         }
@@ -1150,8 +1381,26 @@ namespace IsoRPG.Combat
 
         private void OnComboChanged(int points, int max)
         {
+            // Подменяем картинку, а не красим одну: у нас две нарисованные —
+            // пустое гнездо и зажжённый в нём камень. Они вырезаны в один
+            // размер до пикселя, поэтому подмена не двигает ряд.
+            var lit = Resources.Load<Sprite>("UI/Combo_Full");
+            var dim = Resources.Load<Sprite>("UI/Combo_Empty");
+
             for (int i = 0; i < comboDots.Count; i++)
-                comboDots[i].color = i < points ? ComboFull : ComboEmpty;
+            {
+                bool on = i < points;
+
+                if (lit != null && dim != null)
+                {
+                    comboDots[i].sprite = on ? lit : dim;
+                    comboDots[i].color = Color.white;
+                }
+                else
+                {
+                    comboDots[i].color = on ? ComboFull : ComboEmpty;
+                }
+            }
         }
 
         /// <summary>
@@ -1227,6 +1476,106 @@ namespace IsoRPG.Combat
         public void HideNeutral()
         {
             if (neutralPanel != null) neutralPanel.SetActive(false);
+        }
+
+        /// <summary>
+        /// Показать панель наведения у курсора.
+        /// </summary>
+        /// <param name="title">Имя, уже переведённое.</param>
+        /// <param name="hint">Что сделает нажатие. Пусто — строки не будет.</param>
+        /// <param name="portrait">Лицо. Может не быть — у сундука его нет.</param>
+        /// <param name="hostile">
+        /// Враг ли. От этого зависит и рамка, и полоса жизни: полосу рисуем
+        /// только тем, кого можно бить, иначе она обещает то, чего нельзя.
+        /// </param>
+        /// <param name="health">Текущее здоровье.</param>
+        /// <param name="maxHealth">Наибольшее здоровье.</param>
+        /// <param name="screenPosition">Курсор в пикселях экрана.</param>
+        public void ShowHover(string title, string hint, Sprite portrait,
+                              bool hostile, int health, int maxHealth,
+                              Vector2 screenPosition)
+        {
+            if (hoverPanel == null) return;
+
+            hoverPanel.SetActive(true);
+
+            if (hoverFrame != null && IsoRPG.UI.UiFrames.Enabled)
+            {
+                var art = Resources.Load<Sprite>(hostile ? "UI/Frame_Enemy"
+                                                         : "UI/Frame_Neutral");
+                if (art != null) hoverFrame.sprite = art;
+            }
+
+            if (hoverPortrait != null)
+            {
+                hoverPortrait.sprite = portrait;
+                hoverPortrait.enabled = portrait != null;
+            }
+
+            if (hoverNameText != null) hoverNameText.text = title;
+
+            if (hoverHintText != null)
+            {
+                hoverHintText.text = hint;
+                hoverHintText.enabled = !string.IsNullOrEmpty(hint);
+            }
+
+            if (hoverHealthHost != null) hoverHealthHost.SetActive(hostile);
+
+            // Тем же SetBar, что и все остальные полосы: заполнение у нас
+            // делается масштабом, а не якорями, и своя копия этой логики
+            // разошлась бы с общей при первой правке.
+            if (hostile) SetBar(hoverHealthFill, hoverHealthText, health, maxHealth);
+
+            PlaceHoverAt(screenPosition);
+        }
+
+        public void HideHover()
+        {
+            if (hoverPanel != null) hoverPanel.SetActive(false);
+        }
+
+        /// <summary>
+        /// Поставить панель у курсора, не дав ей вылезти за экран.
+        ///
+        /// Переворачиваем на другую сторону курсора, а не просто упираем в
+        /// край: прижатая к краю панель накрыла бы то самое существо, на
+        /// которое человек навёл, — а у края экрана это случается постоянно,
+        /// потому что там и стоят те, к кому подходят.
+        /// </summary>
+        private void PlaceHoverAt(Vector2 screenPosition)
+        {
+            if (hoverPanelRect == null) return;
+
+            var area = hudCanvas != null ? hudCanvas.transform as RectTransform : null;
+            if (area == null) return;
+
+            float scale = hudCanvas.scaleFactor;
+            if (scale <= 0f) scale = 1f;
+
+            // Экранные пиксели в единицы холста. Отсчёт по вертикали сверху:
+            // панель привязана к левому верхнему углу, как и остальные.
+            float x = screenPosition.x / scale;
+            float y = (Screen.height - screenPosition.y) / scale;
+
+            float w = area.rect.width;
+            float h = area.rect.height;
+
+            // Подсказка висит под рамкой, поэтому занятая высота больше самой
+            // панели — иначе строка уезжала бы за нижний край незамеченной.
+            const float hintRoom = 18f;
+            float taken = HoverPanelHeight + hintRoom;
+
+            float px = x + HoverCursorGap;
+            if (px + HoverPanelWidth > w) px = x - HoverCursorGap - HoverPanelWidth;
+
+            float py = y + HoverCursorGap;
+            if (py + taken > h) py = y - HoverCursorGap - taken;
+
+            px = Mathf.Clamp(px, 0f, Mathf.Max(0f, w - HoverPanelWidth));
+            py = Mathf.Clamp(py, 0f, Mathf.Max(0f, h - taken));
+
+            hoverPanelRect.anchoredPosition = new Vector2(px, -py);
         }
 
         private void OnTargetChanged(Targetable target)

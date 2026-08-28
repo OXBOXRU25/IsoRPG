@@ -3,6 +3,7 @@ using UnityEngine;
 using IsoRPG.Localization;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using IsoRPG.UI;
 using IsoRPG.Combat;
 
 namespace IsoRPG.Items
@@ -268,17 +269,24 @@ namespace IsoRPG.Items
             rect.anchoredPosition = new Vector2(Margin, -(Margin + 90f));
             rect.sizeDelta = new Vector2(Width, height);
 
-            go.GetComponent<Image>().color = PanelColor;
+            // Нарисованная рамка вместо плоской плашки. Заливка и
+            // обводка нужны только тому, кому рамки не досталось: у неё
+            // есть собственный контур, и вторая линия вокруг него читается
+            // как лишний кант.
+            if (!WindowChrome.ApplyFrame(go))
+            {
+                go.GetComponent<Image>().color = PanelColor;
 
-            var edge = new GameObject("Edge", typeof(Image));
-            var edgeRect = (RectTransform)edge.transform;
-            edgeRect.SetParent(rect, false);
-            edgeRect.anchorMin = Vector2.zero;
-            edgeRect.anchorMax = Vector2.one;
-            edgeRect.offsetMin = new Vector2(-1f, -1f);
-            edgeRect.offsetMax = new Vector2(1f, 1f);
-            edge.transform.SetAsFirstSibling();
-            edge.GetComponent<Image>().color = PanelEdge;
+                var edge = new GameObject("Edge", typeof(Image));
+                var edgeRect = (RectTransform)edge.transform;
+                edgeRect.SetParent(rect, false);
+                edgeRect.anchorMin = Vector2.zero;
+                edgeRect.anchorMax = Vector2.one;
+                edgeRect.offsetMin = new Vector2(-1f, -1f);
+                edgeRect.offsetMax = new Vector2(1f, 1f);
+                edge.transform.SetAsFirstSibling();
+                edge.GetComponent<Image>().color = PanelEdge;
+            }
 
             var title = MakeText(rect, "Title", "Персонаж", 14, TextColor);
             Place(title, new Vector2(Pad, -Pad), new Vector2(Width - Pad * 2f, TitleHeight));
@@ -503,8 +511,19 @@ namespace IsoRPG.Items
             backRect.sizeDelta = new Vector2(ModelColumnWidth - 12f, boxHeight);
 
             var back = backGo.GetComponent<Image>();
-            back.color = SlotEmpty;
-            back.raycastTarget = false;
+
+            // Прозрачная, а не своего цвета: витрина посреди окна не должна
+            // читаться отдельной плашкой — окно одно, и подложка под моделью
+            // делила его надвое.
+            //
+            // Но и убрать её нельзя: Image здесь ловит перетаскивание, которым
+            // героя разворачивают. Прозрачная картинка события принимает
+            // по-прежнему, а видно её не будет.
+            back.color = new Color(0f, 0f, 0f, 0f);
+            back.raycastTarget = true;
+
+            var spin = backGo.AddComponent<ModelSpinner>();
+            spin.Setup(this);
 
             modelBox = backRect;
         }
@@ -850,6 +869,49 @@ namespace IsoRPG.Items
             rect.pivot = new Vector2(0f, 1f);
             rect.anchoredPosition = position;
             rect.sizeDelta = size;
+        }
+
+        /// <summary>Отдать витрине доворот, который натянул игрок мышью.</summary>
+        internal void SpinModel(float degrees)
+        {
+            if (preview != null) preview.Spin(degrees);
+        }
+    }
+
+    /// <summary>
+    /// Разворот героя перетаскиванием по витрине.
+    ///
+    /// Отдельным компонентом, а не строчкой в окне: интерфейсы перетаскивания
+    /// требуют MonoBehaviour на том же объекте, где стоит картинка, ловящая
+    /// события. Здесь этот объект — прозрачная подложка витрины.
+    ///
+    /// Слушаем именно перетаскивание, а не движение мыши: без нажатой кнопки
+    /// герой крутился бы от одного проезда курсора мимо, и попасть по слоту
+    /// снаряжения рядом стало бы невозможно.
+    /// </summary>
+    internal sealed class ModelSpinner : MonoBehaviour, UnityEngine.EventSystems.IDragHandler
+    {
+        /// <summary>
+        /// Градусов на пиксель. Треть — подобрано так, чтобы полный оборот
+        /// занимал примерно ширину витрины: тогда движение читается как
+        /// «толкнул героя рукой», а не как рывок.
+        /// </summary>
+        private const float DegreesPerPixel = 0.45f;
+
+        private CharacterHud owner;
+
+        public void Setup(CharacterHud hud)
+        {
+            owner = hud;
+        }
+
+        public void OnDrag(UnityEngine.EventSystems.PointerEventData eventData)
+        {
+            if (owner == null) return;
+
+            // Минус: тянешь вправо — герой поворачивается к тебе правым боком,
+            // как будто ты крутишь его самого, а не сцену вокруг него.
+            owner.SpinModel(-eventData.delta.x * DegreesPerPixel);
         }
     }
 }

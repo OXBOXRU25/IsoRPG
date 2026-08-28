@@ -34,6 +34,21 @@ namespace IsoRPG.Combat
         private float nextCheck;
         private bool shown;
 
+        /// <summary>
+        /// Показывать ли силуэты сквозь препятствия.
+        ///
+        /// Выключено по наблюдению из WoW: там за стеной не подсвечивается
+        /// ни персонаж, ни моб — и это не упущение, а решение. Силуэт
+        /// сквозь стену обещает, что до цели можно дотянуться, хотя между
+        /// вами кладка; плюс он ломает ощущение плотного мира, где стена
+        /// это стена.
+        ///
+        /// Оставлено переключателем, а не вырезано: если в подземелье с
+        /// узкими коридорами окажется, что без силуэтов теряешь себя за
+        /// колоннами, вернуть их — одно значение.
+        /// </summary>
+        public static bool Enabled = false;
+
         public void Setup(Material material) => silhouette = material;
 
         /// <summary>
@@ -155,7 +170,7 @@ namespace IsoRPG.Combat
                 if (renderer == null) continue;
                 if (!plain.TryGetValue(renderer, out var original)) continue;
 
-                if (!withSilhouette)
+                if (!Enabled || !withSilhouette)
                 {
                     renderer.sharedMaterials = original;
                     continue;

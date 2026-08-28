@@ -37,6 +37,7 @@ namespace IsoRPG.Player
 
         private NavMeshAgent agent;
         private float smoothedSpeed;
+        private KeyboardMove keys;
 
         private void Awake()
         {
@@ -52,6 +53,12 @@ namespace IsoRPG.Player
             // и на поворотах она отличается, и анимация должна следовать за тем,
             // что происходит на экране, а не за намерением.
             float speed = agent.velocity.magnitude;
+
+            // Клавиши двигают героя мимо пути агента, и его собственная
+            // скорость при этом остаётся нулевой. Спрашиваем у того, кто
+            // ведёт, иначе на WASD персонаж скользит по земле стоя.
+            if (keys == null) keys = GetComponent<KeyboardMove>();
+            if (keys != null && keys.IsSteering) speed = keys.Speed;
             if (speed < idleThreshold) speed = 0f;
 
             // Разгон сглаживаем мягко, торможение — резко. Асимметрия здесь не

@@ -72,6 +72,13 @@ namespace IsoRPG.Combat
 
         private void Awake()
         {
+            // Разведение тел — каждому монстру.
+            //
+            // Ставится в коде, а не в сборщике сцены: сборщик строит
+            // песочницу с нуля, и ради одного компонента пришлось бы
+            // пересобирать всё, что мы в сцену поставили руками.
+            if (GetComponent<BodySpace>() == null) gameObject.AddComponent<BodySpace>();
+
             targets = GetComponent<TargetSelector>();
             health = GetComponent<Health>();
             agent = GetComponent<NavMeshAgent>();

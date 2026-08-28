@@ -524,18 +524,45 @@ namespace IsoRPG.EditorTools
         }
 
         /// <summary>
-        /// Модель предмета из набора KayKit. Пусто — предмет будет невидим
+        /// Модель предмета из набора Synty. Пусто — предмет будет невидим
         /// в руке, поэтому о промахе говорим вслух.
+        ///
+        /// Имена приходят из старого набора KayKit («dagger», «sword_1handed»),
+        /// поэтому здесь стоит перевод на имена Synty. Переименовывать вызовы
+        /// по всему файлу дороже и рискованнее: имя предмета участвует ещё и
+        /// в подборе иконки.
         /// </summary>
         private static GameObject LoadModel(string fileName)
         {
-            string path = "Assets/_Game/Art/KayKit/Weapons/" + fileName + ".fbx";
+            string path = SyntyWeapon(fileName);
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
 
             if (model == null)
                 Debug.LogWarning("[IsoRPG] Не найдена модель " + path + " — предмет останется невидимым.");
 
             return model;
+        }
+
+        /// <summary>
+        /// Путь к модели Synty под старое имя из набора KayKit.
+        ///
+        /// Пути полные, а не имя плюс общая папка: оружие Synty разложено по
+        /// двум наборам — клинки и топоры в Fantasy Kingdom, луки там же, но
+        /// с приставкой Prop, а кинжал персонажей в Fantasy Characters.
+        /// Собирать путь из кусков тут значит каждый раз промахиваться.
+        /// </summary>
+        private static string SyntyWeapon(string fileName)
+        {
+            const string Kingdom = "Assets/Synty/PolygonFantasyKingdom/Prefabs/Weapons/";
+
+            switch (fileName)
+            {
+                case "sword_1handed":  return Kingdom + "SM_Wep_Sword_01.prefab";
+                case "sword_2handed":  return Kingdom + "SM_Wep_Sword_02.prefab";
+                case "axe_1handed":    return Kingdom + "SM_Wep_Axe_01.prefab";
+                case "bow":            return Kingdom + "SM_Prop_Bow_01.prefab";
+                default:               return Kingdom + "SM_Wep_Dagger_01.prefab";
+            }
         }
     }
 

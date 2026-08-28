@@ -354,6 +354,11 @@ namespace IsoRPG.EditorTools
             selector.SetFaction(Faction.Player);
 
             player.AddComponent<PlayerInputRouter>();
+
+            // Наведение — рядом с кликом и после него: щуп берёт у обработчика
+            // клика слои и дальность, чтобы подсказка не обещала того, чего
+            // нажатие не сделает.
+            player.AddComponent<HoverInspector>();
             player.AddComponent<MeleeCombatant>();
 
             // Ресурсы разбойника: энергия копится сама, комбо-очки живут на цели.
@@ -431,6 +436,10 @@ namespace IsoRPG.EditorTools
             // и его выбранная цель, а оба живут здесь же.
             player.AddComponent<CombatHud>();
             player.AddComponent<CombatLogHud>();
+
+            // Миникарта тоже на игроке: её камера ходит за ним, а стрелка
+            // показывает, куда он смотрит, — обе величины живут здесь.
+            player.AddComponent<IsoRPG.UI.Minimap>();
             SetupPreview(player.AddComponent<IsoRPG.Items.CharacterPreview>());
 
             player.AddComponent<IsoRPG.Items.InventoryHud>();
@@ -645,6 +654,48 @@ namespace IsoRPG.EditorTools
 
                 (BanditCampBuilder.Centre + new Vector3( 0f, 0f, -8f), "Атаман Кривой Клык", 210, 4, 70, "LT_Bandit_Chief", "Bandit_Guard",
                  "sword_1handed", "shield_round", false),
+
+                // --- Звери и упыри ---
+                //
+                // Волки в лесу между руинами и лагерем разбойников: дорога
+                // туда была самой пустой на карте, а стая по пути — это
+                // именно то, чем лес должен быть опасен. Оружия у них нет и
+                // быть не может, поэтому в обеих руках пусто: бьют пастью,
+                // и удар им даёт собственная анимация.
+                (new Vector3(-34f, 0f, -20f), "Волк",              70, 2, 15, "LT_Drifter", "Wolf_Brown",
+                 null, null, false),
+
+                (new Vector3(-38f, 0f, -24f), "Волк",              70, 2, 15, "LT_Drifter", "Wolf_Brown",
+                 null, null, false),
+
+                // Чёрный крупнее и злее — вожак стаи. Стоит с двумя бурыми,
+                // чтобы разница читалась сразу, а не в отдельной стычке.
+                (new Vector3(-36f, 0f, -28f), "Волк-вожак",       130, 3, 30, "LT_Thug",    "Wolf_Black",
+                 null, null, false),
+
+                // Белый — одиночка на дальней окраине. Редкий и заметно
+                // сильнее: встретить его должно быть событием.
+                (new Vector3(-52f, 0f, -12f), "Белый волк",       180, 4, 45, "LT_Bandit_Chief", "Wolf_White",
+                 null, null, false),
+
+                // Упыри — в склепе, к нежити. Они и есть нежить, а склеп у
+                // нас единственное место, где она дома.
+                (RuinsLayout.CryptCentre + new Vector3(-9f, 0f,  3f), "Упырь",             90, 2, 25, "LT_Bandit",  "Ghoul",
+                 null, null, false),
+
+                (RuinsLayout.CryptCentre + new Vector3( 9f, 0f,  3f), "Упырь-падальщик",   80, 2, 20, "LT_Drifter", "Ghoul_Scavenger",
+                 null, null, false),
+
+                (RuinsLayout.CryptCentre + new Vector3(-3f, 0f,  9f), "Гниющий упырь",    120, 3, 40, "LT_Thug",    "Ghoul_Festering",
+                 null, null, false),
+
+                (RuinsLayout.CryptCentre + new Vector3( 3f, 0f,  9f), "Гротескный упырь", 140, 3, 45, "LT_Thug",    "Ghoul_Grotesque",
+                 null, null, false),
+
+                // Вожак упырей — второй по силе после владыки склепа. Не
+                // равный ему: у склепа должен остаться один хозяин.
+                (RuinsLayout.CryptCentre + new Vector3( 0f, 0f, 13f), "Вожак упырей",     190, 4, 60, "LT_Bandit_Chief", "Ghoul_Boss",
+                 null, null, false),
             };
 
             var material = GetOrCreateMaterial("M_Dummy", DummyColor, smoothness: 0.1f);
@@ -1490,8 +1541,11 @@ namespace IsoRPG.EditorTools
         {
             var surface = ground.AddComponent<NavMeshSurface>();
             surface.collectObjects = CollectObjects.All;
-            surface.useGeometry = NavMeshCollectGeometry.RenderMeshes;
-            surface.BuildNavMesh();
+
+            // По коллайдерам, а не по нарисованным мешам. Почему именно так —
+            // подробно в NavBake: кроной дерева навигация вырезала круг,
+            // куда не ступить.
+            NavBake.Rebake();
 
             if (surface.navMeshData == null)
             {

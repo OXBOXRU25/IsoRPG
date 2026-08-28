@@ -41,7 +41,32 @@ namespace IsoRPG.Items
         private Camera stageCamera;
         private RenderTexture texture;
 
+        /// <summary>
+        /// Сама модель — её крутит игрок мышью.
+        ///
+        /// Крутим модель, а не камеру: свет расставлен вокруг сцены и должен
+        /// оставаться на месте. Поверни камеру — и герой поедет из света в
+        /// тень, что читается как поломка освещения, а не как поворот.
+        /// </summary>
+        private Transform modelPivot;
+
+        /// <summary>Стартовый доворот — к нему же возвращаемся при открытии.</summary>
+        private const float BaseYaw = 20f;
+
+        private float yaw = BaseYaw;
+
         public RenderTexture Texture => texture;
+
+        /// <summary>
+        /// Довернуть героя вокруг вертикальной оси. Градусы, знак — сторона.
+        /// </summary>
+        public void Spin(float degrees)
+        {
+            if (modelPivot == null) return;
+
+            yaw += degrees;
+            modelPivot.localRotation = Quaternion.Euler(0f, yaw, 0f);
+        }
 
         public void Setup(GameObject model, RuntimeAnimatorController controller)
         {
@@ -105,7 +130,11 @@ namespace IsoRPG.Items
             // на затылок. Камера глядит вдоль минус-Z, значит герою нужен
             // нулевой угол; двадцать градусов доворота убирают эффект
             // паспортного фото, не пряча ни одной руки.
-            model.transform.localRotation = Quaternion.Euler(0f, 20f, 0f);
+            model.transform.localRotation = Quaternion.Euler(0f, BaseYaw, 0f);
+
+            // Запоминаем, чтобы игрок мог довернуть героя мышью.
+            modelPivot = model.transform;
+            yaw = BaseYaw;
 
             SetLayer(model, PreviewLayer);
 

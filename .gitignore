@@ -91,3 +91,42 @@ tools/logo-web.png
 # Аварийная копия сцены, которую Unity делает после падения редактора.
 _Recovery/
 _Recovery.meta
+
+
+# ============================================================
+#  Покупные наборы, импортированные в Assets.
+#  Куплены и лежат исходниками в H:\Store — восстанавливаются
+#  одной командой:
+#      node tools/import-unitypackage.mjs <файл.unitypackage>
+#  В репозитории это три с лишним гигабайта чужого арта,
+#  который никогда не меняется. Список папок — в PackCatalog.cs.
+# ============================================================
+
+IsoRPG/Assets/PolygonDungeon/
+IsoRPG/Assets/PolygonDungeon.meta
+IsoRPG/Assets/PolygonElvenRealm/
+IsoRPG/Assets/PolygonElvenRealm.meta
+IsoRPG/Assets/Synty/
+IsoRPG/Assets/Synty.meta
+IsoRPG/Assets/Remesh Games/
+IsoRPG/Assets/Remesh Games.meta
+IsoRPG/Assets/Ilumisoft/
+IsoRPG/Assets/Ilumisoft.meta
+IsoRPG/Assets/BitGem/
+IsoRPG/Assets/BitGem.meta
+IsoRPG/Assets/Polygonal Wolf/
+IsoRPG/Assets/Polygonal Wolf.meta
+IsoRPG/Assets/DarkPixelRPGUI/
+IsoRPG/Assets/DarkPixelRPGUI.meta
+IsoRPG/Assets/PolygonFantasyHeroCharacters/
+IsoRPG/Assets/PolygonFantasyHeroCharacters.meta
+IsoRPG/Assets/StylizedCharacter/
+IsoRPG/Assets/StylizedCharacter.meta
+IsoRPG/Assets/TriForge Assets/
+IsoRPG/Assets/TriForge Assets.meta
+IsoRPG/Assets/BeautifulSky/
+IsoRPG/Assets/BeautifulSky.meta
+IsoRPG/Assets/BruteForce-GrassShader/
+IsoRPG/Assets/BruteForce-GrassShader.meta
+IsoRPG/Assets/PolygonNatureBiomes/
+IsoRPG/Assets/PolygonNatureBiomes.meta

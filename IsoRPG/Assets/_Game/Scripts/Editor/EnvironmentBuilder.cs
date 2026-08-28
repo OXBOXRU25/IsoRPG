@@ -94,13 +94,28 @@ namespace IsoRPG.EditorTools
 
         private static void BuildRuins(Transform root)
         {
-            var ruins = new GameObject("Ruins").transform;
+            BuildMap(root, RuinsLayout.Map, Vector3.zero, "Ruins");
+        }
+
+        /// <summary>
+        /// Строит постройку по ЛЮБОЙ карте символов, в любой точке мира.
+        ///
+        /// Раньше постройка была намертво связана с одной картой и всегда
+        /// центрировалась вокруг нуля — то есть вторую карту поставить было
+        /// нельзя вовсе, хотя формат для того и заводился, чтобы планировки
+        /// рисовались и пробовались. Теперь карта и место — параметры, а
+        /// словарь символов и правила остаются общими: новая планировка
+        /// ставится одной строкой.
+        /// </summary>
+        public static Transform BuildMap(Transform root, string[] map, Vector3 origin, string name)
+        {
+            var ruins = new GameObject(name).transform;
             ruins.SetParent(root, false);
+            ruins.localPosition = origin;
 
             float cell = MeasureWidth(DungeonFolder + "/wall.fbx");
             if (cell < 0.5f) cell = 4f;
 
-            var map = RuinsLayout.Map;
             int rows = map.Length;
             int cols = 0;
             foreach (var line in map) cols = Mathf.Max(cols, line.Length);
@@ -171,6 +186,8 @@ namespace IsoRPG.EditorTools
             }
 
             Decorate(ruins, map, cell, offsetX, offsetZ);
+
+            return ruins;
         }
 
         /// <summary>

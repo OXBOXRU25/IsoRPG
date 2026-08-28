@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &5799668354723634124
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_RootOrder
+      value: 298
+      objectReference: {fileID: 0}
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.675334
+      objectReference: {fileID: 0}
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.6753325
+      objectReference: {fileID: 0}
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2.6753337
+      objectReference: {fileID: 0}
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -67.62
+      objectReference: {fileID: 0}
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 37.46
+      objectReference: {fileID: 0}
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -25.286348
+      objectReference: {fileID: 0}
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.70710784
+      objectReference: {fileID: 0}
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.70710576
+      objectReference: {fileID: 0}
+    - target: {fileID: 4092146410680874, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9931c9ca45189e940a18ab98b558fffc, type: 3}

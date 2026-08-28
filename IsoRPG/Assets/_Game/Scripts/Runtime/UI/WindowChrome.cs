@@ -27,6 +27,311 @@ namespace IsoRPG.UI
         private const float Size = 26f;
 
         /// <summary>
+        /// На сколько рамка выступает за края панели.
+        ///
+        /// Рамка кладётся ОТДЕЛЬНЫМ слоем позади и крупнее панели, а не на
+        /// саму панель. Причина простая: содержимое окон расставлено вручную
+        /// по координатам от краёв, и если бы рамка съедала место внутри,
+        /// пришлось бы двигать каждую надпись в шести окнах. Так не двигается
+        /// ничего — окно просто получает раму снаружи, как картина.
+        ///
+        /// Двадцать два — видимая стенка рамки (около 14 при нашем множителе)
+        /// плюс запас, чтобы содержимое не липло к золоту.
+        /// </summary>
+        private const float FrameBleed = 22f;
+
+        /// <summary>
+        /// Толщина рамки на экране.
+        ///
+        /// Всё остальное считается от неё, поэтому разъехаться нечему. Двадцать
+        /// шесть — столько, чтобы золотая линия и каменная кромка внутри неё
+        /// остались различимы: при двадцати они сливаются в одну полосу.
+        /// </summary>
+        private const float Border = 28f;
+
+        /// <summary>
+        /// Во сколько раз угол крупнее толщины рамки.
+        ///
+        /// Считается из одного числа: какую долю детали занимает сама кромка,
+        /// а не внутренность окна за ней. Деталь 451 на 451, и кромка в ней
+        /// кончается на 197 пикселе сверху и на 200 слева — то есть занимает
+        /// **44%**, а дальше идёт светлая поверхность будущего окна.
+        ///
+        /// Здесь раньше стояло 77% и множитель 1.3. Число было взято на глаз
+        /// и оказалось почти вдвое завышенным: при толщине рамки 28 кромка
+        /// угла выходила 15.9 пикселя против 28 у полос. Угол читался
+        /// утопленным внутрь — рамка в нём вдвое тоньше, и светлая
+        /// внутренность подступала к самому краю. Заметно это именно на
+        /// стыке с полосой, где две толщины лежат рядом.
+        ///
+        /// Замер, а не подбор: множитель обязан быть 1/0.44, иначе кромки
+        /// снова разойдутся. При Border 28 угол выходит 63.6 — значит окно
+        /// не должно быть уже и ниже 128, иначе углы сойдутся посередине.
+        /// Самое маленькое из наших — 750 на 228.
+        /// </summary>
+        private const float CornerRim = 0.44f;
+        private const float CornerScale = 1f / CornerRim;
+
+        /// <summary>
+        /// Насколько полоса отступает внутрь от края угла, в долях толщины.
+        ///
+        /// Ноль. Здесь стояло 0.052, и это была не поправка на рисунок, а
+        /// компенсация завышенного CornerScale выше: полосу двигали, чтобы
+        /// скрыть разъехавшийся стык. Причину исправили — подпорка не нужна.
+        /// Мягкий край у детали есть, но он в две точки исходника из 451, то
+        /// есть сотая доля пикселя на экране.
+        /// </summary>
+        private const float EdgeInset = 0f;
+
+        /// <summary>Цвет поверхности внутри рамки — базовый цвет окон.</summary>
+        private static readonly Color Face = new Color32(0x1C, 0x1A, 0x16, 0xF4);
+
+        /// <summary>
+        /// Одеть окно в рамку, собранную из деталей.
+        ///
+        /// Не одной картинкой, а углом и повторяющейся полосой. Причина в том,
+        /// что окна у нас от 340 до 750 пикселей, а цельная рамка при
+        /// растяжении портит всё, что нарисовано в её середине: ромб на кромке
+        /// вытягивался в лепёшку, узор размазывался. У собранной из деталей
+        /// такой беды нет по построению — тянется только то, что для этого и
+        /// нарисовано.
+        ///
+        /// Возвращает false, если деталей нет: тогда вызывающий оставляет
+        /// прежнюю плоскую заливку с обводкой. Молча получить окно без фона
+        /// хуже, чем некрасивое окно.
+        /// </summary>
+        public static bool ApplyFrame(GameObject panel)
+        {
+            if (panel == null) return false;
+
+            // Рамки выключены общим рубильником — окно остаётся плашкой.
+            if (!UiFrames.Enabled) return false;
+
+            var cornerSprite = Resources.Load<Sprite>("UI/Win2_Corner");
+            var edgeSprite = Resources.Load<Sprite>("UI/Win2_Edge");
+
+            if (cornerSprite == null || edgeSprite == null)
+            {
+                Debug.LogWarning("[IsoRPG] Нет деталей рамки UI/Win2_Corner " +
+                                 "и UI/Win2_Edge — окно осталось плашкой.");
+                return false;
+            }
+
+            // Своя заливка панели больше не нужна: поверхность даёт рамка.
+            // Прозрачной, а не выключенной — Image продолжает ловить клики, и
+            // окно по-прежнему можно таскать за любое пустое место.
+            var own = panel.GetComponent<Image>();
+            if (own != null)
+            {
+                own.sprite = null;
+                own.color = new Color(0f, 0f, 0f, 0f);
+            }
+
+            var root = new GameObject("Frame", typeof(RectTransform));
+            var frame = (RectTransform)root.transform;
+            frame.SetParent((RectTransform)panel.transform, false);
+
+            frame.anchorMin = Vector2.zero;
+            frame.anchorMax = Vector2.one;
+            frame.offsetMin = new Vector2(-FrameBleed, -FrameBleed);
+            frame.offsetMax = new Vector2(FrameBleed, FrameBleed);
+
+            // Первым в списке — значит рисуется раньше всех детей, то есть
+            // под ними. Иначе рама легла бы поверх содержимого.
+            frame.SetAsFirstSibling();
+
+            var element = root.AddComponent<LayoutElement>();
+            element.ignoreLayout = true;
+
+            // Поверхность внутри рамки. Пока плоская: плитки у нас ещё нет, а
+            // окно без фона — прозрачная дыра, сквозь которую видно бой.
+            var face = MakePiece(frame, "Face", null);
+            face.rectTransform.anchorMin = Vector2.zero;
+            face.rectTransform.anchorMax = Vector2.one;
+            // Ровно на толщину рамки, не меньше.
+            //
+            // Здесь стояло 0.8 от толщины — поверхность заканчивалась, не
+            // дойдя до кромки, и в зазор был виден тот кусок детали угла,
+            // ради которого всё и переделывалось (см. ниже).
+            face.rectTransform.offsetMin = new Vector2(Border, Border);
+            face.rectTransform.offsetMax = new Vector2(-Border, -Border);
+            face.color = Face;
+
+            float corner = Border * CornerScale;
+            float inset = Border * EdgeInset;
+
+            // --- Края ---
+            //
+            // Плитка вдоль своей оси: Tiled повторяет спрайт целиком, не
+            // растягивая, поэтому рисунок не поедет на окне любой ширины.
+            //
+            // Вертикальные стороны — отдельная картинка, повёрнутая заранее, а
+            // не поворот объекта. Повёрнутый RectTransform не умеет тянуться
+            // якорями: он растянулся бы по ширине окна, будучи при этом его
+            // боком.
+            var edgeV = Resources.Load<Sprite>("UI/Win2_EdgeV");
+
+            AddEdge(frame, edgeSprite, "EdgeTop", 1, corner, inset);
+            AddEdge(frame, edgeSprite, "EdgeBottom", 2, corner, inset);
+            AddEdge(frame, edgeV ?? edgeSprite, "EdgeLeft", 3, corner, inset);
+            AddEdge(frame, edgeV ?? edgeSprite, "EdgeRight", 4, corner, inset);
+
+            // --- Углы ---
+            //
+            // Один рисунок в четырёх отражениях. Деталь нарисована левым
+            // верхним углом, остальные три получаются зеркалами — потому и
+            // важно было заказать её именно в этой ориентации.
+            AddCorner(frame, cornerSprite, "CornerTL", 0f, 1f, corner, 1f, 1f);
+            AddCorner(frame, cornerSprite, "CornerTR", 1f, 1f, corner, -1f, 1f);
+            AddCorner(frame, cornerSprite, "CornerBL", 0f, 0f, corner, 1f, -1f);
+            AddCorner(frame, cornerSprite, "CornerBR", 1f, 0f, corner, -1f, -1f);
+
+            // Поверхность — ПОВЕРХ деталей рамки, и это главное здесь.
+            //
+            // Деталь угла состоит из двух частей: кромка это внешние 44%, а
+            // внутренние 56% — светлая поверхность (#876743) того окна, для
+            // которого угол рисовали. Вырезать её нельзя, она L-образная. И
+            // пока поверхность лежала ПОД деталями, в каждом углу поверх
+            // тёмного нутра окна оставалось светлое пятно размером во всю
+            // внутреннюю часть угла.
+            //
+            // Раньше пятно было 20 пикселей и терялось; когда множитель угла
+            // исправили с 1.3 на верные 2.27, оно выросло до 36 и полезло в
+            // глаза квадратами. То есть предыдущая правка была верной, а
+            // видна стала эта беда, которая была всё это время.
+            //
+            // Теперь поверхность накрывает всё, что внутри кромки: отступ
+            // ровно Border, а рисуется последней. Кромке это не мешает —
+            // прямоугольник накрывает квадрат внутри угла, а сама кромка
+            // остаётся углом буквы Г снаружи от него.
+            face.transform.SetAsLastSibling();
+
+            return true;
+        }
+
+        /// <summary>Заготовка куска рамки: объект, картинка, без нажатий.</summary>
+        private static Image MakePiece(RectTransform parent, string name, Sprite sprite)
+        {
+            var go = new GameObject(name, typeof(Image));
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(parent, false);
+
+            var image = go.GetComponent<Image>();
+            image.sprite = sprite;
+            image.color = Color.white;
+
+            // Клики сквозь раму — они принадлежат панели под ней. Иначе рама
+            // перехватывала бы перетаскивание за собственные поля.
+            image.raycastTarget = false;
+
+            return image;
+        }
+
+        /// <summary>
+        /// Один край рамки. Сторона: 1 верх, 2 низ, 3 лево, 4 право.
+        ///
+        /// Растягивается якорями, а не заданным размером. Так надёжнее: размер
+        /// окна в момент сборки ещё не посчитан движком, и всё, что вычислено
+        /// из него здесь, вышло бы нулём. Якоря же считаются потом, когда
+        /// размеры уже известны.
+        /// </summary>
+        private static void AddEdge(RectTransform frame, Sprite sprite, string name,
+                                    int side, float corner, float inset)
+        {
+            var image = MakePiece(frame, name, sprite);
+            image.type = Image.Type.Tiled;
+
+            bool horizontal = side <= 2;
+
+            // Плитка повторяет спрайт в НАТУРАЛЬНУЮ величину, а полоса
+            // нарисована в 346 пикселей толщиной при рамке в 26. Без множителя
+            // в кромку попал бы обрезанный кусок середины полосы, и рисунка на
+            // ней было бы не узнать. Множитель ужимает плитку ровно до толщины
+            // рамки — тогда в кадр входит вся слоёнка целиком.
+            float thickness = horizontal ? sprite.rect.height : sprite.rect.width;
+            image.pixelsPerUnitMultiplier = Mathf.Max(1f, thickness / Border);
+
+            var rect = image.rectTransform;
+
+            // Точка привязки — в центре у всех четырёх.
+            //
+            // Отражение масштабом считается от неё: с привязкой у края
+            // отражённая полоса уезжает наружу на свою толщину. Ровно на этом
+            // до того разъехались углы.
+            rect.pivot = new Vector2(0.5f, 0.5f);
+
+            if (horizontal)
+            {
+                // Тянется по ширине между углами, толщина задана.
+                rect.anchorMin = new Vector2(0f, side == 1 ? 1f : 0f);
+                rect.anchorMax = new Vector2(1f, side == 1 ? 1f : 0f);
+                rect.offsetMin = new Vector2(corner, side == 1 ? -Border : 0f);
+                rect.offsetMax = new Vector2(-corner, side == 1 ? 0f : Border);
+            }
+            else
+            {
+                rect.anchorMin = new Vector2(side == 3 ? 0f : 1f, 0f);
+                rect.anchorMax = new Vector2(side == 3 ? 0f : 1f, 1f);
+                rect.offsetMin = new Vector2(side == 3 ? 0f : -Border, corner);
+                rect.offsetMax = new Vector2(side == 3 ? Border : 0f, -corner);
+            }
+
+            // Отражение противоположных сторон.
+            //
+            // Полоса нарисована для ВЕРХНЕЙ кромки: золото ближе к внутренней
+            // стороне, камень — к внешней. Нижняя и правая без зеркала идут тем
+            // же рисунком, и золото у них оказывается не с той стороны — рамка
+            // читается перекошенной, хотя геометрия верна.
+            rect.localScale = new Vector3(side == 4 ? -1f : 1f,
+                                          side == 2 ? -1f : 1f, 1f);
+
+            // Поправка на пустоту у верха угла: без неё полоса встаёт выше
+            // кромки на пару пикселей, и стык расходится там, где виднее всего.
+            var pos = rect.anchoredPosition;
+            if (side == 1) pos.y = -inset;
+            else if (side == 2) pos.y = inset;
+            else if (side == 3) pos.x = inset;
+            else pos.x = -inset;
+            rect.anchoredPosition = pos;
+        }
+
+        /// <summary>
+        /// Один угол. Знаки говорят, в какую сторону его отразить.
+        /// </summary>
+        private static void AddCorner(RectTransform frame, Sprite sprite, string name,
+                                      float ax, float ay, float size,
+                                      float flipX, float flipY)
+        {
+            var image = MakePiece(frame, name, sprite);
+
+            var rect = image.rectTransform;
+            rect.anchorMin = new Vector2(ax, ay);
+            rect.anchorMax = new Vector2(ax, ay);
+
+            // Точка привязки — в ЦЕНТРЕ, а не в углу.
+            //
+            // Это не мелочь: отражение масштабом считается относительно точки
+            // привязки. С привязкой в углу отражённый угол уезжает наружу
+            // ровно на свою ширину — и три из четырёх повисают в воздухе, а
+            // левый верхний остаётся на месте только потому, что его не
+            // отражают вовсе. Ровно это и было видно в игре.
+            //
+            // С привязкой в центре зеркало не двигает элемент никуда.
+            rect.pivot = new Vector2(0.5f, 0.5f);
+
+            // Раз привязка в центре, до угла надо доехать на половину размера.
+            rect.anchoredPosition = new Vector2(
+                (ax < 0.5f ? 1f : -1f) * size * 0.5f,
+                (ay < 0.5f ? 1f : -1f) * size * 0.5f);
+
+            rect.sizeDelta = new Vector2(size, size);
+
+            // Отражение масштабом, а не поворотом: поворот развернул бы рисунок
+            // накладки поперёк рамки, а нам нужно зеркало.
+            rect.localScale = new Vector3(flipX, flipY, 1f);
+        }
+
+        /// <summary>
         /// Общая обвязка окна: крестик в углу и полоса, за которую окно
         /// таскают мышью.
         ///
@@ -37,7 +342,24 @@ namespace IsoRPG.UI
         public static void AddCloseButton(RectTransform panel, Font font,
                                           UnityEngine.Events.UnityAction onClose)
         {
-            DraggableWindow.Attach(panel);
+            // Ручка обязана накрыть видимый верх окна, а он зависит от того,
+            // досталась ли окну нарисованная рамка: та выступает за панель на
+            // FrameBleed и уводит золотую кромку наружу от неё. Спрашиваем у
+            // самой панели, а не заводим ещё один флаг: ApplyFrame уже
+            // оставил на ней ровно один след с этим именем, и он же —
+            // единственный признак, который не разойдётся с правдой.
+            float overhang = panel.Find("Frame") != null ? FrameBleed : 0f;
+
+            DraggableWindow.Attach(panel, 30f, overhang);
+
+            // Нажатие в любую точку окна поднимает его над соседями — как в
+            // любой игре с окнами. Вешаем на саму панель: её картинка после
+            // ApplyFrame прозрачна, но нажатия ловит, поэтому событие придёт
+            // и с пустого места, и сквозь надписи. Кнопкам внутри это не
+            // мешает — они лежат выше и получают своё нажатие первыми, а
+            // подъём срабатывает по пути вверх по иерархии.
+            if (panel.GetComponent<WindowRaiser>() == null)
+                panel.gameObject.AddComponent<WindowRaiser>();
 
             var go = new GameObject("Close", typeof(Image), typeof(Button));
             var rect = (RectTransform)go.transform;
@@ -46,7 +368,12 @@ namespace IsoRPG.UI
             rect.anchorMin = new Vector2(1f, 1f);
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(1f, 1f);
-            rect.anchoredPosition = new Vector2(-4f, -4f);
+
+            // Отодвинут от угла из-за вымпела на рамке: тот занимает полосу
+            // примерно с седьмого по двадцать восьмой пиксель внутрь, и
+            // крестик, стоявший на четвёртом, ложился прямо на него и
+            // переставал читаться. Тридцать четыре — сразу за вымпелом.
+            rect.anchoredPosition = new Vector2(-34f, -8f);
             rect.sizeDelta = new Vector2(Size, Size);
 
             var plate = go.GetComponent<Image>();
@@ -87,6 +414,32 @@ namespace IsoRPG.UI
             // слишком громко для кнопки, которую задевают мимоходом.
             var tint = go.AddComponent<CloseButtonTint>();
             tint.Setup(text, Idle, Hover);
+        }
+    }
+
+    /// <summary>
+    /// Поднимает своё окно наверх, когда по нему нажали.
+    ///
+    /// Отдельным компонентом, а не внутри DraggableWindow, потому что ручка
+    /// перетаскивания — это узкая полоса заголовка, а нажимают по всему окну.
+    /// Ловим на самой панели: события в uGUI всплывают вверх по иерархии,
+    /// поэтому нажатие по любой ячейке, надписи или пустому месту доходит
+    /// сюда — и доходит ПОСЛЕ того, как своё получила кнопка под курсором.
+    /// </summary>
+    public sealed class WindowRaiser : MonoBehaviour,
+        UnityEngine.EventSystems.IPointerDownHandler
+    {
+        private Canvas canvas;
+
+        private void Awake()
+        {
+            canvas = GetComponentInParent<Canvas>();
+        }
+
+        public void OnPointerDown(UnityEngine.EventSystems.PointerEventData eventData)
+        {
+            if (canvas == null) canvas = GetComponentInParent<Canvas>();
+            DraggableWindow.BringToFront(canvas);
         }
     }
 

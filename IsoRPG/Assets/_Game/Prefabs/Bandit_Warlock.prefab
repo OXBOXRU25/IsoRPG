@@ -8,82 +8,76 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
+    - target: {fileID: 1297717960451648, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
+      propertyPath: m_Name
+      value: Bandit_Warlock
+      objectReference: {fileID: 0}
+    - target: {fileID: 4392203993358600, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
+    - target: {fileID: 4392203993358600, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
+    - target: {fileID: 4392203993358600, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
+    - target: {fileID: 4392203993358600, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
+    - target: {fileID: 4392203993358600, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
+    - target: {fileID: 4392203993358600, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
       propertyPath: m_LocalRotation.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
+    - target: {fileID: 4392203993358600, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
+    - target: {fileID: 4392203993358600, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
+    - target: {fileID: 4392203993358600, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
+    - target: {fileID: 4392203993358600, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
-      propertyPath: m_Name
-      value: Bandit_Warlock
+    - target: {fileID: 4392246348818922, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.5785476
+      objectReference: {fileID: 0}
+    - target: {fileID: 4392246348818922, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.35251346
+      objectReference: {fileID: 0}
+    - target: {fileID: 4432567179788646, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.63248575
+      objectReference: {fileID: 0}
+    - target: {fileID: 4432567179788646, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.37547126
+      objectReference: {fileID: 0}
+    - target: {fileID: 95949736556664974, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 974499cfc369d4a42809c386448e2d2f, type: 2}
+    - target: {fileID: 95949736556664974, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5106506424849658765}
-  m_SourcePrefab: {fileID: 100100000, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
---- !u!1 &5590022104654795979 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 1d349424f476c8749a7a07326693adb7, type: 3}
-  m_PrefabInstance: {fileID: 4707060600391002522}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &5106506424849658765
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5590022104654795979}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 974499cfc369d4a42809c386448e2d2f, type: 2}
-  m_CullingMode: 1
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 10b964f589d35eb4c8ed8441ddc13ceb, type: 3}

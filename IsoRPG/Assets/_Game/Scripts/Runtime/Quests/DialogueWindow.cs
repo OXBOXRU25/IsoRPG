@@ -3,6 +3,7 @@ using UnityEngine;
 using IsoRPG.Localization;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using IsoRPG.UI;
 
 namespace IsoRPG.Quests
 {
@@ -174,17 +175,24 @@ namespace IsoRPG.Quests
             rect.anchoredPosition = new Vector2(0f, -40f);
             rect.sizeDelta = new Vector2(Width, 190f);
 
-            go.GetComponent<Image>().color = PanelColor;
+            // Нарисованная рамка вместо плоской плашки. Заливка и
+            // обводка нужны только тому, кому рамки не досталось: у неё
+            // есть собственный контур, и вторая линия вокруг него читается
+            // как лишний кант.
+            if (!WindowChrome.ApplyFrame(go))
+            {
+                go.GetComponent<Image>().color = PanelColor;
 
-            var edge = new GameObject("Edge", typeof(Image));
-            var edgeRect = (RectTransform)edge.transform;
-            edgeRect.SetParent(rect, false);
-            edgeRect.anchorMin = Vector2.zero;
-            edgeRect.anchorMax = Vector2.one;
-            edgeRect.offsetMin = new Vector2(-1f, -1f);
-            edgeRect.offsetMax = new Vector2(1f, 1f);
-            edge.transform.SetAsFirstSibling();
-            edge.GetComponent<Image>().color = PanelEdge;
+                var edge = new GameObject("Edge", typeof(Image));
+                var edgeRect = (RectTransform)edge.transform;
+                edgeRect.SetParent(rect, false);
+                edgeRect.anchorMin = Vector2.zero;
+                edgeRect.anchorMax = Vector2.one;
+                edgeRect.offsetMin = new Vector2(-1f, -1f);
+                edgeRect.offsetMax = new Vector2(1f, 1f);
+                edge.transform.SetAsFirstSibling();
+                edge.GetComponent<Image>().color = PanelEdge;
+            }
 
             title = MakeText(rect, "Title", "", 15, TextColor);
             var titleRect = (RectTransform)title.transform;

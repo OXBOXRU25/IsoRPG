@@ -182,17 +182,28 @@ namespace IsoRPG.Items
             rect.anchoredPosition = new Vector2(-Margin, Margin + BagSize + 20f);
             rect.sizeDelta = new Vector2(width, height);
 
-            var panel = go.GetComponent<Image>();
-            panel.color = PanelColor;
+            // Нарисованная рамка вместо плоской плашки. Заливка и обводка
+            // нужны только тому, кому рамки не досталось: у неё есть
+            // собственный контур, и вторая линия вокруг него читается как
+            // лишний кант.
+            //
+            // Сумка досталась этому последней и потому какое-то время была
+            // единственным окном на плоской плашке — рядом с персонажем и
+            // лавкой в золоте это читалось как недоделка, а не как замысел.
+            if (!IsoRPG.UI.WindowChrome.ApplyFrame(go))
+            {
+                var panel = go.GetComponent<Image>();
+                panel.color = PanelColor;
 
-            var edge = new GameObject("Edge", typeof(Image));
-            var edgeRect = (RectTransform)edge.transform;
-            edgeRect.SetParent(rect, false);
-            Stretch(edgeRect);
-            edgeRect.offsetMin = new Vector2(-1f, -1f);
-            edgeRect.offsetMax = new Vector2(1f, 1f);
-            edge.transform.SetAsFirstSibling();
-            edge.GetComponent<Image>().color = PanelEdge;
+                var edge = new GameObject("Edge", typeof(Image));
+                var edgeRect = (RectTransform)edge.transform;
+                edgeRect.SetParent(rect, false);
+                Stretch(edgeRect);
+                edgeRect.offsetMin = new Vector2(-1f, -1f);
+                edgeRect.offsetMax = new Vector2(1f, 1f);
+                edge.transform.SetAsFirstSibling();
+                edge.GetComponent<Image>().color = PanelEdge;
+            }
 
             titleText = CreateText(rect, "Title", "Сумка", 14, TextColor);
             var titleRect = (RectTransform)titleText.transform;

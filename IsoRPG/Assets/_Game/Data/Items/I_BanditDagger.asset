@@ -30,5 +30,5 @@ MonoBehaviour:
   strength: 0
   agility: 3
   stamina: 0
-  worldModel: {fileID: 919132149155446097, guid: ee14b9bfa33b09f4ea47be7fc36d36fd, type: 3}
+  worldModel: {fileID: 182892, guid: a72fcdd51f52f5146b54b8faccf63756, type: 3}
   vendorPrice: 25

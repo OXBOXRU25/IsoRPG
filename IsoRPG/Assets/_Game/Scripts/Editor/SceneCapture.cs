@@ -52,10 +52,8 @@ namespace IsoRPG.EditorTools
             }
 
             var so = new SerializedObject(rig);
-            var pitchProp = so.FindProperty("pitch");
             var yawProp = so.FindProperty("yaw");
 
-            float originalPitch = pitchProp.floatValue;
             float originalYaw = yawProp.floatValue;
 
             // Углы, между которыми имеет смысл выбирать: 45 — каноническая
@@ -78,7 +76,6 @@ namespace IsoRPG.EditorTools
                 Capture(cam, name);
             }
 
-            pitchProp.floatValue = originalPitch;
             yawProp.floatValue = originalYaw;
             so.ApplyModifiedPropertiesWithoutUndo();
 

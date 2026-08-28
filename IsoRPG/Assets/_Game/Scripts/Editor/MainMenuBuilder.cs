@@ -17,7 +17,20 @@ namespace IsoRPG.EditorTools
     public static class MainMenuBuilder
     {
         private const string ScenePath = "Assets/_Game/Scenes/MainMenu.unity";
-        private const string GameScenePath = "Assets/_Game/Scenes/Sandbox.unity";
+        /// <summary>
+        /// Куда ведёт «Начать игру». Арена, а не старая песочница.
+        ///
+        /// Здесь стояло «Sandbox», и это одно слово съело целый круг: я собрал
+        /// новую сцену, внёс её в список сборки — а следом отработал этот
+        /// сборщик и переписал список ЦЕЛИКОМ, вернув песочницу. Игра
+        /// запустилась в старой сцене, и выглядело это как «ничего не
+        /// изменилось».
+        ///
+        /// Урок общий: сборщик, который не добавляет к списку, а ЗАМЕНЯЕТ его,
+        /// обязан быть единственным хозяином этого списка — иначе любой, кто
+        /// добавил строку до него, молча её теряет.
+        /// </summary>
+        private const string GameScenePath = "Assets/_Game/Scenes/Arena.unity";
         private const string BackgroundPath = "Assets/_Game/Art/UI/MainMenuBackground.png";
         private const string MusicPath = "Assets/_Game/Audio/Music/MainMenuTheme.mp3";
         private const string VideoPath = "Assets/_Game/Video/MainMenuBackground.mp4";
@@ -26,7 +39,9 @@ namespace IsoRPG.EditorTools
         private static readonly Color TitleColor = new Color32(0xF2, 0xE6, 0xC8, 0xFF);
         private static readonly Color SubtitleColor = new Color32(0xC8, 0xA8, 0x70, 0xFF);
         private static readonly Color ButtonColor = new Color32(0xC8, 0x9A, 0x3A, 0xFF);
-        private static readonly Color ButtonText = new Color32(0x24, 0x1C, 0x10, 0xFF);
+        // Светлая, потому что теперь у надписи есть тёмная обводка: см.
+        // MakeButton. Тёмная буква прямо на золоте давала контраст 1.99.
+        private static readonly Color ButtonText = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
         private static readonly Color QuitColor = new Color32(0x3A, 0x34, 0x2C, 0xD0);
         private static readonly Color QuitText = new Color32(0xD0, 0xC8, 0xB4, 0xFF);
 
@@ -190,7 +205,15 @@ namespace IsoRPG.EditorTools
             source.clip = clip;
             source.loop = true;
             source.playOnAwake = true;
-            source.volume = 0.45f;
+            // Втрое тише исходного: на 0.45 тема забивала всё, и первым делом
+            // тянуло убавить звук, а не начать игру.
+            //
+            // Правка 27.08 до игры не доехала, и это стоит записать: громкость
+            // живёт не в коде, а в СЦЕНЕ меню. Пока сцена не пересобрана,
+            // менять здесь число бессмысленно — в игре останется прежнее.
+            // Отсюда правило: правка сборщика без пересборки его сцены —
+            // это не правка, а намерение.
+            source.volume = 0.18f;
 
             // Плоский звук: у объёмного громкость зависела бы от того, где
             // стоит камера, а в меню камеры как таковой нет.
@@ -441,8 +464,10 @@ namespace IsoRPG.EditorTools
             title.alignment = TextAnchor.MiddleCenter;
             title.fontStyle = FontStyle.Bold;
 
-            // Тень под заголовком: белый текст на пёстром небе теряется, а
-            // обводка средствами обычного текста недоступна.
+            // Тень под заголовком: белый текст на пёстром небе теряется.
+            // Здесь именно тень, а не обводка (она есть, компонент Outline, и
+            // стоит на кнопках) — заголовок крупный, обводка на нём читается
+            // как контур мультяшной надписи, а смещённая тень даёт объём.
             var shadow = title.gameObject.AddComponent<Shadow>();
             shadow.effectColor = new Color(0f, 0f, 0f, 0.85f);
             shadow.effectDistance = new Vector2(3f, -3f);
@@ -465,11 +490,29 @@ namespace IsoRPG.EditorTools
         {
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
+            /*
+              Высота кнопки считается от её собственных рамок, а не на глаз.
+
+              У нарисованной кнопки верхний и нижний торцы не растягиваются —
+              это заданные границы 9-slice, по 60 пикселей исходника, что при
+              множителе 3.2 даёт 18.75 экранных с каждой стороны, всего 37.5.
+              Прежние размеры их не учитывали: у «Выхода» при высоте 44 на
+              текст оставалось 6.5 пикселя, и надпись в 16 лезла прямо на
+              металл. У «Начать игру» запас был, но всего 2.5 пикселя.
+
+              Считаем так: рамки 37.5 + кегль + воздух по половине кегля с
+              каждой стороны. Оба размера заодно перевалили за 48 — минимум
+              для пальца, если игра поедет на планшет.
+
+              Главная поднята на 250: при новых высотах кнопки на прежних
+              местах налезали друг на друга на четыре пикселя. Зазоры теперь
+              равные — по 26 и до кнопок языка тоже 26.
+            */
             var start = MakeButton(root, "StartButton", "НАЧАТЬ ИГРУ", ButtonColor, ButtonText, font,
-                                   new Vector2(0f, 210f), new Vector2(320f, 62f), 22);
+                                   new Vector2(0f, 250f), new Vector2(340f, 90f), 26);
 
             var quit = MakeButton(root, "QuitButton", "ВЫХОД", QuitColor, QuitText, font,
-                                  new Vector2(0f, 132f), new Vector2(220f, 44f), 16);
+                                  new Vector2(0f, 142f), new Vector2(250f, 74f), 18);
 
             // ПОСТОЯННЫЕ подписки, а не обычный AddListener.
             //
@@ -516,7 +559,6 @@ namespace IsoRPG.EditorTools
             // ему на первом экране: в игре без титров это единственная
             // страница, которую увидят все.
             var credits = MakeText(root, "Credits",
-                "Модели: KayKit by Kay Lousberg (CC0)   •   " +
                 "Звуки: Kenney (CC0)   •   " +
                 "Музыка: Kevin MacLeod, incompetech.com (CC BY 4.0)",
                 13, new Color(0.72f, 0.70f, 0.66f, 0.85f), font);
@@ -612,6 +654,21 @@ namespace IsoRPG.EditorTools
             textRect.offsetMax = Vector2.zero;
             text.alignment = TextAnchor.MiddleCenter;
             text.fontStyle = FontStyle.Bold;
+
+            // Обводка вокруг надписи.
+            //
+            // Плашка кнопки нарисована пёстрой: по светлоте она идёт от 0.07
+            // до 0.44, то есть занимает середину диапазона. На такой подложке
+            // не читается ни тёмная буква, ни светлая — замер по картинке дал
+            // 1.99 и 2.16 при норме 4.5. Сменой цвета это не лечится.
+            //
+            // Обводка снимает зависимость от плашки: буква лежит на
+            // собственном контуре, и контраст там 18.5 при любом золоте под
+            // ней. Тот же приём стоит на кнопке скачивания на сайте — человек
+            // должен узнать её, а не гадать, та ли это игра.
+            var outline = text.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0.10f, 0.07f, 0.02f, 0.95f);
+            outline.effectDistance = new Vector2(1.6f, -1.6f);
 
             return button;
         }

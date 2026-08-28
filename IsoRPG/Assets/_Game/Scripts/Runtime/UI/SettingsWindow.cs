@@ -235,7 +235,10 @@ namespace IsoRPG.UI
             rect.anchoredPosition = Vector2.zero;
             rect.sizeDelta = new Vector2(Width, 0f);
 
-            go.GetComponent<Image>().color = PanelColor;
+            // Нарисованная рамка вместо плашки. Если картинки нет — остаётся
+            // прежняя заливка: окно без фона хуже некрасивого окна.
+            bool framed = WindowChrome.ApplyFrame(go);
+            if (!framed) go.GetComponent<Image>().color = PanelColor;
 
             var layout = go.GetComponent<VerticalLayoutGroup>();
             layout.padding = new RectOffset(18, 18, 14, 16);
@@ -248,16 +251,21 @@ namespace IsoRPG.UI
 
             content = rect;
 
-            var edge = new GameObject("Edge", typeof(Image), typeof(LayoutElement));
-            var edgeRect = (RectTransform)edge.transform;
-            edgeRect.SetParent(rect, false);
-            edgeRect.anchorMin = Vector2.zero;
-            edgeRect.anchorMax = Vector2.one;
-            edgeRect.offsetMin = new Vector2(-1f, -1f);
-            edgeRect.offsetMax = new Vector2(1f, 1f);
-            edge.transform.SetAsFirstSibling();
-            edge.GetComponent<Image>().color = PanelEdge;
-            edge.GetComponent<LayoutElement>().ignoreLayout = true;
+            // Обводка нужна только плоской плашке: у нарисованной рамки свой
+            // контур, и вторая линия вокруг него читается как лишний кант.
+            if (!framed)
+            {
+                var edge = new GameObject("Edge", typeof(Image), typeof(LayoutElement));
+                var edgeRect = (RectTransform)edge.transform;
+                edgeRect.SetParent(rect, false);
+                edgeRect.anchorMin = Vector2.zero;
+                edgeRect.anchorMax = Vector2.one;
+                edgeRect.offsetMin = new Vector2(-1f, -1f);
+                edgeRect.offsetMax = new Vector2(1f, 1f);
+                edge.transform.SetAsFirstSibling();
+                edge.GetComponent<Image>().color = PanelEdge;
+                edge.GetComponent<LayoutElement>().ignoreLayout = true;
+            }
 
             var title = MakeText("Title", "Настройки", 15, TitleColor);
             title.alignment = TextAnchor.MiddleCenter;

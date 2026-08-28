@@ -14,7 +14,15 @@ namespace IsoRPG.UI
     public sealed class MainMenu : MonoBehaviour
     {
         [Tooltip("Какую сцену запускать по кнопке.")]
-        [SerializeField] private string gameScene = "Sandbox";
+        /// <summary>
+        /// Какую сцену грузит «Начать игру».
+        ///
+        /// Переехало с «Sandbox» на «Arena»: старая песочница набрала слоями
+        /// годовой мусор и чинить внутри неё нельзя — каждая проверка идёт в
+        /// окружении, где сломано ещё пять вещей. Она остаётся на диске как
+        /// откат и склад, но игра начинается с новой.
+        /// </summary>
+        [SerializeField] private string gameScene = "Arena";
 
         public void SetGameScene(string scene) => gameScene = scene;
 

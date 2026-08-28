@@ -22,6 +22,17 @@ namespace IsoRPG.Player
 
         [SerializeField] private float rayDistance = 500f;
 
+        /// <summary>
+        /// Те же слои и та же дальность, что у клика, — для наведения.
+        ///
+        /// Отдаём наружу, а не заводим у щупа наведения свои: два набора
+        /// слоёв разъедутся при первой же правке одного из них, и получится
+        /// худший вид расхождения — подсказка есть, а клик мимо.
+        /// </summary>
+        public LayerMask ClickMask => clickMask;
+
+        public float RayDistance => rayDistance;
+
         [Tooltip("На каком расстоянии можно обыскать труп.")]
         [SerializeField] private float lootRange = 2.5f;
 
@@ -53,6 +64,24 @@ namespace IsoRPG.Player
             merchantWindow = GetComponent<IsoRPG.UI.MerchantWindow>();
             dialogue = GetComponent<IsoRPG.Quests.DialogueWindow>();
             movement = GetComponent<ClickToMoveController>();
+
+            // Ходьба на клавишах подключается сама, если её ещё нет.
+            //
+            // Компонент можно было бы прописать в сборщике сцены, но тогда
+            // ради одной строчки пришлось бы пересобирать песочницу — а
+            // вместе с ней слетело бы всё, что мы в сцену поставили руками.
+            // Здесь дешевле и безопаснее.
+            if (GetComponent<KeyboardMove>() == null) gameObject.AddComponent<KeyboardMove>();
+
+            // Кольцо под ногами выбранной цели — оттуда же и по той же
+            // причине: пересобирать сцену ради одного компонента дороже,
+            // чем добавить его на старте.
+            if (GetComponent<IsoRPG.Combat.TargetRing>() == null)
+                gameObject.AddComponent<IsoRPG.Combat.TargetRing>();
+
+            // Телесное разведение: чтобы монстр не влезал в героя.
+            if (GetComponent<IsoRPG.Combat.BodySpace>() == null)
+                gameObject.AddComponent<IsoRPG.Combat.BodySpace>();
             combat = GetComponent<MeleeCombatant>();
             inventory = GetComponent<Inventory>();
             cam = Camera.main;
@@ -92,15 +121,17 @@ namespace IsoRPG.Player
                 return;
             }
 
-            if (movement == null) return;
-            if (!pressed && !movement.FollowWhileHeld) return;
-
-            if (movement.TryClickToMove(screen, pressed) && pressed)
-            {
-                // Клик по земле — прямой приказ игрока. Он отменяет
-                // преследование, иначе бой тут же уводит персонажа назад.
-                if (combat != null) combat.CancelChase();
-            }
+            // Ходьбы по клику больше нет — как в WoW.
+            //
+            // Решение Павла от 27.08.2026, и оно не про удобство, а про то,
+            // чтобы левая кнопка значила ОДНО. Пока клик по земле уводил
+            // персонажа, каждый промах мимо монстра превращался в пробежку не
+            // туда — а промахиваться в бою приходится постоянно, потому что
+            // цель движется. Теперь левая кнопка только выбирает цель, ходьба
+            // живёт на WASD, и перепутать их нельзя.
+            //
+            // Подход к предметам и собеседникам остался: там персонажа ведёт
+            // не клик по земле, а сам предмет — «дойти и подобрать».
         }
 
         /// <summary>
@@ -196,7 +227,16 @@ namespace IsoRPG.Player
                 // увидеть, кто это, — даже если бить его нельзя.
                 ShowNeutralTarget(hit.collider);
 
-                var shop = hit.collider.GetComponentInParent<IsoRPG.Items.Merchant>();
+                // Опознание вынесено в WorldPick и общее с наведением: под
+                // курсором и под кликом обязано быть одно и то же существо,
+                // иначе подсказка начнёт врать. Действие остаётся здесь —
+                // «далеко, подойди» относится к поступку, а не к опознанию.
+                var pick = WorldPick.From(hit.collider, gameObject);
+                if (!pick.Found) continue;
+
+                if (pick.Kind == PickKind.Self) continue;
+
+                var shop = pick.Thing as IsoRPG.Items.Merchant;
                 if (shop != null)
                 {
                     float toShop = Vector3.Distance(transform.position, shop.transform.position);
@@ -211,7 +251,7 @@ namespace IsoRPG.Player
                     return true;
                 }
 
-                var giver = hit.collider.GetComponentInParent<IsoRPG.Quests.QuestGiver>();
+                var giver = pick.Thing as IsoRPG.Quests.QuestGiver;
                 if (giver != null)
                 {
                     float distance = Vector3.Distance(transform.position, giver.transform.position);
@@ -237,9 +277,10 @@ namespace IsoRPG.Player
 
                 // Сундук раньше мешка: мешок с его добычей ляжет рядом, и
                 // повторный клик должен попадать в мешок, а не в открытый
-                // сундук — но только после того, как сундук открыт.
-                var chest = hit.collider.GetComponentInParent<IsoRPG.Items.TreasureChest>();
-                if (chest != null && !chest.IsOpen)
+                // сундук — но только после того, как сундук открыт. Порядок
+                // держит WorldPick, здесь он лишь разбирается по ролям.
+                var chest = pick.Thing as IsoRPG.Items.TreasureChest;
+                if (chest != null)
                 {
                     float toChest = Vector3.Distance(transform.position, chest.transform.position);
 
@@ -253,7 +294,7 @@ namespace IsoRPG.Player
                     return true;
                 }
 
-                var bag = hit.collider.GetComponentInParent<LootDrop>();
+                var bag = pick.Thing as LootDrop;
                 if (bag != null)
                 {
                     float toBag = Vector3.Distance(transform.position, bag.transform.position);
@@ -271,10 +312,11 @@ namespace IsoRPG.Player
                     return true;
                 }
 
-                var targetable = hit.collider.GetComponentInParent<Targetable>();
+                // Живое существо. Мёртвых и самого себя WorldPick сюда не
+                // пропускает: первые уже стали мешком или доигрывают падение,
+                // второй целью не берётся.
+                var targetable = pick.Target;
                 if (targetable == null) continue;
-                if (targetable.gameObject == gameObject) continue;   // сам себя не выбираем
-                if (!targetable.IsAlive) continue;
 
                 targets.Select(targetable);
 

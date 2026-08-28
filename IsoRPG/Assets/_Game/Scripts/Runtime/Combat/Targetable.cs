@@ -20,6 +20,18 @@ namespace IsoRPG.Combat
     /// </summary>
     public sealed class Targetable : MonoBehaviour
     {
+        /// <summary>
+        /// Все живые метки на сцене.
+        ///
+        /// Нужен миникарте: без реестра ей пришлось бы обходить сцену каждый
+        /// кадр, а это самый дорогой способ узнать то, что объекты и так могут
+        /// сообщить о себе сами. Список статический, потому что сцена одна.
+        /// </summary>
+        private static readonly System.Collections.Generic.List<Targetable> all =
+            new System.Collections.Generic.List<Targetable>();
+
+        public static System.Collections.Generic.IReadOnlyList<Targetable> All => all;
+
         [SerializeField] private string displayName = "Существо";
         [SerializeField] private Faction faction = Faction.Hostile;
 
@@ -78,6 +90,16 @@ namespace IsoRPG.Combat
         public Sprite Portrait => portrait;
 
         public void SetPortrait(Sprite value) => portrait = value;
+
+        private void OnEnable()
+        {
+            if (!all.Contains(this)) all.Add(this);
+        }
+
+        private void OnDisable()
+        {
+            all.Remove(this);
+        }
 
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()

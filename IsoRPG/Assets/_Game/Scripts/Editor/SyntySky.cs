@@ -24,7 +24,7 @@ namespace IsoRPG.EditorTools
         /// <param name="which">
         /// Имя материала без пути: Skybox_Mat_01, Skybox_Meadows_Mat_01 и т.д.
         /// </param>
-        public static void Apply(string which = "Skybox_Mat_01")
+        public static void Apply(string which = "Skybox_Mat_02")
         {
             // Сначала снимаем COZY: пока купол висит, он ведёт небо сам, и
             // подмена материала не даст ничего видимого.
@@ -50,7 +50,72 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
-            RenderSettings.skybox = mat;
+            // ------------------------------------------------------------
+            // Небо Synty — это КУПОЛ-МОДЕЛЬ, а не скайбокс движка.
+            //
+            // Шейдер SyntyStudios/SkyboxUnlit несмотря на имя объявляет
+            // Tags { RenderType=Opaque, Queue=Geometry } — обычная
+            // непрозрачная геометрия. В RenderSettings.skybox он не встаёт
+            // по устройству: движок там ждёт шейдер с Queue=Background.
+            //
+            // 29.08.2026 я на этом сжёг пять кругов. Небо назначалось,
+            // щуп показывал его в сцене, камера очищалась Skybox — и всё
+            // равно кадр заливался фоном камеры, потому что рисовать было
+            // нечем. Проверка, которая закрыла бы вопрос за минуту: чем
+            // объявлен шейдер, а не что написано в его имени.
+            // ------------------------------------------------------------
+
+            var domeAsset = AssetDatabase.LoadAssetAtPath<GameObject>(
+                Folder + "/PNB_Core/Prefabs/SM_Env_Skydome_01.prefab");
+
+            if (domeAsset == null)
+            {
+                Debug.LogError("[IsoRPG] Купол SM_Env_Skydome_01 не найден в " + Folder);
+                return;
+            }
+
+            foreach (var old in Object.FindObjectsByType<IsoRPG.World.SkyDomeFollow>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+                Object.DestroyImmediate(old.gameObject);
+
+            var dome = (GameObject)PrefabUtility.InstantiatePrefab(domeAsset);
+            dome.name = "Небо Synty";
+            // Числа сняты с демо-сцены автора, а не подобраны.
+            //
+            // Я подбирал их наугад и промахнулся дважды: масштаб 60 —
+            // камера снаружи купола, он читался синим многогранником;
+            // масштаб 500 — камера внутри, а грани отсечены (шейдер
+            // объявляет Cull Back), и небо пропало вовсе. У автора в
+            // Demo_URP стоит масштаб 6.47 и высота -32.71: модель купола
+            // сама по себе огромная, я раздувал её в семьдесят раз.
+            dome.transform.position = new Vector3(0f, -32.71f, 0f);
+            dome.transform.localScale = Vector3.one * 6.47f;
+            dome.AddComponent<IsoRPG.World.SkyDomeFollow>();
+
+            int painted = 0;
+
+            foreach (var r in dome.GetComponentsInChildren<Renderer>(true))
+            {
+                r.sharedMaterial = mat;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                r.receiveShadows = false;
+                painted++;
+            }
+
+            Debug.Log("[IsoRPG] Купол неба поставлен, материал назначен " +
+                      painted + " рендерерам, тени с него сняты.");
+
+            // В настройках освещения оставляем ПРОЦЕДУРНОЕ небо движка —
+            // так сделано и у автора. Купол закрывает обзор, а процедурное
+            // работает подстраховкой: если камера окажется выше купола,
+            // вместо плоской заливки будет хотя бы небо.
+            var fallback = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Skybox.mat");
+
+            if (fallback != null)
+            {
+                RenderSettings.skybox = fallback;
+                Debug.Log("[IsoRPG] В настройках освещения — процедурное небо движка (подстраховка).");
+            }
 
             // Камера обязана очищаться НЕБОМ, а не цветом.
             //

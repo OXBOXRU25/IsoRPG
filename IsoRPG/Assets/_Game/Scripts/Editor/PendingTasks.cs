@@ -249,6 +249,29 @@ namespace IsoRPG.EditorTools
                     SyntySky.Report();
                     break;
 
+                // Как купол поставлен у самого автора: размер, высота,
+                // материал. Подбирать эти числа наугад — три круга, а у
+                // него они уже стоят.
+                case "sky-demo":
+                    UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                        "Assets/PolygonNatureBiomes/PNB_Enchanted_Forest/Scene/Demo_URP.unity",
+                        UnityEditor.SceneManagement.OpenSceneMode.Single);
+                    foreach (var t in UnityEngine.Object.FindObjectsByType<Transform>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        string n = t.name.ToLowerInvariant();
+                        if (!n.Contains("sky") && !n.Contains("dome")) continue;
+                        var rr = t.GetComponent<Renderer>();
+                        Debug.Log("[IsoRPG] ДЕМО «" + t.name + "»: позиция " +
+                                  t.position + ", масштаб " + t.lossyScale +
+                                  ", материал " +
+                                  (rr == null || rr.sharedMaterial == null
+                                      ? "нет" : rr.sharedMaterial.name +
+                                        " / " + rr.sharedMaterial.shader.name));
+                    }
+                    SyntySky.Report();
+                    break;
+
                 case "sky-include":
                     SyntySky.IncludeShader();
                     SyntySky.Report();

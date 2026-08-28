@@ -24,7 +24,7 @@ namespace IsoRPG.EditorTools
         /// <param name="which">
         /// Имя материала без пути: Skybox_Mat_01, Skybox_Meadows_Mat_01 и т.д.
         /// </param>
-        public static void Apply(string which = "Skybox_Mat_02")
+        public static void Apply(string which = "Skybox_Meadows_Mat_01")
         {
             // Сначала снимаем COZY: пока купол висит, он ведёт небо сам, и
             // подмена материала не даст ничего видимого.
@@ -78,34 +78,67 @@ namespace IsoRPG.EditorTools
                          FindObjectsInactive.Include, FindObjectsSortMode.None))
                 Object.DestroyImmediate(old.gameObject);
 
-            var dome = (GameObject)PrefabUtility.InstantiatePrefab(domeAsset);
-            dome.name = "Небо Synty";
-            // Числа сняты с демо-сцены автора, а не подобраны.
+            // Небо из ЧЕТЫРЁХ слоёв, как собрано у автора в демо лугового
+            // леса. Один купол давал плоский задник — глубину держат
+            // перевёрнутый нижний купол и два облачных кольца на разной
+            // высоте.
             //
-            // Я подбирал их наугад и промахнулся дважды: масштаб 60 —
-            // камера снаружи купола, он читался синим многогранником;
-            // масштаб 500 — камера внутри, а грани отсечены (шейдер
-            // объявляет Cull Back), и небо пропало вовсе. У автора в
-            // Demo_URP стоит масштаб 6.47 и высота -32.71: модель купола
-            // сама по себе огромная, я раздувал её в семьдесят раз.
-            dome.transform.position = new Vector3(0f, -32.71f, 0f);
-            dome.transform.localScale = Vector3.one * 6.47f;
-            dome.AddComponent<IsoRPG.World.SkyDomeFollow>();
+            // Держатель пустой и с единичным масштабом: у автора кольца
+            // стоят отдельными объектами на мировых высотах 58 и 106. Повесь
+            // я их детьми купола в масштабе 50 — улетели бы на 5300.
+            var sky = new GameObject("Небо Synty");
+            sky.transform.position = Vector3.zero;
+
+            // Всё небо крупнее авторского в шесть раз: у них мир 150 м, у
+            // нас дальность обзора больше радиуса купола, и он читался
+            // силуэтом. Пропорции внутри держим авторские.
+            // Держатель единичный: облака должны остаться на авторских высотах,
+            // иначе они улетают вместе с куполом. Крупнее делаем ТОЛЬКО купола.
+            sky.transform.localScale = Vector3.one;
+            sky.AddComponent<IsoRPG.World.SkyDomeFollow>();
+
+            var dome = (GameObject)PrefabUtility.InstantiatePrefab(domeAsset, sky.transform);
+            dome.name = "Купол верхний";
+            dome.transform.localPosition = Vector3.zero;
+            // Отрицательный масштаб по X выворачивает грани: шейдер купола
+            // объявляет Cull Back, и изнутри он иначе не виден вовсе.
+            dome.transform.localScale = new Vector3(-300f, 404f, 300f);
+
+            // Перевёрнутый на 180 нижний купол закрывает горизонт снизу:
+            // одного верхнего мало, под его краем виден край мира.
+            var lower = (GameObject)PrefabUtility.InstantiatePrefab(domeAsset, sky.transform);
+            lower.name = "Купол нижний";
+            lower.transform.localPosition = Vector3.zero;
+            lower.transform.localRotation = Quaternion.Euler(0f, 180f, 180f);
+            lower.transform.localScale = new Vector3(-300f, 147f, 300f);
+
+            Clouds(sky.transform, "Облака верхние", 106f, 8.82f, 0.30f);
+            Clouds(sky.transform, "Облака нижние", 58f, 10f, 0.47f);
+
+            // Солнечный диск НЕ ставим. В обеих собранных сценах Synty солнца
+            // нет вовсе: ни диска, ни лучей — оно существует только как
+            // источник света. Лучи (FX_Sunray) в наборе есть, но автор их в
+            // сцены не поставил: это столбы света сквозь крону, на открытом
+            // поле им не за что зацепиться.
+            // SunDisc(sky.transform);
 
             int painted = 0;
 
-            foreach (var r in dome.GetComponentsInChildren<Renderer>(true))
+            foreach (var d in new[] { dome, lower })
             {
-                r.sharedMaterial = mat;
-                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                r.receiveShadows = false;
-                painted++;
+                foreach (var r in d.GetComponentsInChildren<Renderer>(true))
+                {
+                    r.sharedMaterial = mat;
+                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    r.receiveShadows = false;
+                    painted++;
+                }
             }
 
             Debug.Log("[IsoRPG] Купол неба поставлен, материал назначен " +
                       painted + " рендерерам, тени с него сняты.");
 
-            Unlight(dome);
+            Unlight(sky);
 
             // В настройках освещения оставляем ПРОЦЕДУРНОЕ небо движка —
             // так сделано и у автора. Купол закрывает обзор, а процедурное
@@ -148,6 +181,95 @@ namespace IsoRPG.EditorTools
                       "Суток и погоды больше нет — небо статичное.");
 
             EditorSceneManager.MarkAllScenesDirty();
+        }
+
+        /// <summary>
+        /// Солнечный диск на небе.
+        ///
+        /// В наборе Synty солнца нет — только лучи света (SunBeam). Небо у
+        /// них градиент, солнце подразумевается за кадром. Но в изометрии
+        /// небо занимает верхнюю треть экрана, и пустой градиент читается
+        /// как затянутый день.
+        ///
+        /// Делаем диск сами: плоский круг без освещения, тёплого цвета, на
+        /// слое неба и без теней. Ставим ПРОТИВ направления света — туда,
+        /// откуда солнце светит, иначе диск и тени разойдутся, и это ловит
+        /// глаз мгновенно.
+        /// </summary>
+        private static void SunDisc(Transform parent)
+        {
+            var sun = Object.FindObjectsByType<Light>(
+                          FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+                      .FirstOrDefault(l => l.type == LightType.Directional && l.enabled);
+
+            if (sun == null)
+            {
+                Debug.LogWarning("[IsoRPG] Направленного света нет — диск ставить не по чему.");
+                return;
+            }
+
+            var disc = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            disc.name = "Солнце";
+            disc.transform.SetParent(parent, false);
+
+            Object.DestroyImmediate(disc.GetComponent<Collider>());
+
+            // Откуда светит: направление ЛУЧЕЙ — forward источника, значит
+            // сам он в противоположной стороне.
+            Vector3 dir = -sun.transform.forward;
+
+            disc.transform.localPosition = dir * 240f;
+            disc.transform.localRotation = Quaternion.LookRotation(-dir, Vector3.up);
+            disc.transform.localScale = Vector3.one * 34f;
+
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            var mat = new Material(shader) { name = "Sun_Disc" };
+
+            // Цвет берём у самого солнца и высветляем: диск должен быть ярче
+            // неба, иначе он читается пятном, а не источником.
+            mat.color = Color.Lerp(sun.color, Color.white, 0.55f);
+
+            AssetDatabase.CreateAsset(mat, "Assets/_Game/Art/Materials/Sun_Disc.mat");
+            disc.GetComponent<Renderer>().sharedMaterial = mat;
+            disc.GetComponent<Renderer>().shadowCastingMode =
+                UnityEngine.Rendering.ShadowCastingMode.Off;
+            disc.GetComponent<Renderer>().receiveShadows = false;
+
+            Debug.Log("[IsoRPG] Солнечный диск поставлен по направлению света " +
+                      sun.transform.eulerAngles + ", цвет " + mat.color + ".");
+        }
+
+        /// <summary>Облачное кольцо на заданной высоте, с медленным вращением.</summary>
+        private static void Clouds(Transform parent, string name, float height,
+                                   float scale, float speed)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(
+                Folder + "/PNB_Core/Prefabs/SM_Env_Cloud_Ring_01.prefab");
+
+            if (asset == null)
+            {
+                Debug.LogWarning("[IsoRPG] Облачного кольца в наборе нет.");
+                return;
+            }
+
+            var ring = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent);
+            ring.name = name;
+            ring.transform.localPosition = new Vector3(0f, height, 0f);
+            ring.transform.localScale = Vector3.one * scale;
+            ring.transform.localRotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+
+            var drift = ring.AddComponent<IsoRPG.World.CloudDrift>();
+            drift.degreesPerSecond = speed;
+
+            foreach (var r in ring.GetComponentsInChildren<Renderer>(true))
+            {
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                r.receiveShadows = false;
+            }
+
+            Debug.Log("[IsoRPG] " + name + ": высота " + height +
+                      ", вращение " + speed + " град/с (круг за " +
+                      (360f / speed / 60f).ToString("0") + " мин).");
         }
 
         /// <summary>

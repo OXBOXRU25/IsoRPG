@@ -25,9 +25,123 @@ namespace IsoRPG.EditorTools
         private const string Demo =
             "Assets/PolygonNatureBiomes/PNB_Enchanted_Forest/Scene/Demo_URP.unity";
 
-        public static void Run()
+        /// <summary>
+        /// Как у автора устроено небо: купол, облака, солнце и что их
+        /// оживляет. Смотрим в демо лугового леса — только там автор
+        /// поставил облачные кольца.
+        /// </summary>
+        public static void Sky()
         {
-            EditorSceneManager.OpenScene(Demo, OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(
+                "Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Scene/Demo.unity",
+                OpenSceneMode.Single);
+
+            foreach (var t in Object.FindObjectsByType<Transform>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                string n = t.name.ToLowerInvariant();
+                bool sky = n.Contains("cloud") || n.Contains("sky") || n.Contains("dome");
+                if (!sky) continue;
+
+                var r = t.GetComponent<Renderer>();
+
+                var extra = t.GetComponents<Component>()
+                             .Where(c => c != null && !(c is Transform) &&
+                                         !(c is Renderer) && !(c is MeshFilter))
+                             .Select(c => c.GetType().Name);
+
+                Debug.Log("[IsoRPG] НЕБО-ДЕМО «" + t.name +
+                          "»: позиция " + t.position +
+                          ", масштаб " + t.lossyScale +
+                          ", поворот " + t.eulerAngles +
+                          ", материал " + (r == null || r.sharedMaterial == null
+                              ? "нет" : r.sharedMaterial.name) +
+                          ", компоненты: " +
+                          (extra.Any() ? string.Join(", ", extra) : "нет"));
+            }
+
+            foreach (var l in Object.FindObjectsByType<Light>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                Debug.Log("[IsoRPG] НЕБО-ДЕМО свет «" + l.name + "»: тип " + l.type +
+                          ", поворот " + l.transform.eulerAngles +
+                          ", цвет " + l.color + ", яркость " + l.intensity +
+                          ", тени " + l.shadows);
+            }
+
+            Debug.Log("[IsoRPG] НЕБО-ДЕМО настройки: skybox " +
+                      (RenderSettings.skybox == null ? "нет" : RenderSettings.skybox.name) +
+                      ", рассеянный " + RenderSettings.ambientMode +
+                      ", туман " + RenderSettings.fog +
+                      (RenderSettings.fog ? " цвет " + RenderSettings.fogColor +
+                       " режим " + RenderSettings.fogMode : ""));
+        }
+
+        /// <summary>
+        /// Разбор демо лугового леса: там трава, цветы и грибы — то, чего
+        /// нет в заколдованном лесу.
+        /// </summary>
+        public static void Meadow()
+        {
+            Analyze("Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Scene/Demo.unity");
+        }
+
+        /// <summary>
+        /// Трава террейна: какие виды посеяны и с какой плотностью.
+        ///
+        /// Приземную траву Synty кладёт НЕ объектами, а слоем подлеска
+        /// террейна — картой плотности. Поэтому в списке объектов её нет
+        /// вовсе, и без этого замера кажется, что травы у автора не было.
+        /// </summary>
+        private static void Details(Terrain terrain)
+        {
+            var data = terrain.terrainData;
+            var protos = data.detailPrototypes;
+
+            if (protos == null || protos.Length == 0)
+            {
+                Debug.Log("[IsoRPG] ДЕМО: слоёв подлеска у террейна нет.");
+                return;
+            }
+
+            int res = data.detailResolution;
+
+            for (int i = 0; i < protos.Length; i++)
+            {
+                var p = protos[i];
+
+                string what = p.prototype != null
+                    ? "префаб «" + p.prototype.name + "»"
+                    : (p.prototypeTexture != null
+                        ? "текстура «" + p.prototypeTexture.name + "»" : "пусто");
+
+                var layer = data.GetDetailLayer(0, 0, res, res, i);
+
+                long sum = 0;
+                int cells = 0;
+
+                foreach (int v in layer) { sum += v; cells++; }
+
+                Debug.Log("[IsoRPG] ДЕМО подлесок " + i + ": " + what +
+                          ", вид рендера " + p.renderMode +
+                          ", размер " + p.minWidth.ToString("0.0") + "-" +
+                          p.maxWidth.ToString("0.0") + " x " +
+                          p.minHeight.ToString("0.0") + "-" +
+                          p.maxHeight.ToString("0.0") +
+                          ", средняя плотность " + ((float)sum / cells).ToString("0.00") +
+                          " на клетку, клеток " + cells + ".");
+            }
+
+            Debug.Log("[IsoRPG] ДЕМО: карта подлеска " + res + "x" + res +
+                      ", плотность отрисовки " + terrain.detailObjectDensity +
+                      ", дальность " + terrain.detailObjectDistance + " м.");
+        }
+
+        public static void Run() { Analyze(Demo); }
+
+        private static void Analyze(string scenePath)
+        {
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
 
             var terrain = Object.FindObjectsByType<Terrain>(
                 FindObjectsInactive.Exclude, FindObjectsSortMode.None).FirstOrDefault();
@@ -42,6 +156,8 @@ namespace IsoRPG.EditorTools
             Debug.Log("[IsoRPG] ДЕМО: террейн " + size.x.ToString("0") + " x " +
                       size.z.ToString("0") + " м = " +
                       (size.x * size.z).ToString("0") + " м².");
+
+            Details(terrain);
 
             // Считаем только КОРНИ префабов: у каждого внутри LOD-узлы, и
             // считать их — значит считать одно растение по три-четыре раза.

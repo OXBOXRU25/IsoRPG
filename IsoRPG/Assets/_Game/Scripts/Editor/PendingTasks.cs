@@ -282,6 +282,23 @@ namespace IsoRPG.EditorTools
                     NavBake.Rebake();
                     break;
 
+                case "pnb-sky":
+                    PnbAnalyze.Sky();
+                    break;
+
+                case "meadow-synty":
+                    SyntyMeadow.Sow();
+                    NavBake.Rebake();
+                    break;
+
+                case "meadow-synty-clear":
+                    SyntyMeadow.Clear();
+                    break;
+
+                case "pnb-meadow":
+                    PnbAnalyze.Meadow();
+                    break;
+
                 case "pnb-analyze":
                     PnbAnalyze.Run();
                     break;

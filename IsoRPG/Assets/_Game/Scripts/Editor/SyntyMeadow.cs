@@ -71,6 +71,218 @@ namespace IsoRPG.EditorTools
             // подтверждает: это для воды. Вернуть, когда появится пруд.
         };
 
+        /// <summary>
+        /// Земля лугового биома с тропами — по долям автора.
+        ///
+        /// <b>Правило, снятое с его сцены:</b> одна трава занимает 80% участка,
+        /// всё остальное — акценты долями процента. Не «поровну между
+        /// слоями»: равные доли дают пёстрый камуфляж, а не луг.
+        ///
+        /// Доли автора: трава 80.5, палая листва 6.5, земля 2.1, галька 2.0,
+        /// трава с листвой 1.0, тропа 0.2 процента.
+        ///
+        /// <b>Плитка 2–4 метра, а не по умолчанию.</b> У нас на мху стояла
+        /// стандартная, и земля читалась ковром с мелким узором — это было
+        /// видно на голом поле сразу.
+        /// </summary>
+        public static void Ground()
+        {
+            var terrain = Object.FindObjectsByType<Terrain>(
+                FindObjectsInactive.Exclude, FindObjectsSortMode.None).FirstOrDefault();
+
+            if (terrain == null)
+            {
+                Debug.LogError("[IsoRPG] Террейна нет — красить нечего.");
+                return;
+            }
+
+            const string T = "Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/";
+
+            // Имя слоя, размер плитки в метрах, целевая доля участка.
+            var wanted = new (string name, float tile, float share)[]
+            {
+                ("Terrain_Meadow_Grass_01",                    4f, 0.805f),
+                ("Terrain_Meadow_Dirt_Cracked_Leaves_Heavy_01", 2f, 0.065f),
+                ("Terrain_Meadow_Dirt_01",                     4f, 0.021f),
+                ("Terrain_Meadow_Dirt_Cracked_Pebbles_01",     2f, 0.020f),
+                ("Terrain_Meadow_Grass_Leaves_01",             2f, 0.010f),
+                ("Terrain_Meadow_Footpath_Tile_01",            3f, 0.002f),
+            };
+
+            var layers = new List<TerrainLayer>();
+
+            foreach (var w in wanted)
+            {
+                var l = AssetDatabase.LoadAssetAtPath<TerrainLayer>(T + w.name + ".terrainlayer");
+
+                if (l == null) { Debug.LogWarning("[IsoRPG] Нет слоя " + w.name); continue; }
+
+                l.tileSize = new Vector2(w.tile, w.tile);
+                EditorUtility.SetDirty(l);
+                layers.Add(l);
+            }
+
+            if (layers.Count < 2)
+            {
+                Debug.LogError("[IsoRPG] Слоёв лугового биома не нашлось.");
+                return;
+            }
+
+            var data = terrain.terrainData;
+            data.terrainLayers = layers.ToArray();
+
+            int res = data.alphamapResolution;
+            int n = layers.Count;
+            var map = new float[res, res, n];
+
+            // Тропы: несколько извилистых линий через площадку.
+            var paths = Paths(terrain);
+            int pathIndex = layers.Count - 1;   // тропа последняя в списке
+
+            float mPerCell = data.size.x / res;
+            float halfWidth = 1.25f / mPerCell;  // тропа шириной 2.5 м
+            float fade = 0.9f / mPerCell;
+
+            for (int y = 0; y < res; y++)
+            {
+                for (int x = 0; x < res; x++)
+                {
+                    // Акценты шумом разного шага: крупные проплешины,
+                    // средние пятна, мелкая галька.
+                    float a = Mathf.PerlinNoise(x * 0.010f + 11f, y * 0.010f + 23f);
+                    float b = Mathf.PerlinNoise(x * 0.035f + 71f, y * 0.035f + 37f);
+                    float c = Mathf.PerlinNoise(x * 0.070f + 53f, y * 0.070f + 91f);
+
+                    var w = new float[n];
+                    w[0] = 1f;
+
+                    // Пороги подобраны так, чтобы доли сошлись с авторскими:
+                    // чем реже слой, тем выше порог отсечки.
+                    if (n > 1) w[1] = Mathf.Max(0f, a - 0.62f) * 6f;
+                    if (n > 2) w[2] = Mathf.Max(0f, b - 0.74f) * 5f;
+                    if (n > 3) w[3] = Mathf.Max(0f, c - 0.76f) * 5f;
+                    if (n > 4) w[4] = Mathf.Max(0f, b - 0.80f) * 4f;
+
+                    // Тропа перебивает всё: по ней ходят, и трава на ней
+                    // не растёт. Мягкий край — чтобы не было ножевого среза.
+                    float d = Dist(paths, x, y);
+
+                    if (d < halfWidth + fade)
+                    {
+                        float k = d <= halfWidth ? 1f
+                            : 1f - Mathf.SmoothStep(0f, 1f, (d - halfWidth) / fade);
+
+                        for (int i = 0; i < n; i++) w[i] *= (1f - k);
+                        w[pathIndex] += k * 4f;
+                    }
+
+                    float sum = 0f;
+                    for (int i = 0; i < n; i++) sum += w[i];
+                    for (int i = 0; i < n; i++) map[y, x, i] = w[i] / sum;
+                }
+            }
+
+            data.SetAlphamaps(0, 0, map);
+            EditorUtility.SetDirty(data);
+
+            Debug.Log("[IsoRPG] Земля лугового биома: слоёв " + n +
+                      ", плитка 2–4 м, троп " + paths.Count +
+                      ". Доли по автору: трава 80%, листва 6.5%, остальное акцентами.");
+
+            EditorSceneManager.MarkAllScenesDirty();
+        }
+
+        /// <summary>
+        /// Лежит ли точка на тропе (с запасом).
+        ///
+        /// По дороге ходят — на ней не растёт трава. Без этой проверки
+        /// кустики садились прямо на камни мостовой, и дорога переставала
+        /// читаться дорогой: заказчик увидел это первым же кадром.
+        /// </summary>
+        public static bool OnPath(Terrain terrain, Vector2 world, float margin)
+        {
+            var data = terrain.terrainData;
+            int res = data.alphamapResolution;
+
+            float u = (world.x - terrain.transform.position.x) / data.size.x * res;
+            float v = (world.y - terrain.transform.position.z) / data.size.z * res;
+
+            float mPerCell = data.size.x / res;
+            float halfWidth = 1.25f / mPerCell;
+
+            float d = Dist(Paths(terrain), Mathf.RoundToInt(u), Mathf.RoundToInt(v));
+
+            return d < halfWidth + margin / mPerCell;
+        }
+
+        /// <summary>Извилистые тропы в координатах карты текстур.</summary>
+        private static List<Vector2[]> Paths(Terrain terrain)
+        {
+            int res = terrain.terrainData.alphamapResolution;
+            var list = new List<Vector2[]>();
+
+            // Три тропы: две через всю площадку и одна поперечная. Столько же
+            // порядок величины, что у автора — тропа занимает доли процента.
+            var seeds = new (float ax, float ay, float bx, float by, float wob)[]
+            {
+                (0.05f, 0.30f, 0.95f, 0.55f, 0.10f),
+                (0.40f, 0.02f, 0.62f, 0.98f, 0.13f),
+                (0.10f, 0.85f, 0.70f, 0.20f, 0.08f),
+            };
+
+            foreach (var s in seeds)
+            {
+                var pts = new Vector2[120];
+
+                for (int i = 0; i < pts.Length; i++)
+                {
+                    float t = i / (float)(pts.Length - 1);
+
+                    float x = Mathf.Lerp(s.ax, s.bx, t);
+                    float y = Mathf.Lerp(s.ay, s.by, t);
+
+                    // Виляние: тропа не бывает прямой, её протаптывают в обход
+                    // кустов и по низинам.
+                    float wob = (Mathf.PerlinNoise(t * 4f + s.ax * 17f, s.ay * 13f) - 0.5f) * s.wob;
+
+                    pts[i] = new Vector2((x + wob) * res, (y - wob) * res);
+                }
+
+                list.Add(pts);
+            }
+
+            return list;
+        }
+
+        /// <summary>Расстояние от клетки до ближайшей тропы, в клетках.</summary>
+        private static float Dist(List<Vector2[]> paths, int x, int y)
+        {
+            var p = new Vector2(x, y);
+            float best = float.MaxValue;
+
+            foreach (var path in paths)
+            {
+                for (int i = 1; i < path.Length; i++)
+                {
+                    float d = DistToSegment(p, path[i - 1], path[i]);
+                    if (d < best) best = d;
+                }
+            }
+
+            return best;
+        }
+
+        private static float DistToSegment(Vector2 p, Vector2 a, Vector2 b)
+        {
+            var ab = b - a;
+            float len = ab.sqrMagnitude;
+
+            if (len < 1e-6f) return Vector2.Distance(p, a);
+
+            float t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / len);
+            return Vector2.Distance(p, a + ab * t);
+        }
+
         public static void Sow()
         {
             Clear();
@@ -113,6 +325,14 @@ namespace IsoRPG.EditorTools
                     // Пятачок у начала координат оставляем чистым: там стоит
                     // герой, и куст в лицо на старте — не композиция.
                     if (new Vector2(x, z).magnitude < 6f) { i--; continue; }
+
+                    // Пруд обходим: трава посреди воды — верный признак,
+                    // что сеятель не знает про водоём.
+                    if (Vector2.Distance(new Vector2(x, z), SyntyWater.Centre)
+                        < SyntyWater.Radius + 2f) { i--; continue; }
+
+                    // Дорогу обходим: на утоптанной тропе трава не растёт.
+                    if (OnPath(terrain, new Vector2(x, z), 0.8f)) { i--; continue; }
 
                     var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, holder.transform);
 

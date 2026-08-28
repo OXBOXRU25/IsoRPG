@@ -286,6 +286,33 @@ namespace IsoRPG.EditorTools
                     PnbAnalyze.Sky();
                     break;
 
+                case "minimap":
+                    {
+                        var pl = GameObject.Find("Player");
+                        if (pl == null)
+                            Debug.LogError("[IsoRPG] Героя в сцене нет — миникарту вешать не на кого.");
+                        else if (pl.GetComponent<IsoRPG.UI.Minimap>() != null)
+                            Debug.Log("[IsoRPG] Миникарта уже на герое.");
+                        else
+                        {
+                            pl.AddComponent<IsoRPG.UI.Minimap>();
+                            UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+                            Debug.Log("[IsoRPG] Миникарта с координатами возвращена на героя.");
+                        }
+                    }
+                    break;
+
+                case "pond-shot":
+                    SceneEye.Shot("pond", new Vector3(38f, 6f, -30f), 34f, 18f, 35f);
+                    SceneEye.Shot("pond-near", new Vector3(38f, 5f, -30f), 18f, 12f, 120f);
+                    break;
+
+                case "pond":
+                    SyntyWater.Build();
+                    SyntyMeadow.Sow();
+                    NavBake.Rebake();
+                    break;
+
                 case "relief":
                     TerrainRelief.Build();
                     SyntyMeadow.Sow();
@@ -312,6 +339,10 @@ namespace IsoRPG.EditorTools
 
                 case "pnb-analyze":
                     PnbAnalyze.Run();
+                    break;
+
+                case "meadow-ground":
+                    SyntyMeadow.Ground();
                     break;
 
                 case "synty-ground":

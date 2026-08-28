@@ -156,6 +156,77 @@ namespace IsoRPG.EditorTools
         }
 
         /// <summary>
+        /// Слои земли и какую долю участка каждый занимает.
+        ///
+        /// Тропинки у Synty — не объекты, а слой террейна. Значит вопрос
+        /// «как автор делает тропы» сводится к числам: какой слой, какую
+        /// долю карты он покрывает, какой шириной идёт.
+        /// </summary>
+        private static void Layers(Terrain terrain)
+        {
+            var data = terrain.terrainData;
+            var layers = data.terrainLayers;
+
+            if (layers == null || layers.Length == 0)
+            {
+                Debug.Log("[IsoRPG] ДЕМО: слоёв земли нет.");
+                return;
+            }
+
+            int res = data.alphamapResolution;
+            float[,,] map = data.GetAlphamaps(0, 0, res, res);
+
+            for (int i = 0; i < layers.Length; i++)
+            {
+                double sum = 0;
+                int strong = 0;
+
+                for (int y = 0; y < res; y++)
+                {
+                    for (int x = 0; x < res; x++)
+                    {
+                        float w = map[y, x, i];
+                        sum += w;
+                        if (w > 0.5f) strong++;
+                    }
+                }
+
+                float cells = res * (float)res;
+
+                Debug.Log("[IsoRPG] ДЕМО слой земли " + i + ": «" + layers[i].name +
+                          "», доля по весу " + (sum / cells * 100.0).ToString("0.0") +
+                          "%, преобладает на " + (strong / cells * 100f).ToString("0.0") +
+                          "% участка, плитка " + layers[i].tileSize.x.ToString("0.0") + " м.");
+            }
+        }
+
+        /// <summary>Вода в сцене автора: где, какого размера, каким материалом.</summary>
+        private static void Water()
+        {
+            int found = 0;
+
+            foreach (var r in Object.FindObjectsByType<Renderer>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                var m = r.sharedMaterial;
+                string mn = m == null ? "" : m.name.ToLowerInvariant();
+                string on = r.name.ToLowerInvariant();
+
+                if (!mn.Contains("water") && !on.Contains("water") &&
+                    !mn.Contains("river") && !mn.Contains("lake")) continue;
+
+                Debug.Log("[IsoRPG] ДЕМО вода «" + r.name +
+                          "»: позиция " + r.transform.position +
+                          ", масштаб " + r.transform.lossyScale +
+                          ", материал " + (m == null ? "нет" : m.name) +
+                          ", размер " + r.bounds.size.ToString("0.0"));
+                found++;
+            }
+
+            if (found == 0) Debug.Log("[IsoRPG] ДЕМО: воды в сцене нет.");
+        }
+
+        /// <summary>
         /// Трава террейна: какие виды посеяны и с какой плотностью.
         ///
         /// Приземную траву Synty кладёт НЕ объектами, а слоем подлеска
@@ -227,6 +298,8 @@ namespace IsoRPG.EditorTools
                       (size.x * size.z).ToString("0") + " м².");
 
             Relief(terrain);
+            Layers(terrain);
+            Water();
             Details(terrain);
 
             // Считаем только КОРНИ префабов: у каждого внутри LOD-узлы, и

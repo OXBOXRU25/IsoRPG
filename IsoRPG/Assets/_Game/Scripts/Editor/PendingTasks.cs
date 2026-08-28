@@ -245,6 +245,15 @@ namespace IsoRPG.EditorTools
                 // Демо-сцена биома Synty: смотрим, как её собрал автор, ДО
                 // того как сеять своё. Числа автора — это готовый ответ на
                 // вопрос про плотность, который иначе угадывается кругами.
+                case "sky-probe":
+                    SyntySky.Report();
+                    break;
+
+                case "sky-include":
+                    SyntySky.IncludeShader();
+                    SyntySky.Report();
+                    break;
+
                 case "synty-sky":
                     SyntySky.List();
                     SyntySky.Apply();

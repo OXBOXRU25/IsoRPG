@@ -123,7 +123,7 @@ namespace IsoRPG.EditorTools
                     go.transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
                     go.transform.localScale = Vector3.one * Random.Range(k.MinScale, k.MaxScale);
 
-                    Seat(go, ground, k.Sink);
+                    Seat(go, ground, k.Sink, terrain);
                     Strip(go);
 
                     placed++;
@@ -165,7 +165,7 @@ namespace IsoRPG.EditorTools
         /// величину. По точке отсчёта префаба сажать нельзя: у покупных
         /// наборов она где угодно, и один папоротник у меня уже висел в небе.
         /// </summary>
-        private static void Seat(GameObject go, float ground, float sink)
+        private static void Seat(GameObject go, float ground, float sink, Terrain terrain)
         {
             var rs = go.GetComponentsInChildren<Renderer>(true);
             if (rs.Length == 0) return;
@@ -173,7 +173,32 @@ namespace IsoRPG.EditorTools
             var box = rs[0].bounds;
             foreach (var r in rs) box.Encapsulate(r.bounds);
 
-            go.transform.position += new Vector3(0f, ground - box.min.y - sink, 0f);
+            // Поправка на склон.
+            //
+            // Нижняя грань коробки горизонтальна, а земля под ней наклонена.
+            // Посади объект по высоте в его ЦЕНТРЕ — и половина, смотрящая
+            // вниз по склону, повиснет в воздухе. Чем шире объект и круче
+            // место, тем больше зазор: он равен половине ширины на тангенс
+            // угла. Утапливаем ровно на эту величину.
+            var p = go.transform.position;
+            var data = terrain.terrainData;
+
+            float u = (p.x - terrain.transform.position.x) / data.size.x;
+            float v = (p.z - terrain.transform.position.z) / data.size.z;
+
+            float steep = data.GetSteepness(Mathf.Clamp01(u), Mathf.Clamp01(v));
+            float radius = Mathf.Max(box.size.x, box.size.z) * 0.5f;
+            float slopeSink = radius * Mathf.Tan(steep * Mathf.Deg2Rad);
+
+            // Ограничение: не глубже четверти высоты объекта.
+            //
+            // Без него широкое и низкое закапывается целиком. Камни у нас
+            // шире, чем выше, и первый же заход утопил их так, что над
+            // землёй остался только мшистый верх — заказчик увидел на кадре
+            // «странную зелёную нашлёпку» и спросил, камень ли это. Камень.
+            slopeSink = Mathf.Min(slopeSink, box.size.y * 0.25f);
+
+            go.transform.position += new Vector3(0f, ground - box.min.y - sink - slopeSink, 0f);
         }
 
         /// <summary>

@@ -130,3 +130,37 @@ IsoRPG/Assets/BruteForce-GrassShader/
 IsoRPG/Assets/BruteForce-GrassShader.meta
 IsoRPG/Assets/PolygonNatureBiomes/
 IsoRPG/Assets/PolygonNatureBiomes.meta
+
+# Наборы, докупленные после 23.08.2026. Восстанавливаются той же
+# командой из H:\Store, что и всё выше.
+IsoRPG/Assets/Blink/
+IsoRPG/Assets/Blink.meta
+IsoRPG/Assets/ExplosiveLLC/
+IsoRPG/Assets/ExplosiveLLC.meta
+IsoRPG/Assets/GSpawn - Level Designer/
+IsoRPG/Assets/GSpawn - Level Designer.meta
+IsoRPG/Assets/Layer Lab/
+IsoRPG/Assets/Layer Lab.meta
+IsoRPG/Assets/PolysplitGames/
+IsoRPG/Assets/PolysplitGames.meta
+IsoRPG/Assets/VFX_Klaus/
+IsoRPG/Assets/VFX_Klaus.meta
+
+# COZY (погода и небо) — встроенный пакет на 517 МБ. Лежит в Packages/,
+# в packages-lock.json записан как file:. На второй машине пакет нужно
+# положить в IsoRPG/Packages/ вручную, иначе Package Manager ругнётся
+# на неразрешённую зависимость.
+IsoRPG/Packages/com.distantlands.cozy.core/
+
+# Журнал пакетной сборки Unity — пишется заново каждым прогоном.
+IsoRPG/unity-batch.log
+
+# Выгрузки генератора картинок, падающие в корень репозитория.
+/hf_*.png
+/image-*.png
+/nb_image-*.png
+/corner-sample.png
+/reference-panels.png
+/reference-window-kit.png
+/Knight_Game.fbx
+/UI test/

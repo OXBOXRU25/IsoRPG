@@ -1,0 +1,101 @@
+{
+  "Frame_TitlePlate": {
+    "w": 1355,
+    "h": 184,
+    "left": 567,
+    "bottom": 0,
+    "right": 524,
+    "top": 0,
+    "axes": "x"
+  },
+  "Frame_ListRow": {
+    "w": 1321,
+    "h": 151,
+    "left": 502,
+    "bottom": 0,
+    "right": 459,
+    "top": 0,
+    "axes": "x"
+  },
+  "Frame_Divider": {
+    "w": 1354,
+    "h": 62,
+    "left": 57,
+    "bottom": 0,
+    "right": 38,
+    "top": 0,
+    "axes": "x"
+  },
+  "Slider_Track": {
+    "w": 1123,
+    "h": 107,
+    "left": 308,
+    "bottom": 0,
+    "right": 311,
+    "top": 0,
+    "axes": "x"
+  },
+  "Frame_Inset": {
+    "w": 852,
+    "h": 787,
+    "left": 263,
+    "bottom": 231,
+    "right": 264,
+    "top": 148,
+    "axes": "xy"
+  },
+  "Frame_ListPanel": {
+    "w": 575,
+    "h": 380,
+    "left": 170,
+    "bottom": 137,
+    "right": 191,
+    "top": 138,
+    "axes": "xy"
+  },
+  "Tab_Active": {
+    "w": 483,
+    "h": 164,
+    "left": 207,
+    "bottom": 0,
+    "right": 185,
+    "top": 0,
+    "axes": "x"
+  },
+  "Tab_Idle": {
+    "w": 483,
+    "h": 161,
+    "left": 32,
+    "bottom": 0,
+    "right": 45,
+    "top": 0,
+    "axes": "x"
+  },
+  "Scroll_Track": {
+    "w": 88,
+    "h": 1063,
+    "left": 0,
+    "bottom": 235,
+    "right": 0,
+    "top": 205,
+    "axes": "y"
+  },
+  "Scroll_Handle": {
+    "w": 99,
+    "h": 509,
+    "left": 0,
+    "bottom": 153,
+    "right": 0,
+    "top": 140,
+    "axes": "y"
+  },
+  "Frame_Window": {
+    "w": 848,
+    "h": 832,
+    "left": 263,
+    "bottom": 224,
+    "right": 280,
+    "top": 248,
+    "axes": "xy"
+  }
+}

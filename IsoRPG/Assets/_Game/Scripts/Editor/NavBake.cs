@@ -105,6 +105,67 @@ namespace IsoRPG.EditorTools
             Debug.Log("[IsoRPG] Навигация перепечена по коллайдерам. Охват " +
                       box.size.x.ToString("0") + " x " + box.size.z.ToString("0") +
                       " м, центр " + box.center + ".");
+
+            Persist(surface, ground.name);
+        }
+
+        /// <summary>
+        /// Сохранить готовую сетку файлом рядом со сценой.
+        ///
+        /// <b>Без этого шага работы не видно только в сборке.</b> BuildNavMesh
+        /// строит сетку в памяти редактора: щуп её видит, агенты в режиме Play
+        /// ходят, всё выглядит исправным. Но в билд попадает то, что лежит на
+        /// диске, — и там не оказывается ничего. В игре это 121 строчка
+        /// «Failed to create agent because there is no valid NavMesh» и
+        /// столько же существ, стоящих столбом.
+        ///
+        /// Шаг был написан один раз, внутри строителя песочницы, и когда мир
+        /// переехал на арену, с ним не поехал. Поэтому он теперь здесь: у
+        /// выпечки восемь вызовов, и каждый терял сетку одинаково.
+        /// </summary>
+        private static void Persist(NavMeshSurface surface, string groundName)
+        {
+            var scene = surface.gameObject.scene;
+
+            // Несохранённая сцена не имеет пути, и класть файл некуда.
+            // Выпечка при этом молчит — поэтому говорим мы.
+            if (string.IsNullOrEmpty(scene.path))
+            {
+                Debug.LogWarning("[IsoRPG] Сетка построена, но сцена не сохранена — " +
+                                 "файл класть некуда. В сборке навигации не будет.");
+                return;
+            }
+
+            // Уже лежит файлом (например, сцену пекли повторно) — тогда
+            // достаточно записать изменения, а не создавать заново.
+            if (AssetDatabase.Contains(surface.navMeshData))
+            {
+                EditorUtility.SetDirty(surface.navMeshData);
+                AssetDatabase.SaveAssets();
+                Debug.Log("[IsoRPG] Навигационная сетка обновлена в файле " +
+                          AssetDatabase.GetAssetPath(surface.navMeshData));
+                return;
+            }
+
+            string parent = System.IO.Path.GetDirectoryName(scene.path).Replace('\\', '/');
+            string folderName = System.IO.Path.GetFileNameWithoutExtension(scene.path);
+            string folder = parent + "/" + folderName;
+
+            if (!AssetDatabase.IsValidFolder(folder))
+                AssetDatabase.CreateFolder(parent, folderName);
+
+            string path = folder + "/NavMesh-" + groundName + ".asset";
+
+            // Старый файл сносим до создания нового: CreateAsset поверх
+            // существующего оставляет сцену со ссылкой на прежний объект, и
+            // обновлённая сетка молча не применяется.
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(surface.navMeshData, path);
+            AssetDatabase.SaveAssets();
+
+            EditorUtility.SetDirty(surface);
+
+            Debug.Log("[IsoRPG] Навигационная сетка сохранена файлом: " + path);
         }
     }
 }

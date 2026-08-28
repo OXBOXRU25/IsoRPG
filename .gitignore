@@ -164,3 +164,9 @@ IsoRPG/unity-batch.log
 /reference-window-kit.png
 /Knight_Game.fbx
 /UI test/
+
+# Биомы природы Synty. Поставлены 29.08.2026 из
+# H:\1\POLYGON NatureBiomes EnchantedForest Unity_2021_3_v1_02.unitypackage
+# Внутри лежат вложенные пакеты под URP — URP_ExtractMe/Unity_2022.unitypackage.
+IsoRPG/Assets/PolygonNatureBiomes/
+IsoRPG/Assets/PolygonNatureBiomes.meta

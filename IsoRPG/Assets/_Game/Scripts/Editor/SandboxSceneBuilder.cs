@@ -1554,6 +1554,17 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
+            // Сохранение переехало внутрь NavBake.Rebake — оно нужно всем
+            // сборщикам одинаково, а не одной песочнице. Если сетка уже легла
+            // файлом, здесь делать нечего: DeleteAsset ниже снёс бы её вместе
+            // с объектом, и следующая строка получила бы null.
+            if (AssetDatabase.Contains(surface.navMeshData))
+            {
+                Debug.Log("[IsoRPG] Навигационная сетка уже сохранена: " +
+                          AssetDatabase.GetAssetPath(surface.navMeshData));
+                return;
+            }
+
             // Кладём рядом со сценой, в папку с её именем — так делает и сам
             // редактор, когда запекаешь навигацию вручную.
             const string ScenesFolder = "Assets/_Game/Scenes";

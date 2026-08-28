@@ -208,6 +208,57 @@ namespace IsoRPG.EditorTools
                     TreeNavFix.Fix();
                     break;
 
+                case "nav":
+                    NavProbe.RebakeAndReport();
+                    break;
+
+                case "weight":
+                    SceneWeight.Report();
+                    break;
+
+                case "heavy-off":
+                    SceneWeight.Heavy(false);
+                    break;
+
+                case "heavy-on":
+                    SceneWeight.Heavy(true);
+                    break;
+
+                case "bare":
+                    SceneWeight.Bare(true);
+                    break;
+
+                case "bare-off":
+                    SceneWeight.Bare(false);
+                    break;
+
+                case "purge-heavy":
+                    SceneWeight.Junk = false;
+                    SceneWeight.PurgeHeavy();
+                    break;
+
+                case "purge-junk":
+                    SceneWeight.Junk = true;
+                    SceneWeight.PurgeHeavy();
+                    break;
+
+                // Демо-сцена биома Synty: смотрим, как её собрал автор, ДО
+                // того как сеять своё. Числа автора — это готовый ответ на
+                // вопрос про плотность, который иначе угадывается кругами.
+                case "synty-sky":
+                    SyntySky.List();
+                    SyntySky.Apply();
+                    break;
+
+                case "pnb-demo":
+                    UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                        "Assets/PolygonNatureBiomes/PNB_Enchanted_Forest/Scene/Demo_URP.unity",
+                        UnityEditor.SceneManagement.OpenSceneMode.Single);
+                    SceneWeight.Report();
+                    SceneEye.Shot("pnb-demo-wide", new Vector3(0f, 2f, 0f), 60f, 14f, 40f);
+                    SceneEye.Shot("pnb-demo-near", new Vector3(0f, 1.5f, 0f), 18f, 10f, 40f);
+                    break;
+
                 case "trees":
                     TreeSwap.Swap();
                     break;

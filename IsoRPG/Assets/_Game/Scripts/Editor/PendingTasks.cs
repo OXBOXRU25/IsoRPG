@@ -277,6 +277,23 @@ namespace IsoRPG.EditorTools
                     SyntySky.Report();
                     break;
 
+                case "synty-forest":
+                    SyntyForest.Sow();
+                    NavBake.Rebake();
+                    break;
+
+                case "pnb-analyze":
+                    PnbAnalyze.Run();
+                    break;
+
+                case "synty-ground":
+                    SyntyForest.Ground();
+                    break;
+
+                case "synty-forest-clear":
+                    SyntyForest.Clear();
+                    break;
+
                 case "synty-sky":
                     SyntySky.List();
                     SyntySky.Apply();

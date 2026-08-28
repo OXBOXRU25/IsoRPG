@@ -105,6 +105,8 @@ namespace IsoRPG.EditorTools
             Debug.Log("[IsoRPG] Купол неба поставлен, материал назначен " +
                       painted + " рендерерам, тени с него сняты.");
 
+            Unlight(dome);
+
             // В настройках освещения оставляем ПРОЦЕДУРНОЕ небо движка —
             // так сделано и у автора. Купол закрывает обзор, а процедурное
             // работает подстраховкой: если камера окажется выше купола,
@@ -146,6 +148,74 @@ namespace IsoRPG.EditorTools
                       "Суток и погоды больше нет — небо статичное.");
 
             EditorSceneManager.MarkAllScenesDirty();
+        }
+
+        /// <summary>
+        /// Вывести купол из-под солнца.
+        ///
+        /// Шейдер называется SkyboxUnlit, но объявлен освещаемым
+        /// (UniversalMaterialType=Lit). Значит солнце светит на купол как на
+        /// обычный объект: поперёк неба идёт градиент яркости, а с той
+        /// стороны, куда солнце не достаёт, ложится тёмная полоса. Небо от
+        /// этого выглядит пыльным и мятым.
+        ///
+        /// Небо само себе свет. Выносим купол на отдельный слой и убираем
+        /// этот слой из маски направленных источников — цвет становится
+        /// ровно тем, что нарисовал художник.
+        /// </summary>
+        private static void Unlight(GameObject dome)
+        {
+            int layer = EnsureLayer("Sky");
+
+            if (layer < 0) return;
+
+            foreach (var t in dome.GetComponentsInChildren<Transform>(true))
+                t.gameObject.layer = layer;
+
+            int mask = ~(1 << layer);
+            int hushed = 0;
+
+            foreach (var light in Object.FindObjectsByType<Light>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (light.type != LightType.Directional) continue;
+                if ((light.cullingMask & (1 << layer)) == 0) continue;
+
+                light.cullingMask &= mask;
+                EditorUtility.SetDirty(light);
+                hushed++;
+            }
+
+            Debug.Log("[IsoRPG] Купол выведен на слой «Sky» (" + layer +
+                      "), убран из маски у источников: " + hushed + ".");
+        }
+
+        /// <summary>Найти слой по имени или завести новый в первой свободной ячейке.</summary>
+        private static int EnsureLayer(string name)
+        {
+            int existing = LayerMask.NameToLayer(name);
+            if (existing >= 0) return existing;
+
+            var asset = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0];
+            var so = new SerializedObject(asset);
+            var layers = so.FindProperty("layers");
+
+            // Ячейки с 0 по 7 заняты движком, свои начинаются с восьмой.
+            for (int i = 8; i < layers.arraySize; i++)
+            {
+                var slot = layers.GetArrayElementAtIndex(i);
+                if (!string.IsNullOrEmpty(slot.stringValue)) continue;
+
+                slot.stringValue = name;
+                so.ApplyModifiedProperties();
+                AssetDatabase.SaveAssets();
+
+                Debug.Log("[IsoRPG] Заведён слой «" + name + "» в ячейке " + i + ".");
+                return i;
+            }
+
+            Debug.LogError("[IsoRPG] Свободных ячеек под слой не осталось.");
+            return -1;
         }
 
         /// <summary>

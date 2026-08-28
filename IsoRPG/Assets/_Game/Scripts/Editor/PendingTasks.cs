@@ -286,6 +286,17 @@ namespace IsoRPG.EditorTools
                     PnbAnalyze.Sky();
                     break;
 
+                case "relief":
+                    TerrainRelief.Build();
+                    SyntyMeadow.Sow();
+                    NavBake.Rebake();
+                    break;
+
+                case "relief-flat":
+                    TerrainRelief.Flatten();
+                    NavBake.Rebake();
+                    break;
+
                 case "meadow-synty":
                     SyntyMeadow.Sow();
                     NavBake.Rebake();

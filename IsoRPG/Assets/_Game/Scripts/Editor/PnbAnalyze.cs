@@ -87,6 +87,75 @@ namespace IsoRPG.EditorTools
         }
 
         /// <summary>
+        /// Рельеф террейна числами: перепад высот, крутизна, размер форм.
+        ///
+        /// «Холмистый» и «ровный» — не числа. Числа это: какую долю от
+        /// стороны участка занимает перепад высот, какая средняя и
+        /// максимальная крутизна склона, и какого размера сами формы —
+        /// пологие валы или частая рябь. По ним рельеф воспроизводится, а
+        /// на глаз — нет.
+        /// </summary>
+        private static void Relief(Terrain terrain)
+        {
+            var data = terrain.terrainData;
+            int res = data.heightmapResolution;
+
+            float[,] h = data.GetHeights(0, 0, res, res);
+
+            float min = 1f, max = 0f;
+            double sum = 0;
+
+            foreach (float v in h)
+            {
+                if (v < min) min = v;
+                if (v > max) max = v;
+                sum += v;
+            }
+
+            float range = (max - min) * data.size.y;
+
+            // Крутизна: берём сеткой 64x64, чтобы не считать миллион точек.
+            float slopeSum = 0f, slopeMax = 0f;
+            int taken = 0;
+
+            for (int i = 1; i < 64; i++)
+            {
+                for (int j = 1; j < 64; j++)
+                {
+                    float sx = i / 64f, sy = j / 64f;
+                    float s = data.GetSteepness(sx, sy);
+
+                    slopeSum += s;
+                    if (s > slopeMax) slopeMax = s;
+                    taken++;
+                }
+            }
+
+            // Размер форм: считаем, сколько раз профиль по середине меняет
+            // направление. Много смен — мелкая рябь, мало — пологие валы.
+            int turns = 0;
+            float prev = h[res / 2, 1] - h[res / 2, 0];
+
+            for (int i = 2; i < res; i++)
+            {
+                float d = h[res / 2, i] - h[res / 2, i - 1];
+                if (Mathf.Sign(d) != Mathf.Sign(prev) && Mathf.Abs(d) > 1e-5f) turns++;
+                prev = d;
+            }
+
+            float featureSize = turns > 0 ? data.size.x / turns : data.size.x;
+
+            Debug.Log("[IsoRPG] РЕЛЬЕФ: участок " + data.size.x.ToString("0") + " м, " +
+                      "высота карты " + data.size.y.ToString("0") + " м; " +
+                      "перепад " + range.ToString("0.0") + " м = " +
+                      (range / data.size.x * 100f).ToString("0.0") + "% от стороны; " +
+                      "крутизна средняя " + (slopeSum / taken).ToString("0.0") +
+                      "°, наибольшая " + slopeMax.ToString("0.0") + "°; " +
+                      "размер форм ~" + featureSize.ToString("0.0") + " м; " +
+                      "разрешение карты высот " + res + ".");
+        }
+
+        /// <summary>
         /// Трава террейна: какие виды посеяны и с какой плотностью.
         ///
         /// Приземную траву Synty кладёт НЕ объектами, а слоем подлеска
@@ -157,6 +226,7 @@ namespace IsoRPG.EditorTools
                       size.z.ToString("0") + " м = " +
                       (size.x * size.z).ToString("0") + " м².");
 
+            Relief(terrain);
             Details(terrain);
 
             // Считаем только КОРНИ префабов: у каждого внутри LOD-узлы, и

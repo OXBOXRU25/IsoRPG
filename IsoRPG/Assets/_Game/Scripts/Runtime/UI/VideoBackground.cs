@@ -67,12 +67,41 @@ namespace IsoRPG.UI
             player.errorReceived += OnError;
         }
 
+        /// <summary>
+        /// Выход из игры: проигрыватель остановить ДО того, как движок начнёт
+        /// сносить графику.
+        ///
+        /// Режим APIOnly означает, что кадры берутся прямо из декодера
+        /// Media Foundation, минуя промежуточную текстуру. Если ролик всё ещё
+        /// идёт, когда Unity разбирает графическое устройство, декодер пишет
+        /// в то, чего уже нет, — и процесс падает без управляемого стека,
+        /// уже на выходе. Наружу это выглядит как окно с ошибкой при
+        /// закрытии игры.
+        ///
+        /// OnApplicationQuit приходит раньше OnDestroy и раньше выгрузки
+        /// сцены, поэтому останавливаем здесь, а не там.
+        /// </summary>
+        private bool quitting;
+
+        private void OnApplicationQuit()
+        {
+            quitting = true;
+            StopPlayback();
+        }
+
         private void OnDestroy()
+        {
+            StopPlayback();
+        }
+
+        private void StopPlayback()
         {
             if (player == null) return;
 
             player.loopPointReached -= OnLoopPoint;
             player.errorReceived -= OnError;
+
+            if (player.isPlaying) player.Stop();
         }
 
         private void Start()
@@ -102,6 +131,11 @@ namespace IsoRPG.UI
 
         private void Update()
         {
+            // После команды на выход сторож молчит: иначе он увидит
+            // остановленный нами ролик как «замерший» и заново его запустит —
+            // ровно в тот момент, когда останавливать и надо было.
+            if (quitting) return;
+
             if (player == null || image == null) return;
 
             // Кадр отдаётся как текстура и меняется каждый раз — присваиваем

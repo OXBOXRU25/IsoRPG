@@ -140,10 +140,25 @@ namespace IsoRPG.Cameras
 
         private void LateUpdate()
         {
+            // Пока сцена грузится или выгружается, ходить по иерархии нельзя:
+            // Unity бросает InvalidOperationException прямо из LateUpdate.
+            // Ловилось на выходе из игры — камера в этот момент доезжала до
+            // порога вида от первого лица и звала ShowHero по уже
+            // разбираемому герою.
+            if (quitting) return;
+            if (target != null && !target.gameObject.scene.isLoaded) return;
+
             if (Application.isPlaying) { ReadZoomInput(); ReadRotateInput(); ReadCameraKeys(); }
 
             ApplyProjection();
             UpdatePlacement(Application.isPlaying ? Time.deltaTime : 0f);
+        }
+
+        private bool quitting;
+
+        private void OnApplicationQuit()
+        {
+            quitting = true;
         }
 
         /// <summary>

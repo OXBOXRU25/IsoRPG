@@ -65,7 +65,10 @@ namespace IsoRPG.EditorTools
             new Kind("SM_Env_Rock_02",              0.07f, 0.15f, 1.22f, 0.89f),
             new Kind("SM_Env_Rock_01",              0.06f, 0.15f, 1.59f, 0.71f),
             new Kind("SM_Env_Rock_03",              0.06f, 0.10f, 1.28f, 1.02f),
-            new Kind("SM_Env_Flowers_Flat_01",      0.06f, 0.83f, 2.33f, -0.36f),
+            // SM_Env_Flowers_Flat_01 убран из посева: без стеблей на траве
+            // читается кувшинками, а не цветами — так и увидел заказчик.
+            // У автора они приподняты НАД землёй (утоплены на -0.36), что
+            // подтверждает: это для воды. Вернуть, когда появится пруд.
         };
 
         public static void Sow()

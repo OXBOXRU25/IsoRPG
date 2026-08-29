@@ -225,6 +225,26 @@ namespace IsoRPG.EditorTools
         /// повисает нижним краем — раньше это лечили утоплением, и лечение
         /// упиралось в собственный предел.
         /// </summary>
+        /// <summary>Потолок масштаба травы: выше она перестаёт быть соизмерима с рельефом.</summary>
+        private const float GrassMaxScale = 1.3f;
+
+        /// <summary>
+        /// Предел изгиба в шейдере, метры. Держать в согласии с шейдером:
+        /// куст, под которым перепад больше, изогнуться до конца не сможет
+        /// и повиснет краем.
+        /// </summary>
+        private const float ConformLimit = 1.5f;
+
+        /// <summary>
+        /// Насколько кустам позволено налезать друг на друга, доля полусуммы
+        /// ширин. Ноль — стоят вплотную без пересечений (выглядит как грядки),
+        /// единица — где угодно. Замер до правки: 6727 пар пересекались, из
+        /// них 651 глубже 70%, худшая на 99% — два широких куста в одной точке.
+        /// Их листья прошивают друг друга и на склоне читаются как трава,
+        /// торчащая из воздуха.
+        /// </summary>
+        private const float OverlapShare = 0.55f;
+
         private const float PlantTilt = 0f;   // ноль: наклонённый пучок задирает нижнюю кромку
 
         /// <summary>Камню и дереву наклона почти не нужно: ствол растёт вверх.</summary>
@@ -346,6 +366,19 @@ namespace IsoRPG.EditorTools
 
             int total = 0, kinds = 0;
 
+            // Занятые пятна на ВЕСЬ посев, а не по видам порознь.
+
+            //
+
+            // Список внутри цикла по видам сравнивал куст только с сородичами,
+
+            // и разные виды продолжали садиться друг в друга: наложений стало
+
+            // меньше на треть, а худшее осталось прежним — 99%.
+
+            var placedSpots = new List<(Vector2 p, float w)>();
+
+
             foreach (var k in Table)
             {
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
@@ -359,6 +392,7 @@ namespace IsoRPG.EditorTools
 
                 int count = Mathf.RoundToInt(k.Per100 * hundreds);
                 int placed = 0;
+                int skipped = 0;
 
                 for (int i = 0; i < count; i++)
                 {
@@ -397,7 +431,90 @@ namespace IsoRPG.EditorTools
 
                     go.transform.position = new Vector3(x, ground, z);
                     go.transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-                    go.transform.localScale = Vector3.one * Random.Range(k.MinScale, k.MaxScale);
+                    // Потолок масштаба для травы.
+                    //
+                    // Меш куста 4.6 м в поперечнике, и при авторском масштабе
+                    // 2.54 он вырастает до одиннадцати метров — шире, чем формы
+                    // рельефа, на который его сажают. Такой куст не может лечь
+                    // на склон: изгиб честно повторяет землю, и края расходятся
+                    // по высоте на метры, превращая траву в растянутого монстра.
+                    // Ограничиваем сверху, чтобы вещь была соизмерима с миром.
+                    float wanted = Random.Range(k.MinScale, k.MaxScale);
+
+                    if (k.Name.Contains("Grass"))
+                        wanted = Mathf.Min(wanted, GrassMaxScale);
+
+                    // Размер куста подбираем под крутизну места.
+                    //
+                    // Это последнее звено, и без него круг не замыкается.
+                    // Широкий куст на склоне не может выглядеть правильно НИ
+                    // ПРИ КАКОМ пределе изгиба: дашь большой — куст
+                    // растягивается по склону в монстра, дашь малый — висит
+                    // краем. Лечится не изгибом, а тем, какого размера вещь
+                    // ставится в это место.
+                    //
+                    // Перепад под кустом равен его ширине на тангенс угла.
+                    // Отсюда предельная ширина: предел изгиба, делённый на
+                    // тангенс. На ровном месте ограничения нет вовсе, на
+                    // круче трава просто мельчает — как в природе.
+                    {
+                        float steepHere = terrain.terrainData.GetSteepness(
+                            Mathf.Clamp01((x - terrain.transform.position.x) / terrain.terrainData.size.x),
+                            Mathf.Clamp01((z - terrain.transform.position.z) / terrain.terrainData.size.z));
+
+                        float tan = Mathf.Tan(steepHere * Mathf.Deg2Rad);
+
+                        if (tan > 0.01f)
+                        {
+                            // Ширина префаба в его собственном масштабе.
+                            var pb = prefab.GetComponentInChildren<MeshFilter>();
+                            float baseWidth = pb != null && pb.sharedMesh != null
+                                ? Mathf.Max(pb.sharedMesh.bounds.size.x, pb.sharedMesh.bounds.size.z)
+                                : 1f;
+
+                            if (baseWidth > 0.01f)
+                            {
+                                float fits = (ConformLimit / tan) / baseWidth;
+                                wanted = Mathf.Clamp(Mathf.Min(wanted, fits), k.MinScale * 0.35f, wanted);
+                            }
+                        }
+                    }
+
+                    go.transform.localScale = Vector3.one * wanted;
+
+                    // Разрежение: не ставим куст в чужой куст.
+                    //
+                    // Проверяем ПОСЛЕ выбора масштаба, потому что ширина
+                    // зависит от него: мелкому кусту позволено стоять ближе.
+                    {
+                        var mfSelf = prefab.GetComponentInChildren<MeshFilter>();
+                        float myW = mfSelf != null && mfSelf.sharedMesh != null
+                            ? Mathf.Max(mfSelf.sharedMesh.bounds.size.x, mfSelf.sharedMesh.bounds.size.z) * wanted
+                            : 1f;
+
+                        bool tooClose = false;
+
+                        foreach (var placedItem in placedSpots)
+                        {
+                            float need = (placedItem.w + myW) * 0.5f * (1f - OverlapShare);
+
+                            if (Vector2.Distance(new Vector2(placedItem.p.x, placedItem.p.y),
+                                                 new Vector2(x, z)) < need)
+                            {
+                                tooClose = true;
+                                break;
+                            }
+                        }
+
+                        if (tooClose)
+                        {
+                            Object.DestroyImmediate(go);
+                            skipped++;
+                            continue;
+                        }
+
+                        placedSpots.Add((new Vector2(x, z), myW));
+                    }
 
                     Seat(go, ground, k.Sink, terrain);
                     Strip(go);

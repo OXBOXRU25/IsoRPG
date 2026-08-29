@@ -1554,6 +1554,15 @@ namespace IsoRPG.EditorTools
                         bool has = mat.HasProperty("_ConformStrength");
                         float val = has ? mat.GetFloat("_ConformStrength") : -1f;
 
+                        // Полный путь в иерархии: если трава окажется вложена
+                        // в дерево или куст, она унаследует их трансформ, и
+                        // «висит» будет означать совсем другое.
+                        string chain = mr.name;
+                        var up = mr.transform.parent;
+                        while (up != null) { chain = up.name + " / " + chain; up = up.parent; }
+
+                        Debug.Log("[IsoRPG] Путь: " + chain);
+
                         Debug.Log("[IsoRPG] В точке: «" + mr.name + "» на (" +
                                   p3.x.ToString("0") + ", " + p3.z.ToString("0") +
                                   "), материал «" + mat.name + "», шейдер «" + mat.shader.name +
@@ -1563,6 +1572,65 @@ namespace IsoRPG.EditorTools
                     }
 
                     if (found == 0) Debug.Log("[IsoRPG] В точке ничего не нашлось.");
+                    break;
+                }
+
+                case "grass-overlap":
+                {
+                    // Не сидят ли кусты друг в друге.
+                    //
+                    // Догадка Павлона: одна трава наложилась на другую. Если
+                    // два широких куста стоят в метре, их листья прошивают
+                    // друг друга, и на склоне это читается как «торчит из
+                    // воздуха» — хотя каждый сидит на земле правильно.
+                    var ovHolder = GameObject.Find("Луг Synty");
+                    if (ovHolder == null) { Debug.LogError("[IsoRPG] Луга нет."); break; }
+
+                    var pts = new System.Collections.Generic.List<(Vector3 p, float w, string n)>();
+
+                    foreach (Transform pl in ovHolder.transform)
+                    {
+                        var rr = pl.GetComponentsInChildren<Renderer>(true);
+                        if (rr.Length == 0) continue;
+
+                        var bb = rr[0].bounds;
+                        foreach (var r in rr) bb.Encapsulate(r.bounds);
+
+                        pts.Add((pl.position, Mathf.Max(bb.size.x, bb.size.z), pl.name));
+                    }
+
+                    int close = 0, deep = 0;
+                    float worstOv = 0f;
+                    var worstP = Vector3.zero;
+
+                    for (int i = 0; i < pts.Count; i++)
+                    {
+                        for (int j = i + 1; j < pts.Count; j++)
+                        {
+                            float d = Vector2.Distance(
+                                new Vector2(pts[i].p.x, pts[i].p.z),
+                                new Vector2(pts[j].p.x, pts[j].p.z));
+
+                            float sum = (pts[i].w + pts[j].w) * 0.5f;
+
+                            if (d > sum) continue;
+
+                            close++;
+
+                            // Насколько глубоко один влез в другой, в долях.
+                            float ov = 1f - d / Mathf.Max(0.01f, sum);
+
+                            if (ov > 0.7f) deep++;
+
+                            if (ov > worstOv) { worstOv = ov; worstP = pts[i].p; }
+                        }
+                    }
+
+                    Debug.Log("[IsoRPG] Наложение кустов: пар, где габариты пересекаются — " + close +
+                              ", из них глубже 70% — " + deep +
+                              ". Худшее " + (worstOv * 100f).ToString("0") + "% в точке (" +
+                              worstP.x.ToString("0") + ", " + worstP.z.ToString("0") +
+                              "). Всего кустов " + pts.Count + ".");
                     break;
                 }
 

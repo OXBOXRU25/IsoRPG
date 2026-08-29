@@ -1239,6 +1239,30 @@ namespace IsoRPG.EditorTools
                     WolfPack.Build();
                     break;
 
+                case "hug":
+                {
+                    // Прижать героя к грунту. Сетка навигации лежит выше
+                    // земли, и агент честно ставит персонажа на неё — отсюда
+                    // «висит в воздухе».
+                    var hugged = GameObject.FindGameObjectWithTag("Player");
+
+                    if (hugged == null)
+                    {
+                        Debug.LogError("[IsoRPG] Героя в сцене нет — прижимать некого.");
+                        break;
+                    }
+
+                    if (hugged.GetComponent<IsoRPG.World.GroundHug>() == null)
+                        hugged.AddComponent<IsoRPG.World.GroundHug>();
+
+                    // Без этого правка не доживёт до сохранения: сцену
+                    // грязной помечает не добавление компонента, а мы сами.
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Герою добавлено прижатие к грунту (GroundHug).");
+                    break;
+                }
+
                 case "nav-hole":
                     NavHoleProbe.Run();
                     break;

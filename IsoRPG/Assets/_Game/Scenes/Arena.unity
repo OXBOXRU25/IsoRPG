@@ -138180,6 +138180,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1209543301476556, guid: 953667ada6702494d8d9c1a11b7c9142, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2087261349}
+    - targetCorrespondingSourceObject: {fileID: 1209543301476556, guid: 953667ada6702494d8d9c1a11b7c9142, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2087261350}
   m_SourcePrefab: {fileID: 100100000, guid: 953667ada6702494d8d9c1a11b7c9142, type: 3}
 --- !u!4 &2087261336 stripped
 Transform:
@@ -138359,6 +138362,25 @@ MonoBehaviour:
   gripRotation: {x: 0, y: 0, z: 90}
   gripOffset: {x: 0, y: 0, z: 0}
   leftHand: {fileID: 3861117815783688290, guid: 3290ed05baca35149bb69053e60ae4f1, type: 3}
+--- !u!114 &2087261350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087261337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56e2817c63714b54c896e9e6dd995033, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsoRPG.World.GroundHug
+  rayStart: 1.5
+  rayLength: 6
+  smooth: 10
+  limit: 2
+  ground:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!1001 &2091111220
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -192,6 +192,269 @@ namespace IsoRPG.EditorTools
                     WorldBorder.Clear();
                     break;
 
+                case "water-fix":
+                {
+                    // Перевести воду на URP с сохранением вида.
+                    //
+                    // Родной SyntyStudios/WaterShader написан под встроенный
+                    // конвейер и в URP не рисуется ВООБЩЕ — не пурпурный, а
+                    // невидимый, поэтому пропажу воды долго принимали за
+                    // потерю объектов. Собираем URP-материал: прозрачный,
+                    // с текстурой и цветом из родного.
+                    var src = AssetDatabase.LoadAssetAtPath<Material>(
+                        "Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Materials/Water_Lake_01.mat");
+
+                    var lit = Shader.Find("Universal Render Pipeline/Lit");
+
+                    if (lit == null)
+                    {
+                        Debug.LogError("[IsoRPG] Шейдера URP/Lit нет.");
+                        break;
+                    }
+
+                    var wet = new Material(lit) { name = "Water_Lake_URP" };
+
+                    // Переносим то, что несёт вид: текстуру и цвет. Имена
+                    // свойств у старых шейдеров свои, поэтому пробуем оба.
+                    Texture tex = null;
+
+                    if (src != null)
+                    {
+                        foreach (var key in new[] { "_MainTex", "_BaseMap", "_Albedo", "_MainTexture" })
+                            if (src.HasProperty(key) && src.GetTexture(key) != null)
+                            {
+                                tex = src.GetTexture(key);
+                                break;
+                            }
+                    }
+
+                    if (tex != null) wet.SetTexture("_BaseMap", tex);
+
+                    Color tint = new Color(0.16f, 0.47f, 0.44f, 0.78f);
+
+                    if (src != null)
+                    {
+                        foreach (var key in new[] { "_BaseColor", "_Color", "_Tint" })
+                            if (src.HasProperty(key))
+                            {
+                                var c = src.GetColor(key);
+                                if (c.maxColorComponent > 0.02f) { tint = c; tint.a = 0.78f; }
+                                break;
+                            }
+                    }
+
+                    wet.SetColor("_BaseColor", tint);
+
+                    // Прозрачность: вода без неё выглядит краской.
+                    wet.SetFloat("_Surface", 1f);
+                    wet.SetFloat("_Blend", 0f);
+                    wet.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    wet.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    wet.SetFloat("_ZWrite", 0f);
+                    wet.SetFloat("_Smoothness", 0.92f);
+                    wet.SetFloat("_Metallic", 0.1f);
+                    wet.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    wet.DisableKeyword("_ALPHATEST_ON");
+                    wet.renderQueue = 3000;
+
+                    AssetDatabase.CreateAsset(wet, "Assets/_Game/Art/Materials/Water_Lake_URP.mat");
+                    AssetDatabase.SaveAssets();
+
+                    int fixedCount = 0;
+
+                    foreach (var mr in UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        var mf3 = mr.GetComponent<MeshFilter>();
+
+                        if (mf3 == null || mf3.sharedMesh == null) continue;
+                        if (!mf3.sharedMesh.name.ToLowerInvariant().Contains("water")) continue;
+
+                        mr.sharedMaterial = wet;
+                        fixedCount++;
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Вода переведена на URP: объектов " + fixedCount +
+                              ", текстура " + (tex != null ? tex.name : "НЕ НАШЛАСЬ") +
+                              ", цвет " + tint + ", прозрачность 0.78.");
+                    break;
+                }
+
+                case "water-mat":
+                {
+                    // Подменить материал глади на заведомо рабочий.
+                    //
+                    // Вода в сцене есть, включена, на правильном слое и выше
+                    // дна — а её не видно. Остаётся шейдер. Проверяем в лоб:
+                    // ставим стандартный материал URP. Появится плоскость —
+                    // виноват водный шейдер набора.
+                    var lit = Shader.Find("Universal Render Pipeline/Lit");
+
+                    if (lit == null)
+                    {
+                        Debug.LogError("[IsoRPG] Шейдера URP/Lit нет.");
+                        break;
+                    }
+
+                    var probe = new Material(lit) { name = "ЩУП_ВОДА" };
+                    probe.SetColor("_BaseColor", new Color(0.1f, 0.45f, 0.75f, 1f));
+
+                    AssetDatabase.CreateAsset(probe, "Assets/_Game/Art/Materials/ЩУП_ВОДА.mat");
+                    AssetDatabase.SaveAssets();
+
+                    int swapped = 0;
+
+                    foreach (var mr in UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        var mf2 = mr.GetComponent<MeshFilter>();
+
+                        if (mf2 == null || mf2.sharedMesh == null) continue;
+                        if (!mf2.sharedMesh.name.ToLowerInvariant().Contains("water")) continue;
+
+                        mr.sharedMaterial = probe;
+                        swapped++;
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+                    Debug.Log("[IsoRPG] Материал глади подменён у " + swapped + " объектов.");
+                    break;
+                }
+
+                case "world-check":
+                {
+                    // Контрольный список целости мира.
+                    //
+                    // Ставить ПОСЛЕДНЕЙ строкой в каждый прогон. Журнал
+                    // печатает тот же код, который делал работу, и говорит
+                    // лишь то, что код дошёл до строки. Этот щуп ЧИТАЕТ
+                    // состояние сцены и потому ловит потерю в том же
+                    // прогоне, а не через час на кадре заказчика.
+                    var wcTerr = UnityEngine.Object.FindObjectsByType<Terrain>(
+                        FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+                    int layers = wcTerr.Length > 0 ? wcTerr[0].terrainData.terrainLayers.Length : 0;
+
+                    var wcPlayer = GameObject.FindGameObjectWithTag("Player");
+                    var wcMeadow = GameObject.Find("Луг Synty");
+
+                    int plants = wcMeadow != null ? wcMeadow.transform.childCount : 0;
+
+                    // Вода: ищем по материалу и по имени модели набора, а не
+                    // по русскому имени объекта — оно может быть любым.
+                    int waters = 0, lillies = 0, wolves = 0;
+
+                    foreach (var mr in UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        // Имя ОБЪЕКТА в сцене может быть любым, а имя меша
+                        // приходит из файла модели и врать не станет.
+                        var mf = mr.GetComponent<MeshFilter>();
+                        var meshName = mf != null && mf.sharedMesh != null
+                            ? mf.sharedMesh.name.ToLowerInvariant()
+                            : mr.name.ToLowerInvariant();
+
+                        if (meshName.Contains("water"))
+                        {
+                            waters++;
+
+                            // Печатаем каждый водный объект подробно: «есть в
+                            // сцене» и «видно в игре» — разные утверждения.
+                            // Выключенный объект или потерянный материал
+                            // выглядят одинаково: воды нет.
+                            var mat = mr.sharedMaterial;
+
+                            Debug.Log("[IsoRPG] водный объект «" + mr.name + "» на " +
+                                      mr.transform.position.ToString("0.0") +
+                                      ", включён " + mr.gameObject.activeInHierarchy +
+                                      ", рендерер " + mr.enabled +
+                                      ", материал " + (mat != null ? mat.name : "НЕТ") +
+                                      ", шейдер " + (mat != null && mat.shader != null ? mat.shader.name : "НЕТ") +
+                                      ", масштаб " + mr.transform.lossyScale.ToString("0.00"));
+
+                            // Главная проверка: где земля относительно глади.
+                            // Если грунт выше воды, гладь просто закопана —
+                            // и выглядит это как «водоёмов нет».
+                            if (wcTerr.Length > 0)
+                            {
+                                float ground = wcTerr[0].SampleHeight(mr.transform.position) +
+                                               wcTerr[0].transform.position.y;
+
+                                float diff = ground - mr.transform.position.y;
+
+                                Debug.Log("[IsoRPG]    земля в центре " + ground.ToString("0.00") +
+                                          " м, гладь " + mr.transform.position.y.ToString("0.00") +
+                                          " м, " + (diff > 0f
+                                              ? "ЗЕМЛЯ НАД ВОДОЙ на " + diff.ToString("0.00") + " м — гладь закопана"
+                                              : "вода выше дна на " + (-diff).ToString("0.00") + " м"));
+
+                                var camMain = Camera.main;
+
+                                Debug.Log("[IsoRPG]    слой воды " + mr.gameObject.layer +
+                                          " («" + LayerMask.LayerToName(mr.gameObject.layer) + "»)" +
+                                          ", камера рисует этот слой: " +
+                                          (camMain != null
+                                              ? ((camMain.cullingMask & (1 << mr.gameObject.layer)) != 0).ToString()
+                                              : "камеры нет") +
+                                          ", очередь материала " +
+                                          (mr.sharedMaterial != null ? mr.sharedMaterial.renderQueue.ToString() : "?"));
+                            }
+                        }
+                        else if (meshName.Contains("lill")) lillies++;
+                    }
+
+                    foreach (var ag in UnityEngine.Object.FindObjectsByType<UnityEngine.AI.NavMeshAgent>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                        if (ag.name.ToLowerInvariant().Contains("wolf") ||
+                            ag.name.ToLowerInvariant().Contains("волк")) wolves++;
+
+                    bool nav = UnityEngine.AI.NavMesh.CalculateTriangulation().indices.Length > 0;
+
+                    string line = "[IsoRPG] МИР: террейн " + wcTerr.Length +
+                                  ", слоёв земли " + layers +
+                                  ", воды " + waters +
+                                  ", кувшинок " + lillies +
+                                  ", растений " + plants +
+                                  ", волков " + wolves +
+                                  ", герой " + (wcPlayer != null ? "есть" : "НЕТ") +
+                                  ", навигация " + (nav ? "есть" : "НЕТ") + ".";
+
+                    // Ругаемся, если пропало то, без чего мир неполон.
+                    if (wcTerr.Length == 0 || layers == 0 || waters == 0 ||
+                        plants == 0 || wcPlayer == null || !nav)
+                        Debug.LogError(line + " ЧЕГО-ТО НЕ ХВАТАЕТ.");
+                    else
+                        Debug.Log(line);
+
+                    break;
+                }
+
+                case "water-check":
+                {
+                    int found = 0;
+
+                    foreach (var mr in UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        var n = mr.name.ToLowerInvariant();
+
+                        if (!n.Contains("water") && !n.Contains("pond") &&
+                            !n.Contains("lill") && !n.Contains("вод")) continue;
+
+                        Debug.Log("[IsoRPG] Вода: «" + mr.name + "» на " +
+                                  mr.transform.position.ToString("0.0") +
+                                  ", включён " + mr.gameObject.activeInHierarchy);
+                        if (++found >= 8) break;
+                    }
+
+                    if (found == 0) Debug.LogError("[IsoRPG] ВОДЫ В СЦЕНЕ НЕТ ВООБЩЕ.");
+                    else Debug.Log("[IsoRPG] Водных объектов найдено (первые): " + found);
+
+                    break;
+                }
+
                 case "giants":
                     TreeSwap.ReplaceGiants();
                     break;
@@ -1336,6 +1599,10 @@ namespace IsoRPG.EditorTools
                               "растений под ним " + meadow.transform.childCount + ".");
                     break;
                 }
+
+                case "pine-probe":
+                    GrassShot.Pines();
+                    break;
 
                 case "grass-shot":
                     GrassShot.Shoot();

@@ -20,6 +20,179 @@ namespace IsoRPG.EditorTools
         private const string Out = "D:/GAME Ai/shots/grass-size.png";
         private const int W = 1000, H = 700;
 
+        /// <summary>
+        /// Померить пачку префабов, прежде чем сеять.
+        ///
+        /// Дважды за вечер я добавлял виды, не измерив их: плоские коврики
+        /// оказались лежащими на земле плоскостями, а «почвопокровные» —
+        /// зарослями выше героя. Число дешевле круга пересева.
+        /// </summary>
+        /// <summary>
+        /// Великаны в ряд рядом с фигурой роста человека.
+        ///
+        /// Число «44 метра» ничего не говорит глазу. Ряд, где рядом стоит
+        /// человек, отвечает на вопрос «поместится ли такое в нашем мире»
+        /// одним взглядом.
+        /// </summary>
+        [MenuItem("Tools/IsoRPG/Щуп: великаны в ряд", priority = 51)]
+        public static void Giants()
+        {
+            string[] names =
+            {
+                "SM_Env_Tree_Giant_01", "SM_Env_Tree_Giant_02",
+                "SM_Env_Tree_Portal_01", "SM_Env_Tree_Large_01",
+                "SM_Env_Tree_House_01",
+            };
+
+            var root = new GameObject("ЩУП_ВЕЛИКАНЫ");
+            float x = 0f, tallest = 0f;
+
+            foreach (var name in names)
+            {
+                var guids = AssetDatabase.FindAssets(name + " t:Prefab",
+                            new[] { "Assets/PolygonNatureBiomes/PNB_Enchanted_Forest" });
+
+                if (guids.Length == 0) continue;
+
+                var asset = AssetDatabase.LoadAssetAtPath<GameObject>(
+                            AssetDatabase.GUIDToAssetPath(guids[0]));
+
+                if (asset == null) continue;
+
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(asset);
+                go.transform.SetParent(root.transform);
+
+                var rs = go.GetComponentsInChildren<Renderer>(true);
+                if (rs.Length == 0) continue;
+
+                var bb = rs[0].bounds;
+                foreach (var r in rs) bb.Encapsulate(r.bounds);
+
+                // Ставим впритык друг к другу по ширине кроны, чтобы ряд не
+                // разъезжался и всё влезло в кадр.
+                x += bb.size.x * 0.5f + 4f;
+                go.transform.position = new Vector3(x, -bb.min.y, 0f);
+                x += bb.size.x * 0.5f;
+
+                if (bb.size.y > tallest) tallest = bb.size.y;
+            }
+
+            var man = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            man.transform.SetParent(root.transform);
+            man.transform.localScale = new Vector3(0.45f, 0.9f, 0.45f);
+            man.transform.position = new Vector3(-6f, 0.9f, 0f);
+            man.GetComponent<Renderer>().sharedMaterial.color = new Color(0.9f, 0.25f, 0.2f);
+
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            floor.transform.SetParent(root.transform);
+            floor.transform.position = new Vector3(x * 0.5f, 0f, 0f);
+            floor.transform.localScale = Vector3.one * 30f;
+
+            var lightGo = new GameObject("ЩУП_СВЕТ");
+            lightGo.transform.SetParent(root.transform);
+            var light = lightGo.AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.intensity = 1.25f;
+            lightGo.transform.rotation = Quaternion.Euler(42f, 150f, 0f);
+
+            var camGo = new GameObject("ЩУП_КАМЕРА");
+            camGo.transform.SetParent(root.transform);
+            var cam = camGo.AddComponent<Camera>();
+
+            cam.orthographic = true;
+            cam.orthographicSize = tallest * 0.62f;
+            cam.transform.position = new Vector3((x - 6f) * 0.5f, tallest * 0.5f, -140f);
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.60f, 0.72f, 0.86f);
+
+            const int gw = 1600, gh = 900;
+
+            var rt = new RenderTexture(gw, gh, 24, RenderTextureFormat.ARGB32) { antiAliasing = 8 };
+            cam.targetTexture = rt;
+            cam.Render();
+
+            var prev = RenderTexture.active;
+            RenderTexture.active = rt;
+
+            var shot = new Texture2D(gw, gh, TextureFormat.RGB24, false);
+            shot.ReadPixels(new Rect(0, 0, gw, gh), 0, 0);
+            shot.Apply();
+
+            RenderTexture.active = prev;
+            cam.targetTexture = null;
+
+            string outPath = "D:/GAME Ai/shots/giants.png";
+            Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+            File.WriteAllBytes(outPath, shot.EncodeToPNG());
+
+            Debug.Log("[IsoRPG] Великаны сняты, наибольшая высота " +
+                      tallest.ToString("0.0") + " м. Кадр: " + outPath);
+
+            Object.DestroyImmediate(root);
+            Object.DestroyImmediate(rt);
+            Object.DestroyImmediate(shot);
+        }
+
+        [MenuItem("Tools/IsoRPG/Щуп: размеры хвойных", priority = 50)]
+        public static void Pines()
+        {
+            string[] list =
+            {
+                "SM_Env_Pine_01", "SM_Env_Pine_02", "SM_Env_Pine_03",
+                "SM_Env_Pine_04", "SM_Env_Pine_05", "SM_Env_Pine_NoLeaves_01",
+                "SM_Env_Bush_01", "SM_Env_Bush_Flower_01", "SM_Env_Grass_01",
+                "SM_Env_Flowers_01",
+            };
+
+            // Диковины Зачарованного леса: великаны, дерево-портал, дерево-дом.
+            string[] fromEnchanted =
+            {
+                "SM_Env_Tree_Giant_01", "SM_Env_Tree_Giant_02",
+                "SM_Env_Tree_Portal_01", "SM_Env_Tree_House_01",
+                "SM_Env_Tree_Large_01", "SM_Env_Fern_Tree_01",
+                "SM_Env_Mushroom_01", "SM_Env_Mushroom_Small_Group_01",
+                "SM_Env_Moss_Lumps_01", "SM_Env_Undergrowth_Fern_01",
+            };
+
+            Measure(list, "Assets/PolygonNatureBiomes/PNB_Alpine_Mountain");
+            Measure(fromEnchanted, "Assets/PolygonNatureBiomes/PNB_Enchanted_Forest");
+        }
+
+        private static void Measure(string[] list, string folder)
+        {
+
+            foreach (var name in list)
+            {
+                var guids = AssetDatabase.FindAssets(name + " t:Prefab",
+                            new[] { folder });
+
+                if (guids.Length == 0)
+                {
+                    Debug.LogWarning("[IsoRPG] Не нашёлся: " + name);
+                    continue;
+                }
+
+                var go = AssetDatabase.LoadAssetAtPath<GameObject>(
+                         AssetDatabase.GUIDToAssetPath(guids[0]));
+
+                if (go == null) continue;
+
+                var mf = go.GetComponentInChildren<MeshFilter>();
+
+                if (mf == null || mf.sharedMesh == null)
+                {
+                    Debug.LogWarning("[IsoRPG] Меша нет: " + name);
+                    continue;
+                }
+
+                var b = mf.sharedMesh.bounds;
+
+                Debug.Log("[IsoRPG] " + name + ": высота " + b.size.y.ToString("0.00") +
+                          " м, ширина " + b.size.x.ToString("0.00") + " x " +
+                          b.size.z.ToString("0.00") + " м (рост героя 1.80).");
+            }
+        }
+
         [MenuItem("Tools/IsoRPG/Щуп: размер куста травы", priority = 49)]
         public static void Shoot()
         {

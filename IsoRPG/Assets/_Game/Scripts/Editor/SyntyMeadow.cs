@@ -47,25 +47,14 @@ namespace IsoRPG.EditorTools
         // Таблица снята с Demo лугового биома. Порядок — по убыванию плотности.
         private static readonly Kind[] Table =
         {
-            // Плоские коврики — заполнение земли между кустами.
-            //
-            // Половина ассортимента набора у нас не использовалась, и луг от
-            // этого читался пустым: кусты стоят группами, а между ними голая
-            // земля. Коврики низкие и широкие, они закрывают промежутки и при
-            // этом не отрываются на склонах — им нечем торчать.
-            new Kind("SM_Env_Grass_Short_Plane_01", 2.40f, 0.70f, 1.40f, 0.05f),
-            new Kind("SM_Env_Grass_Med_Plane_01",   1.60f, 0.70f, 1.30f, 0.06f),
+            // Альпийская трава: 1.65 м в поперечнике против 4.6 у луговой.
+            // Она соразмерна формам рельефа и на склонах не отрывается —
+            // ради этого и берём её из соседнего биома.
+            new Kind("SM_Env_Grass_01",             1.60f, 0.70f, 1.30f, 0.12f),
+            new Kind("SM_Env_Bush_01",              0.30f, 0.70f, 1.20f, 0.15f),
+            new Kind("SM_Env_Bush_Flower_01",       0.22f, 0.70f, 1.15f, 0.15f),
+            new Kind("SM_Env_Flowers_01",           0.40f, 0.45f, 0.75f, 0.06f),   // люпины: были по колено, стали по щиколотку
 
-            // Крупная трава — акценты, чтобы луг не был однородным ковром.
-            new Kind("SM_Env_Grass_Large_01",       0.45f, 0.60f, 1.10f, 0.30f),
-            new Kind("SM_Env_Grass_Large_02",       0.40f, 0.60f, 1.10f, 0.30f),
-            new Kind("SM_Env_Grass_Large_03",       0.35f, 0.60f, 1.05f, 0.28f),
-            new Kind("SM_Env_Grass_Large_04",       0.30f, 0.60f, 1.05f, 0.28f),
-
-            // Родственники тех видов, что уже сеем: разнообразие силуэта.
-            new Kind("SM_Env_Grass_Short_Clump_01", 0.70f, 0.75f, 1.25f, 0.25f),
-            new Kind("SM_Env_Grass_Short_Clump_02", 0.65f, 0.75f, 1.25f, 0.25f),
-            new Kind("SM_Env_Grass_Med_Clump_01",   0.60f, 0.60f, 1.30f, 0.22f),
 
             new Kind("SM_Env_Grass_Tall_Clump_04",  1.21f, 0.60f, 2.92f, 0.58f),
             new Kind("SM_Env_Grass_Tall_Clump_05",  1.10f, 0.63f, 1.47f, 1.27f),
@@ -412,6 +401,14 @@ namespace IsoRPG.EditorTools
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
                     Biome + "/" + k.Name + ".prefab");
 
+                // Хвойные лежат в соседнем биоме: в луговом их нет вовсе.
+                if (prefab == null)
+                {
+                    var alp = "Assets/PolygonNatureBiomes/PNB_Alpine_Mountain/Prefabs/" +
+                              k.Name + ".prefab";
+                    prefab = AssetDatabase.LoadAssetAtPath<GameObject>(alp);
+                }
+
                 if (prefab == null)
                 {
                     Debug.LogWarning("[IsoRPG] Нет префаба " + k.Name);
@@ -446,8 +443,30 @@ namespace IsoRPG.EditorTools
                     // голую полосу метров в восемь: заказчик увидел сначала
                     // первое, потом второе. У живой тропы трава подходит к
                     // камням вплотную, а кусты и деревья держатся поодаль.
-                    bool nearPath = k.Name.Contains("Bush") || k.Name.Contains("Tree")
+                    bool nearPath = k.Name.Contains("Bush") || k.Name.Contains("Tree") ||
+                                   k.Name.Contains("Pine")
                                     || k.Name.Contains("Rock") || k.Name.Contains("Tall");
+
+                    // В воду не сеем.
+                    //
+                    // Водоёмы учитывались только при прокладке троп, а посев
+                    // о них не знал вовсе — трава и деревья садились прямо в
+                    // пруд. Крупному нужен запас больше: ствол у берега
+                    // выглядит нормально, а крона над водой — нет.
+                    bool inWater = false;
+
+                    foreach (var pond in SyntyWater.Ponds)
+                    {
+                        float keep = pond.Radius + (nearPath ? 3.5f : 1.2f);
+
+                        if (Vector2.Distance(new Vector2(x, z), pond.Centre) < keep)
+                        {
+                            inWater = true;
+                            break;
+                        }
+                    }
+
+                    if (inWater) continue;
 
                     if (OnPath(terrain, new Vector2(x, z), nearPath ? 2.5f : 0.4f))
                     { i--; continue; }

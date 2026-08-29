@@ -1,0 +1,52 @@
+# Нормализация переносов строк. Без этого Windows и Unity периодически
+# показывают весь файл как изменённый, хотя не менялось ни строчки.
+* text=auto
+
+# Текстовые форматы Unity — их полезно видеть в diff.
+*.cs        text diff=csharp
+*.shader    text
+*.hlsl      text
+*.cginc     text
+*.json      text
+*.md        text
+*.txt       text
+
+# Сцены, префабы и ассеты Unity — это YAML. Помечаем как текст,
+# иначе git считает их бинарными и не показывает, что изменилось.
+*.unity           text
+*.prefab          text
+*.asset           text
+*.mat             text
+*.anim            text
+*.controller      text
+*.meta            text
+*.inputactions    text
+
+# Бинарники — никакой нормализации, иначе файлы портятся.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.psd   binary
+*.tga   binary
+*.fbx   binary
+*.obj   binary
+*.blend binary
+*.wav   binary
+*.mp3   binary
+*.ogg   binary
+*.ttf   binary
+*.otf   binary
+*.dll   binary
+*.unitypackage binary
+
+# ВНИМАНИЕ. Эти файлы сериализованы ДВОИЧНО, и нормализация переносов строк
+# их разрушает. 29.08.2026 откат через `git checkout` раздул сцену на 142 КБ,
+# а карту высот на 27 КБ: земля потеряла слои, навигация перестала работать.
+# Выглядело как «всё сломалось само».
+#
+# Если такой файл всё же испорчен, доставать его надо `git show HEAD:путь`,
+# минуя фильтры, — `git checkout` испортит снова.
+*.unity              binary
+*Terrain*.asset      binary
+NavMesh-*.asset      binary

@@ -1,0 +1,415 @@
+# Английский перевод интерфейса.
+#
+# По строке на запись: русский текст, знак равенства, перевод.
+# Строки, начинающиеся с решётки, пропускаются.
+#
+# Русский текст слева должен совпадать с тем, что в коде, дословно —
+# это и есть ключ поиска. Скобки вида {0} — места для чисел и имён,
+# их порядок можно менять, а сами скобки терять нельзя.
+
+# --- Главное меню ---------------------------------------------------------
+
+НАЧАТЬ ИГРУ = START GAME
+ВЫХОД = QUIT
+
+# --- Настройки ------------------------------------------------------------
+
+Настройки = Settings
+Громкость и управление = Sound and controls
+Музыка = Music
+Звуки = Sounds
+Окружение = Ambience
+Действия = Actions
+Интерфейс = Interface
+Язык = Language
+Управление = Controls
+Закрыть = Close
+В главное меню = Main menu
+Выйти из игры = Quit game
+Левая кнопка мыши = Left mouse button
+идти, выбрать цель, атаковать = move, target, attack
+приёмы = abilities
+подпрыгнуть = jump
+сумка = bag
+персонаж = character
+журнал заданий = quest log
+таланты = talents
+закрыть окно, настройки = close window, settings
+Пробел = Space
+
+# --- Окна и вкладки -------------------------------------------------------
+
+Сумка = Bag
+Твоя сумка = Your bag
+Сумка  {0} / {1} = Bag  {0} / {1}
+Сумка пуста = Bag is empty
+Персонаж = Character
+Характеристики = Attributes
+Надетые вещи и характеристики = Equipment and attributes
+Таланты = Talents
+Талант = Talent
+Три ветки, очко за уровень = Three branches, one point per level
+Журнал заданий = Quest log
+Взятые задания и награды = Active quests and rewards
+Заданий пока нет. Поговори с теми, у кого над головой висит восклицательный знак. = No quests yet. Talk to anyone with an exclamation mark above their head.
+Лавка = Shop
+Лавка пуста = The shop is empty
+Товар = Goods
+Торговец = Merchant
+Добыча = Loot
+Добыча, снаряжение и золото = Loot, gear and gold
+Собрать всё = Take all
+Разговор = Dialogue
+Предмет = Item
+предмет = item
+Способность = Ability
+Существо = Creature
+Уровень = Level
+уровень {0} = level {0}
+J — открыть и закрыть = J to open and close
+N — открыть и закрыть = N to open and close
+
+# --- Характеристики и бой -------------------------------------------------
+
+Сила = Strength
+Ловкость = Agility
+Выносливость = Stamina
+Здоровье = Health
+Энергия = Energy
+Броня = Armour
+Урон = Damage
+Урон в секунду = Damage per second
+Скорость = Speed
+Шанс крита = Crit chance
+Сила крита = Crit power
+Шанс промаха = Miss chance
+Ближний бой = Melee
+Метательное = Thrown
+Кулаки = Fists
+Кинжал = Dagger
+Скрытность = Stealth
+Оглушение = Stun
+Откат = Cooldown
+откат = cooldown
+Стоимость = Cost
+Дистанция = Range
+Требуется = Requires
+Цена = Price
+Сейчас = Now
+Станет = Becomes
+Даст = Grants
+Приём = Ability
+Приём: добивание = Ability: finisher
+Приём: набор комбо = Ability: combo builder
+Приём: скрытность = Ability: stealth
+Общее = General
+Бой = Combat
+Убийство = Assassination
+
+# --- Ячейки снаряжения ----------------------------------------------------
+
+Голова = Head
+Грудь = Chest
+Кисти = Hands
+Ноги = Legs
+Ступни = Feet
+Правая рука = Main hand
+Левая рука = Off hand
+Кольцо = Ring
+Ожерелье = Necklace
+Плащ = Cloak
+На голову = Head slot
+На корпус = Chest slot
+На руки = Hand slot
+На ноги = Leg slot
+В правую руку = Main hand
+В левую руку = Off hand
+
+# --- Редкость -------------------------------------------------------------
+
+хлам = junk
+обычное = common
+необычное = uncommon
+редкое = rare
+эпическое = epic
+
+# --- Подсказки о приёмах и вещах -----------------------------------------
+
+{0} энергии = {0} energy
+{0} с = {0}s
+{0} м = {0}m
+{0} золота = {0} gold
+{0} с плюс {1} за очко = {0}s plus {1} per point
+Даёт {0} очко комбо = Grants {0} combo point
+Тратит все очки комбо = Spends all combo points
+Уводит в скрытность = Enters stealth
+Только из скрытности = From stealth only
+только из скрытности = from stealth only
+Только со спины цели = From behind the target only
+за 1 и за 5 очков = at 1 and at 5 points
+нужен {0} уровень = requires level {0}
+урон {0} = damage {0}
+броня {0} = armour {0}
++{0} силы = +{0} strength
++{0} ловкости = +{0} agility
++{0} выносливости = +{0} stamina
+,  ранг {0} из {1} = ,  rank {0} of {1}
+
+# --- Таланты --------------------------------------------------------------
+
+Свободных очков: {0} = Points available: {0}
+Очков нет — они приходят с уровнем = No points — they come with levels
+Нет свободных очков = No points available
+Изучен полностью = Fully learned
+Изучено: {0} ({1} из {2}) = Learned: {0} ({1} of {2})
+Нужно {0} очков в ветке, вложено {1} = Needs {0} points in this branch, spent {1}
+Получено очко талантов. Всего свободных: {0} = Talent point earned. Available: {0}
+Таланты сброшены. = Talents reset.
+Сбросить = Reset
+максимальный уровень = maximum rank
+к броне = to armour
+к восстановлению энергии = to energy regeneration
+к запасу здоровья = to maximum health
+к скорости атаки = to attack speed
+к скорости в скрытности = to stealth movement speed
+к урону из скрытности = to stealth damage
+к урону крита = to critical damage
+к урону приёмов = to ability damage
+к шансу крита = to critical chance
+ко всему урону = to all damage
+
+# --- Боевой журнал --------------------------------------------------------
+
+Вы наносите {0}: {1}{2} = You hit {0} for {1}{2}
+{0} наносит вам: {1} = {0} hits you for {1}
+{0} по {1}: {2}{3} = {0} on {1}: {2}{3}
+{0} повержен = {0} is slain
+{0} оглушён на {1} с = {0} is stunned for {1}s
+ (крит) =  (crit)
+ (вскользь) =  (glancing)
+Получено опыта: {0} = Experience gained: {0}
+Получено золота: {0} = Gold gained: {0}
+Получено: {0} = Looted: {0}
+Новый уровень: {0} = Level up: {0}
++{0} опыта = +{0} experience
+С «{0}» выпало: {1} золота, предметов {2} = From "{0}": {1} gold, {2} items
+{0} вернулся = {0} has returned
+Противники вернулись на свои места = Enemies have returned to their posts
+Возрождено монстров: {0} = Monsters revived: {0}
+Игра продолжена. = Game resumed.
+Сундук открыт. = Chest opened.
+Заперто. Нужен предмет: {0} = Locked. Requires: {0}
+
+# --- Торговля и сумка -----------------------------------------------------
+
+У тебя: {0} золота = You have: {0} gold
+{0} куплен за {1} = {0} bought for {1}
+Продано: {0} за {1} золота = Sold: {0} for {1} gold
+Не хватает золота: нужно {0}. = Not enough gold: {0} needed.
+В сумке нет места. = No room in the bag.
+В сумке нет места — часть добычи осталась. = No room in the bag — some loot was left behind.
+нет места в сумке = no room in the bag
+Нет места в сумке для награды = No room in the bag for the reward
+это не надевается = this cannot be equipped
+пусто = empty
+нет = none
+
+# --- Еда и здоровье -------------------------------------------------------
+
+Ест = Eating
+Ест: {0} = Eating: {0}
+Еда прервана: {0} = Eating interrupted: {0}
+{0}: +{1} здоровья = {0}: +{1} health
+Наелся. = Full.
+Здоровье и так полное. = Health is already full.
+получен удар = took a hit
+встал с места = moved
+подпрыгнул = jumped
+
+# --- Причины, почему приём не вышел ---------------------------------------
+
+не хватает энергии = not enough energy
+нет комбо-очков = no combo points
+нет цели = no target
+слишком далеко = too far away
+Слишком далеко, подхожу... = Too far, moving in...
+нужно зайти со спины = must be behind the target
+ещё не готов = not ready yet
+нельзя в бою = not in combat
+уже в тени = already in stealth
+скрытность ещё не готова = stealth is not ready yet
+скрытность недоступна = stealth is unavailable
+
+# --- Квесты ---------------------------------------------------------------
+
+Взят квест: {0} = Quest accepted: {0}
+Квест выполнен: {0} = Quest complete: {0}
+Цель выполнена: {0} — вернись к заказчику = Objective complete: {0} — return to the giver
+Цель:  {0} = Objective:  {0}
+Награда:  {0} = Reward:  {0}
+{0} опыта = {0} experience
+  готово =   done
+   — можно сдать =    — ready to turn in
+   — сдано =    — turned in
+Взять = Accept
+Отдать = Hand in
+Отказаться = Decline
+Позже = Later
+Возвращайся, когда закончишь. = Come back when you are done.
+Не сегодня, путник. = Not today, traveller.
+Спасибо ещё раз. = Thanks again.
+Ты справился. Держи, что обещано. = You did it. Here is what I promised.
+В сундуке лежит перстень с фиолетовым камнем. = A ring with a purple stone lies in the chest.
+С пояса владыки свалился тяжёлый ключ. = A heavy key fell from the lord's belt.
+Кости для клинка = Bones for a Blade
+
+# --- Смерть и возрождение -------------------------------------------------
+
+Вы погибли = You have died
+Возродиться = Respawn
+
+# --- Персонажи ------------------------------------------------------------
+
+Разбойник = Rogue
+Разбойник  ур. {0} = Rogue  lv. {0}
+  ур. {0} =   lv. {0}
+Противник = Enemy
+Торговец Кувалда = Sledge the Merchant
+Атаман Кривой Клык = Chief Crookedfang
+Головорез = Cutthroat
+Дозорный = Lookout
+Лазутчик = Prowler
+Колдун банды = Gang Warlock
+Лесной стрелок = Forest Archer
+Заблудший скелет = Lost Skeleton
+Скелет-воин = Skeleton Warrior
+Скелет-прислужник = Skeleton Servant
+Костяной страж = Bone Guardian
+Костяной лучник = Bone Archer
+Костяной послушник = Bone Acolyte
+Костяной владыка = Bone Lord
+Страж склепа = Crypt Guardian
+Лучник склепа = Crypt Archer
+
+# --- Умения ---------------------------------------------------------------
+
+Удар по почкам = Kidney Shot
+Внезапный удар = Ambush Strike
+Коварный удар = Cheap Shot
+Потрошение = Eviscerate
+Кровопускание = Rupture
+Клинковый вихрь = Blade Flurry
+Смертельный удар = Deadly Strike
+Подлый трюк = Dirty Trick
+Казнь = Execute
+Засада = Ambush
+Тень = Shadow
+Растворение = Vanish
+Удар кинжалом. Урон оружия плюс пять. Даёт комбо-очко. = A dagger strike. Weapon damage plus five. Grants a combo point.
+Удар в спину из скрытности. 250% урона оружия и ещё сотня сверху. Даёт комбо-очко. = A backstab from stealth. 250% weapon damage plus a hundred more. Grants a combo point.
+Добивающий удар. Тратит все комбо-очки, урон резко растёт от их числа. = A finisher. Spends all combo points; damage rises sharply with their number.
+Оглушает цель на четыре секунды. Урона не наносит, но сразу даёт два комбо-очка. = Stuns the target for four seconds. Deals no damage but grants two combo points at once.
+Оглушает цель. Одно комбо-очко — две секунды, пять очков — шесть. = Stuns the target. One combo point means two seconds, five points mean six.
+Уйти в тень. Монстры не замечают, скорость ниже. В бою недоступна. = Slip into shadow. Monsters lose track of you, movement is slower. Unavailable in combat.
+
+# --- Таланты по именам ----------------------------------------------------
+
+Бесшумность = Silence
+Жажда крови = Bloodthirst
+Жестокость = Brutality
+Живучесть = Toughness
+Ловкость рук = Nimble Fingers
+Мастер маскировки = Master of Disguise
+Парирование = Parry
+Точность = Precision
+Уклонение = Evasion
+Ускользание = Slip Away
+Хладнокровие = Cold Blood
+Дыхание ровное, шаги не считаются. = Breathing steady, footsteps uncounted.
+Из темноты бьют не рукой, а самой темнотой. = From the dark it is not the hand that strikes, but the dark itself.
+Каждый удар весит чуть больше, чем должен. = Every blow lands a little heavier than it should.
+Клинок возвращается раньше, чем противник успевает выдохнуть. = The blade returns before the enemy can exhale.
+Клинок входит глубже, чем рассчитывал носивший доспех. = The blade sinks deeper than the armour's owner expected.
+Ни спешки, ни злости — только выбор места для удара. = No haste, no anger — only the choice of where to strike.
+Последний удар наносится не в горячке, а спокойно. = The final blow is struck calmly, not in the heat of it.
+Приёмы оставляют раны, которые не закрываются сами. = Abilities leave wounds that do not close on their own.
+Рука не дрожит, и удар приходится туда, куда смотрел глаз. = The hand does not shake, and the blow lands where the eye looked.
+Руки движутся быстрее, чем взгляд успевает за ними. = The hands move faster than the eye can follow.
+Силы возвращаются быстрее, чем противник понимает, куда все делись. = Strength returns faster than the enemy works out where it went.
+Тело привыкло к тому, что его бьют. = The body has grown used to being hit.
+Тень движется так же быстро, как и тот, кто идёт в открытую. = A shadow moves as fast as one walking in the open.
+Тот, кто не увидел удара, не успел и напрячься. = One who never saw the blow had no time to brace.
+Удар проходит по касательной, а не по рёбрам. = The blow glances aside instead of finding the ribs.
+Уйти из-под удара проще, чем его выдержать. = Slipping a blow is easier than taking one.
+Чем дольше длится бой, тем меньше остаётся сомнений. = The longer the fight lasts, the less doubt remains.
+Чужой клинок встречает свой, а не плечо. = Their blade meets yours instead of your shoulder.
+
+# --- Предметы -------------------------------------------------------------
+
+Клык Тени = Shadowfang
+Ржавый кинжал = Rusty Dagger
+Кинжал бандита = Bandit's Dagger
+Метательный дротик = Throwing Dart
+Кожаный нагрудник = Leather Chestpiece
+Потёртый плащ = Worn Cloak
+Грубая шкура = Coarse Hide
+Воровская печатка = Thief's Signet
+Кольцо ловкача = Trickster's Ring
+Костяной амулет = Bone Amulet
+Печать Костяного владыки = Seal of the Bone Lord
+Ключ от склепа = Crypt Key
+Кость скелета = Skeleton Bone
+Погнутая пряжка = Bent Buckle
+Спелое красное яблоко = A ripe red apple
+Видал лучшие дни. Но колет. = It has seen better days. Still stabs.
+Выбелена временем. Кому-то такие зачем-то нужны. = Bleached by time. Someone wants these for something.
+Греет хуже, чем прячет. = Warms worse than it hides.
+Камень до сих пор тёплый. Это не к добру. = The stone is still warm. That bodes ill.
+Кость, шнур и чья-то вера, что это помогает. = A bone, a cord, and someone's faith that it helps.
+Кто-то нёс его домой и не дошёл. = Someone was carrying it home and never arrived.
+Лёгкий до невесомости. В темноте кажется, что он дышит. = Weightless to the hand. In the dark it seems to breathe.
+Лёгкий и злой. Кто-то точил его каждый вечер. = Light and spiteful. Someone sharpened it every evening.
+Летит недалеко, зато тихо. = It does not fly far, but it flies quietly.
+Ничего не стоит, но кто-то же её купит. = Worth nothing, yet someone will buy it.
+Пахнет. Торговцы берут. = It smells. Merchants take it anyway.
+Печать цела, а вот дом, где ей пользовались, — нет. = The seal is intact; the house that used it is not.
+Потёртая кожа, но швы крепкие. = Worn leather, but the seams hold.
+Тонкая работа. Пальцы сами тянутся к кинжалу. = Fine work. The fingers reach for a dagger on their own.
+Тяжелее, чем должен быть. Череп на головке смотрит вбок. = Heavier than it should be. The skull on the pommel looks aside.
+
+# --- Прочее ---------------------------------------------------------------
+
+альфа = alpha
+Название квеста = Quest name
+
+
+# Тексты квестов целиком: в ассете они лежат одной строкой с абзацами.
+# Два знака подряд — обратный слеш и n — означают перенос строки.
+
+Кости для клинка = Bones for a Blade
+Хочешь эпический кинжал?
+
+Тогда сходи к руинам и принеси мне пять костей скелетов. Не спрашивай зачем. Принесёшь — получишь клинок, какого у тебя ещё не было. = Want an epic dagger?
+
+Then go to the ruins and bring me five skeleton bones. Do not ask why. Bring them and you get a blade the like of which you have never held.
+Пять костей. Возвращайся, когда наберёшь. = Five bones. Come back when you have them.
+Все пять. Не думал, что справишься.
+
+Держи, что обещано. Он твой. = All five. I did not think you would manage.
+
+Here is what I promised. It is yours.
+# --- Описания характеристик в окне персонажа ------------------------------
+
+Растёт с опытом. Каждый уровень прибавляет характеристики и очко талантов. = Grows with experience. Each level adds attributes and a talent point.
+Сколько урона выдержит герой. Даёт выносливость: единица выносливости — десять здоровья. = How much damage the hero can take. Comes from stamina: one point of stamina is ten health.
+Тратится на приёмы и восстанавливается сама. Не зависит от снаряжения. = Spent on abilities and refills on its own. Gear does not affect it.
+Снижает получаемый урон долей, а не вычитанием: работает одинаково и против слабых ударов, и против сильных. Чем выше уровень бьющего, тем меньше помогает. = Reduces incoming damage by a share rather than a flat amount, so it works the same against weak and heavy blows. The higher the attacker level, the less it helps.
+Сила. Прибавляет урон в ближнем бою — процент за единицу. Разбойнику полезна, но ловкость полезнее. = Strength. Adds melee damage — a percent per point. Useful to a rogue, but agility is more so.
+Ловкость. Главная характеристика разбойника: повышает шанс критического удара и добавляет броню. = Agility. The rogue's main attribute: raises critical strike chance and adds armour.
+Выносливость. Превращается в здоровье: единица — десять здоровья. Не влияет ни на что другое. = Stamina. Turns into health: one point is ten health. It affects nothing else.
+Урон оружия за один удар, до брони цели. Крит умножает его, броня уменьшает. = Weapon damage per hit, before the target armour. A crit multiplies it, armour reduces it.
+Секунд между ударами. Меньше — чаще бьёшь. = Seconds between hits. Less means hitting more often.
+Урон в секунду: урон, делённый на скорость. Число для сравнения оружия между собой, а не то, что увидишь в бою. = Damage per second: damage divided by speed. A number for comparing weapons, not what you will see in a fight.
+Вероятность критического удара. Растёт от ловкости и талантов. = Chance of a critical strike. Grows with agility and talents.
+Во сколько раз крит сильнее обычного удара. = How many times harder a crit lands than a normal hit.
+Вероятность задеть вскользь и нанести меньше урона. Растёт, если цель выше уровнем. = Chance to land a glancing blow for less damage. Grows when the target is higher level.

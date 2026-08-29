@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 298e8662f91282e4b8286aa2997a887e, type: 3}
+  m_Name: I_WornCloak
+  m_EditorClassIdentifier: Assembly-CSharp::IsoRPG.Items.ItemDefinition
+  displayName: "\u041F\u043E\u0442\u0451\u0440\u0442\u044B\u0439 \u043F\u043B\u0430\u0449"
+  description: "\u0413\u0440\u0435\u0435\u0442 \u0445\u0443\u0436\u0435, \u0447\u0435\u043C
+    \u043F\u0440\u044F\u0447\u0435\u0442."
+  rarity: 1
+  icon: {fileID: 21300000, guid: 7c43a26e585fd3442b91dc2cf1daaf7c, type: 3}
+  iconColor: {r: 0.3529412, g: 0.2901961, b: 0.38431373, a: 1}
+  slot: 11
+  requiredLevel: 1
+  stackable: 0
+  maxStack: 20
+  weaponDamage: 0
+  dualWieldable: 0
+  attackInterval: 1.4
+  armor: 4
+  strength: 0
+  agility: 2
+  stamina: 0
+  healAmount: 0
+  healDuration: 0
+  worldModel: {fileID: 0}
+  vendorPrice: 12

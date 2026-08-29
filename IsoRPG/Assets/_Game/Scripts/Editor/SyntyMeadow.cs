@@ -225,10 +225,10 @@ namespace IsoRPG.EditorTools
         /// повисает нижним краем — раньше это лечили утоплением, и лечение
         /// упиралось в собственный предел.
         /// </summary>
-        private const float PlantTilt = 0.55f;
+        private const float PlantTilt = 0f;   // ноль: наклонённый пучок задирает нижнюю кромку
 
         /// <summary>Камню и дереву наклона почти не нужно: ствол растёт вверх.</summary>
-        private const float SolidTilt = 0.2f;
+        private const float SolidTilt = 0f;
 
         /// <summary>Предел СУММАРНОГО утопления, доля высоты: трава и твёрдое.</summary>
         private const float PlantLimit = 0.45f, SolidLimit = 0.25f;

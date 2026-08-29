@@ -1311,6 +1311,145 @@ namespace IsoRPG.EditorTools
                     break;
                 }
 
+                case "sit":
+                {
+                    // Посадка растительности на грунт в рантайме.
+                    //
+                    // В редакторе габариты после поворота приходят от прежнего
+                    // состояния, и посадка считается по устаревшим числам —
+                    // куст висит краем при верной формуле. В игре к первому
+                    // кадру всё пересчитано, поэтому сажаем там.
+                    var meadow = GameObject.Find("Луг Synty");
+
+                    if (meadow == null)
+                    {
+                        Debug.LogError("[IsoRPG] Держателя «Луг Synty» в сцене нет.");
+                        break;
+                    }
+
+                    if (meadow.GetComponent<IsoRPG.World.GroundSitter>() == null)
+                        meadow.AddComponent<IsoRPG.World.GroundSitter>();
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] На «Луг Synty» повешена посадка на грунт (GroundSitter), " +
+                              "растений под ним " + meadow.transform.childCount + ".");
+                    break;
+                }
+
+                case "grass-shot":
+                    GrassShot.Shoot();
+                    break;
+
+                case "conform":
+                {
+                    // Изгиб травы по рельефу: отдать шейдеру карту высот и
+                    // включить прижатие ТОЛЬКО траве. Дереву и кусту изгиб
+                    // не нужен — у них ствол, который должен стоять прямо.
+                    var terr = UnityEngine.Object.FindObjectsByType<Terrain>(
+                        FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+                    if (terr.Length == 0)
+                    {
+                        Debug.LogError("[IsoRPG] Террейна нет.");
+                        break;
+                    }
+
+                    if (terr[0].GetComponent<IsoRPG.World.TerrainConform>() == null)
+                        terr[0].gameObject.AddComponent<IsoRPG.World.TerrainConform>();
+
+                    int on = 0;
+
+                    foreach (var guid in AssetDatabase.FindAssets("t:Material Grass",
+                             new[] { "Assets/PolygonNatureBiomes" }))
+                    {
+                        var path = AssetDatabase.GUIDToAssetPath(guid);
+                        var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+                        if (mat == null || !mat.HasProperty("_ConformStrength")) continue;
+
+                        mat.SetFloat("_ConformStrength", 1f);
+                        EditorUtility.SetDirty(mat);
+                        on++;
+
+                        Debug.Log("[IsoRPG] Изгиб включён: " + System.IO.Path.GetFileName(path));
+                    }
+
+                    AssetDatabase.SaveAssets();
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Изгиб по рельефу: материалов травы включено " + on + ".");
+                    break;
+                }
+
+                case "grass-probe":
+                {
+                    var meadowGo = GameObject.Find("Луг Synty");
+                    if (meadowGo == null) { Debug.LogError("[IsoRPG] Луга нет."); break; }
+
+                    for (int i = 0; i < Mathf.Min(4, meadowGo.transform.childCount); i++)
+                    {
+                        var pl = meadowGo.transform.GetChild(i);
+                        var mf = pl.GetComponentInChildren<MeshFilter>();
+
+                        string meshInfo = "меша нет";
+
+                        if (mf != null && mf.sharedMesh != null)
+                        {
+                            var b = mf.sharedMesh.bounds;
+                            meshInfo = "меш «" + mf.sharedMesh.name + "», локальные границы центр " +
+                                       b.center.ToString("0.00") + " размер " + b.size.ToString("0.00");
+                        }
+
+                        Debug.Log("[IsoRPG] Куст " + i + " «" + pl.name + "»: позиция " +
+                                  pl.position.ToString("0.00") +
+                                  ", статика " + GameObjectUtility.GetStaticEditorFlags(pl.gameObject) +
+                                  ", масштаб " + pl.lossyScale.ToString("0.00") + ". " + meshInfo);
+                    }
+                    break;
+                }
+
+                case "nobatch":
+                {
+                    // Снять с травы ТОЛЬКО объединение мешей.
+                    //
+                    // Статический батчинг склеивает кусты в общий меш и
+                    // переводит их вершины в мировые координаты. После этого
+                    // у куста нет собственной матрицы, и шейдер, считающий
+                    // изгиб относительно центра объекта, берёт центр всего
+                    // батча — трава уезжает в небо на высоту холма.
+                    //
+                    // Остальные флаги статики (свет, окклюзия) не трогаем:
+                    // они на изгиб не влияют, а пользу дают.
+                    var grassHolder = GameObject.Find("Луг Synty");
+
+                    if (grassHolder == null)
+                    {
+                        Debug.LogError("[IsoRPG] Луга нет.");
+                        break;
+                    }
+
+                    int cleared = 0;
+
+                    foreach (var tr in grassHolder.GetComponentsInChildren<Transform>(true))
+                    {
+                        var flags = GameObjectUtility.GetStaticEditorFlags(tr.gameObject);
+
+                        if ((flags & StaticEditorFlags.BatchingStatic) == 0) continue;
+
+                        GameObjectUtility.SetStaticEditorFlags(
+                            tr.gameObject, flags & ~StaticEditorFlags.BatchingStatic);
+
+                        cleared++;
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Объединение мешей снято с " + cleared +
+                              " узлов травы — теперь у каждого куста своя матрица.");
+                    break;
+                }
+
                 case "nav-hole":
                     NavHoleProbe.Run();
                     break;

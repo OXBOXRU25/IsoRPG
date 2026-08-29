@@ -355,6 +355,22 @@ namespace IsoRPG.EditorTools
                     }
                     break;
 
+                case "music":
+                    {
+                        var host = GameObject.Find("MusicPlaylist");
+                        if (host == null)
+                        {
+                            host = new GameObject("MusicPlaylist");
+                            host.AddComponent<IsoRPG.Audio.MusicPlaylist>();
+                            UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+                            Debug.Log("[IsoRPG] Фоновая музыка посажена в сцену.");
+                        }
+                        else Debug.Log("[IsoRPG] Фоновая музыка уже в сцене.");
+                        var clips = Resources.LoadAll<AudioClip>("Music");
+                        Debug.Log("[IsoRPG] Дорожек в Resources/Music: " + (clips == null ? 0 : clips.Length));
+                    }
+                    break;
+
                 case "pond-shot":
                     SceneEye.Shot("pond", new Vector3(38f, 6f, -30f), 34f, 18f, 35f);
                     SceneEye.Shot("pond-near", new Vector3(38f, 5f, -30f), 18f, 12f, 120f);

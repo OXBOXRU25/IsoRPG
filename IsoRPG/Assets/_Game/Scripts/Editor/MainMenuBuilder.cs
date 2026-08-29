@@ -32,7 +32,7 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private const string GameScenePath = "Assets/_Game/Scenes/Arena.unity";
         private const string BackgroundPath = "Assets/_Game/Art/UI/MainMenuBackground.png";
-        private const string MusicPath = "Assets/_Game/Audio/Music/MainMenuTheme.mp3";
+        private const string MusicPath = "Assets/_Game/Audio/Music/Ambient_01.mp3";
         private const string VideoPath = "Assets/_Game/Video/MainMenuBackground.mp4";
         private const string ScreenPath = "Assets/_Game/Video/MainMenuScreen.renderTexture";
 

@@ -266,7 +266,33 @@ namespace IsoRPG.EditorTools
         /// крайняя мера, а не приём. Synty-персонаж под Synty-локомоцию не
         /// ретаргетится вовсе: скелет и пропорции те же самые.
         /// </summary>
-        private const string HeroModel = "SM_Chr_Male_Rouge_01";
+        private const string HeroChoice = "Assets/_Game/Scenes/hero-number.txt";
+
+        /// <summary>
+        /// Кого ставить героем. Номер тот же, что у задания «hero-num».
+        ///
+        /// Здесь стояло имя разбойника `SM_Chr_Male_Rouge_01`, и два кода
+        /// спорили за одного героя: строитель ставил разбойника, задание
+        /// «hero-num» меняло его на выбранного по номеру. В сцене оставался
+        /// тот, кто прогнался последним — поэтому разбойник возвращался
+        /// после каждой перестройки арены, сколько его ни удаляй. Удаление
+        /// лечило след, а не причину. Теперь источник номера один на обоих.
+        /// </summary>
+        private static string HeroModel
+        {
+            get
+            {
+                int number = 23;
+
+                if (File.Exists(HeroChoice) &&
+                    int.TryParse(File.ReadAllText(HeroChoice).Trim(), out int fromFile))
+                {
+                    number = fromFile;
+                }
+
+                return "Chr_FantasyHero_Preset_" + number;
+            }
+        }
 
         /// <summary>
         /// Персонаж: модель, походка, прыжок. Слой второй.

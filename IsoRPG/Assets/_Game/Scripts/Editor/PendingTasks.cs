@@ -452,6 +452,50 @@ namespace IsoRPG.EditorTools
                     }
                     break;
 
+                case "terrain-repair":
+                    {
+                        var t = UnityEngine.Object.FindObjectsByType<Terrain>(
+                            FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault();
+
+                        if (t == null) { Debug.LogError("[IsoRPG] Террейна в сцене нет."); break; }
+
+                        if (t.terrainData != null)
+                        { Debug.Log("[IsoRPG] Данные террейна на месте, чинить нечего."); break; }
+
+                        // Пересоздаём карту высот теми же числами, что были
+                        // замерены щупом до поломки: участок 600x600 м,
+                        // карта высот 513, карта текстур и подлеска 1024.
+                        var data = new TerrainData
+                        {
+                            heightmapResolution = 513,
+                            alphamapResolution = 1024,
+                            baseMapResolution = 1024,
+                        };
+                        data.SetDetailResolution(1024, 16);
+                        data.size = new Vector3(600f, 100f, 600f);
+
+                        const string path = "Assets/_Game/Art/Materials/ArenaTerrain.asset";
+                        AssetDatabase.DeleteAsset(path);
+                        AssetDatabase.CreateAsset(data, path);
+                        AssetDatabase.SaveAssets();
+
+                        t.terrainData = data;
+
+                        var col = t.GetComponent<TerrainCollider>();
+                        if (col == null) col = t.gameObject.AddComponent<TerrainCollider>();
+                        col.terrainData = data;
+
+                        t.transform.position = new Vector3(-300f, -2.5f, -300f);
+
+                        EditorUtility.SetDirty(t);
+                        EditorUtility.SetDirty(col);
+                        UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                        Debug.Log("[IsoRPG] Карта высот пересоздана: 600x600 м, высота 100, " +
+                                  "карта высот 513, карта текстур 1024. Дальше нужен «relief».");
+                    }
+                    break;
+
                 case "pond-shot":
                     SceneEye.Shot("pond", new Vector3(-46f, 2f, 34f), 70f, 22f, 35f);
                     SceneEye.Shot("pond-near", new Vector3(20f, 5f, -16f), 40f, 20f, 120f);

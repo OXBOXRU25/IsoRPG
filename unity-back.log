@@ -5,8 +5,8 @@ OS: 'Windows 10  (10.0.19045) 64bit Professional' Language: 'ru' Physical Memory
 BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
 System  architecture: x64
 Process architecture: x64
-Date: 2026-08-29T01:12:56Z
-[Licensing::Module] Successfully launched the LicensingClient (PId: 5812)
+Date: 2026-08-29T01:09:17Z
+[Licensing::Module] Successfully launched the LicensingClient (PId: 8560)
 
 COMMAND LINE ARGUMENTS:
 C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Unity.exe
@@ -17,7 +17,7 @@ D:/GAME Ai/IsoRPG
 -executeMethod
 IsoRPG.EditorTools.BatchRunner.Run
 -logFile
-D:/GAME Ai/unity-fix.log
+D:/GAME Ai/unity-back.log
 Successfully changed project path to: D:/GAME Ai/IsoRPG
 D:/GAME Ai/IsoRPG
 [UnityMemory] Configuration Parameters - Can be set up in boot.config
@@ -57,31 +57,31 @@ D:/GAME Ai/IsoRPG
     "memorysetup-job-temp-allocator-block-size=2097152"
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
-Logging is directed to a specific file, skipping project log.Player connection [12264]  Target information:
+Logging is directed to a specific file, skipping project log.Player connection [14940]  Target information:
 
-Player connection [12264]  * "[IP] 192.168.50.79 [Port] 55504 [Flags] 2 [Guid] 3866939924 [EditorId] 3866939924 [Version] 1048832 [Id] WindowsEditor(7,HOME-PC) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [14940]  * "[IP] 192.168.50.79 [Port] 55504 [Flags] 2 [Guid] 305914239 [EditorId] 305914239 [Version] 1048832 [Id] WindowsEditor(7,HOME-PC) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [12264] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [12264] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Player connection [14940] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [14940] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-1656" after 0.2 seconds.
+[Licensing::Module] Licensing is not yet initialized.
 Starting IPC server.
 Waiting for clients to connect on \\.\pipe\Unity-LicenseClient-OXBOX, press Ctrl-C to exit.
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-OXBOX" at "2026-08-29T01:12:57.3257062Z"
-[Package Manager] Connected to IPC stream "Upm-10084" after 0.3 seconds.
-[Licensing::Module] Licensing is not yet initialized.
-[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 5812, path: "C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-OXBOX" at "2026-08-29T01:09:21.5327185Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 8560, path: "C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
 [Licensing::Module] LicensingClient has failed validation; ignoring
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.18.3+d7ffd15
-  Session Id:              29298c7b25d245bbb990c94f754b1edd
-  Correlation Id:          06a27cc2aaed97af1f2ba592be89fdbd
-  External correlation Id: 6481737367791820547
+  Session Id:              310ec5a71d964bb98fc9da24c52f71aa
+  Correlation Id:          565db5526366fbf2b0046cd8fca6282f
+  External correlation Id: 9142327769517089165
   Machine Id:              19RmDKYJv1/zK4N+lW1e75F5Dx4=
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-OXBOX" (connect: 0.38s, validation: 0.06s, handshake: 0.05s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-OXBOX-notifications" at "2026-08-29T01:12:57.4410004Z"
-[Licensing::Module] Connected to LicensingClient (PId: 5812, launch time: 0.00, total connection time: 0.49s)
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-OXBOX" (connect: 4.37s, validation: 0.48s, handshake: 0.05s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-OXBOX-notifications" at "2026-08-29T01:09:22.0584712Z"
+[Licensing::Module] Connected to LicensingClient (PId: 8560, launch time: 0.04, total connection time: 4.89s)
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group:
@@ -91,8 +91,8 @@ Waiting for clients to connect on \\.\pipe\Unity-LicenseClient-OXBOX, press Ctrl
   Expiration: Unlimited
 [Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
 [Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] Licensing Background thread has ended after 0.53s
-[Licensing::Module] Licensing is initialized (took 0.16s).
+[Licensing::Module] Licensing Background thread has ended after 5.13s
+[Licensing::Module] Licensing is initialized (took 4.62s).
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 [Physics::Module] Selected backend.
@@ -101,7 +101,6 @@ Library Redirect Path: Library/
 [Physics::Module] SDK Version: 4.1.2
 [Physics::Module] Integration Version: 1.0.0
 [Physics::Module] Threading Mode: Multi-Threaded
-Artifact Garbage Collection - Removed 1 unused hashed content files
 Initialize engine version: 6000.5.9f1 (b57deb96f08d)
 [Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Resources/UnitySubsystems
 [Subsystems] Discovering subsystems at path D:/GAME Ai/IsoRPG/Assets
@@ -119,7 +118,7 @@ Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Managed
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/BCLExtensions/runtime/netstandard2.1'
 Mono path[2] = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56084
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56656
 CodeReloadManager initialized
 ImportWorker Server TCP listen port: 0
 AcceleratorClientConnectionCallback - disconnected - :0
@@ -127,30 +126,29 @@ Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.002398 seconds.
+Registered in 0.002438 seconds.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Package Manager log level set to [2]
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.560 seconds
-Domain Reload Profiling: 1155ms
-	BeginReloadAssembly (159ms)
-		CreateAndSetChildDomain (6ms)
-	RebuildCommonClasses (6ms)
+- Finished resetting the current domain, in  0.575 seconds
+Domain Reload Profiling: 1176ms
+	BeginReloadAssembly (158ms)
+	RebuildCommonClasses (5ms)
 	RebuildNativeTypeToScriptingClass (21ms)
-	initialDomainReloadingComplete (71ms)
-	LoadAllAssembliesAndSetupDomain (336ms)
-		LoadAssemblies (150ms)
-		AnalyzeDomain (249ms)
-			TypeCache.Refresh (248ms)
-				TypeCache.ScanAssembly (232ms)
-	FinalizeReload (562ms)
+	initialDomainReloadingComplete (74ms)
+	LoadAllAssembliesAndSetupDomain (341ms)
+		LoadAssemblies (154ms)
+		AnalyzeDomain (252ms)
+			TypeCache.Refresh (250ms)
+				TypeCache.ScanAssembly (234ms)
+	FinalizeReload (577ms)
 		SetupLoadedEditorAssemblies (0ms)
 			InitializePlatformSupportModulesInManaged (3ms)
-			BeforeProcessingInitializeOnLoad (104ms)
-			ProcessInitializeOnLoadAttributes (114ms)
-			ProcessInitializeOnLoadMethodAttributes (255ms)
+			BeforeProcessingInitializeOnLoad (106ms)
+			ProcessInitializeOnLoadAttributes (112ms)
+			ProcessInitializeOnLoadMethodAttributes (269ms)
 [Licensing::Client] Successfully resolved entitlement details
 Application.AssetDatabase Initial Refresh Start
 [Package Manager] Restoring resolved packages state from cache
@@ -235,7 +233,7 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 32.6224ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 31.9016ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: D:/GAME Ai/IsoRPG
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
@@ -254,7 +252,7 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 127.5196ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 155.9595ms
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - application/grpc -
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -280,9 +278,9 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1152.3182ms
-[ApiUpdater] Total time: 1264ms, Parse response file: 64ms, Collect updater configs: 134ms, Update: 1063ms, Save: 3ms Files: 2 modified / 2 visited / 106 total (Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll).
-ExitCode: 0 Duration: 3s486ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly - 200 - application/grpc 1039.5446ms
+ExitCode: 0 Duration: 3s300ms
+[513/957    0s] WriteResponseFile Library/Bee/artifacts/rsp/4747638433968585886.rsp
 [751/957    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
 [953/957    1s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
 Assets\Synty\PolygonGeneric\Shaders\InterfaceOverrides\Editor\polygonShaderTransparent_UI.cs(20,29): warning CS0618: 'GraphicsSettings.renderPipelineAsset' is obsolete: 'renderPipelineAsset has been deprecated. Use defaultRenderPipeline instead (UnityUpgradable) -> defaultRenderPipeline'
@@ -305,11 +303,11 @@ Assets\_Game\Scripts\Editor\CozySky.cs(138,55): warning CS0618: 'FindObjectsSort
 
 Assets\_Game\Scripts\Editor\CozySky.cs(137,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
-Assets\_Game\Scripts\Editor\DungeonProbe.cs(157,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-
 Assets\_Game\Scripts\Editor\EnviroSetup.cs(94,66): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
 Assets\_Game\Scripts\Editor\EnviroSetup.cs(93,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\_Game\Scripts\Editor\DungeonProbe.cs(157,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
 Assets\_Game\Scripts\Editor\EnviroSetup.cs(197,66): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
@@ -345,10 +343,6 @@ Assets\_Game\Scripts\Editor\NavProbe.cs(66,26): warning CS0618: 'Object.FindObje
 
 Assets\_Game\Scripts\Editor\NavProbe.cs(106,28): warning CS0618: 'Object.FindFirstObjectByType<T>(FindObjectsInactive)' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 
-Assets\_Game\Scripts\Editor\OldPurge.cs(62,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\_Game\Scripts\Editor\OldPurge.cs(61,38): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
 Assets\_Game\Scripts\Editor\LightProbe.cs(35,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
 Assets\_Game\Scripts\Editor\LightProbe.cs(34,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
@@ -357,17 +351,9 @@ Assets\_Game\Scripts\Editor\PostFxBuilder.cs(75,69): warning CS0618: 'FindObject
 
 Assets\_Game\Scripts\Editor\PostFxBuilder.cs(75,36): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
-Assets\_Game\Scripts\Editor\PostFxBuilder.cs(103,69): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\_Game\Scripts\Editor\PostFxBuilder.cs(103,36): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
 Assets\_Game\Scripts\Editor\TreeSwap.cs(70,60): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
 Assets\_Game\Scripts\Editor\TreeSwap.cs(69,23): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\_Game\Scripts\Editor\TreeSwap.cs(118,63): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\_Game\Scripts\Editor\TreeSwap.cs(117,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(40,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
@@ -376,6 +362,18 @@ Assets\_Game\Scripts\Editor\PnbAnalyze.cs(39,31): warning CS0618: 'Object.FindOb
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(64,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(63,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\_Game\Scripts\Editor\PostFxBuilder.cs(103,69): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\_Game\Scripts\Editor\PostFxBuilder.cs(103,36): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\_Game\Scripts\Editor\TreeSwap.cs(118,63): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\_Game\Scripts\Editor\TreeSwap.cs(117,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\_Game\Scripts\Editor\OldPurge.cs(62,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\_Game\Scripts\Editor\OldPurge.cs(61,38): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
 Assets\_Game\Scripts\Editor\TreeSwap.cs(167,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
@@ -393,13 +391,13 @@ Assets\_Game\Scripts\Editor\SceneWeight.cs(91,55): warning CS0618: 'FindObjectsS
 
 Assets\_Game\Scripts\Editor\SceneWeight.cs(90,32): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
-Assets\_Game\Scripts\Editor\TreeNavFix.cs(46,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\_Game\Scripts\Editor\TreeNavFix.cs(45,25): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
 Assets\_Game\Scripts\Editor\SceneEye.cs(150,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
 Assets\_Game\Scripts\Editor\SceneEye.cs(149,38): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\_Game\Scripts\Editor\TreeNavFix.cs(46,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\_Game\Scripts\Editor\TreeNavFix.cs(45,25): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
 Assets\_Game\Scripts\Editor\SceneProbe.cs(36,64): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
@@ -427,6 +425,16 @@ Assets\_Game\Scripts\Editor\SyntyForest.cs(110,46): warning CS0618: 'FindObjects
 
 Assets\_Game\Scripts\Editor\SyntyForest.cs(109,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
+Assets\_Game\Scripts\Editor\SyntyRoom.cs(92,29): warning CS0162: Unreachable code detected
+
+Assets\_Game\Scripts\Editor\SyntyMeadow.cs(91,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\_Game\Scripts\Editor\SyntyMeadow.cs(90,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\_Game\Scripts\Editor\SyntyWater.cs(81,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\_Game\Scripts\Editor\SyntyWater.cs(80,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(287,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(286,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
@@ -434,16 +442,6 @@ Assets\_Game\Scripts\Editor\PnbAnalyze.cs(286,27): warning CS0618: 'Object.FindO
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(310,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(309,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\_Game\Scripts\Editor\SyntyWater.cs(81,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\_Game\Scripts\Editor\SyntyWater.cs(80,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\_Game\Scripts\Editor\SyntyRoom.cs(92,29): warning CS0162: Unreachable code detected
-
-Assets\_Game\Scripts\Editor\SyntyMeadow.cs(91,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\_Game\Scripts\Editor\SyntyMeadow.cs(90,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
 Assets\_Game\Scripts\Editor\TerrainRelief.cs(42,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
@@ -461,19 +459,19 @@ Assets\_Game\Scripts\Editor\TerrainRelief.cs(190,46): warning CS0618: 'FindObjec
 
 Assets\_Game\Scripts\Editor\TerrainRelief.cs(189,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
+Assets\_Game\Scripts\Editor\SyntyRoom.cs(287,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+
 Assets\_Game\Scripts\Editor\SyntySky.cs(202,56): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
 Assets\_Game\Scripts\Editor\SyntySky.cs(201,23): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
-Assets\_Game\Scripts\Editor\SyntyRoom.cs(287,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\_Game\Scripts\Editor\SyntyMeadow.cs(313,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\_Game\Scripts\Editor\SyntyMeadow.cs(312,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
 Assets\_Game\Scripts\Editor\SyntySky.cs(301,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
 Assets\_Game\Scripts\Editor\SyntySky.cs(300,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\_Game\Scripts\Editor\SyntyMeadow.cs(313,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\_Game\Scripts\Editor\SyntyMeadow.cs(312,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
 Assets\_Game\Scripts\Editor\SyntySky.cs(409,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
@@ -491,25 +489,21 @@ Assets\_Game\Scripts\Editor\PendingTasks.cs(442,75): warning CS0618: 'FindObject
 
 Assets\_Game\Scripts\Editor\PendingTasks.cs(441,53): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
-Assets\_Game\Scripts\Editor\PendingTasks.cs(458,58): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(799,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
-Assets\_Game\Scripts\Editor\PendingTasks.cs(457,33): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(798,49): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
-Assets\_Game\Scripts\Editor\PendingTasks.cs(843,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(898,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
-Assets\_Game\Scripts\Editor\PendingTasks.cs(842,49): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(897,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
-Assets\_Game\Scripts\Editor\PendingTasks.cs(942,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(967,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
-Assets\_Game\Scripts\Editor\PendingTasks.cs(941,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(966,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 
-Assets\_Game\Scripts\Editor\PendingTasks.cs(1011,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(1002,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 
-Assets\_Game\Scripts\Editor\PendingTasks.cs(1010,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-
-Assets\_Game\Scripts\Editor\PendingTasks.cs(1046,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-
-Assets\_Game\Scripts\Editor\PendingTasks.cs(1045,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(1001,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 [954/957    1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
 Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 144 defines and 364 references
 
@@ -520,7 +514,8 @@ running Unity.Jobs.CodeGen.JobsILPostProcessor
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 [955/957    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
 [956/957    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
-*** Tundra build success (3.45 seconds), 5 items updated, 957 evaluated
+*** Tundra build success (3.22 seconds), 6 items updated, 957 evaluated
+[ApiUpdater] Total time: 1493ms, Parse response file: 65ms, Collect updater configs: 132ms, Update: 1293ms, Save: 3ms Files: 2 modified / 2 visited / 106 total (Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll).
 [API Updater] Updated Files:
 Skipping ScriptUpdater consent dialog. Consent declined based on command line parameters.
 Finished running ScriptUpdaters
@@ -534,9 +529,9 @@ Assets\_Game\Scripts\Editor\CozySky.cs(79,59): warning CS0618: 'FindObjectsSortM
 Assets\_Game\Scripts\Editor\CozySky.cs(78,39): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\CozySky.cs(138,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\CozySky.cs(137,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\DungeonProbe.cs(157,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\_Game\Scripts\Editor\EnviroSetup.cs(94,66): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\EnviroSetup.cs(93,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\DungeonProbe.cs(157,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\_Game\Scripts\Editor\EnviroSetup.cs(197,66): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\EnviroSetup.cs(196,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\WallProbe.cs(150,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
@@ -554,22 +549,22 @@ Assets\_Game\Scripts\Editor\NavProbe.cs(63,28): warning CS0618: 'Object.FindObje
 Assets\_Game\Scripts\Editor\NavProbe.cs(67,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\NavProbe.cs(66,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\NavProbe.cs(106,28): warning CS0618: 'Object.FindFirstObjectByType<T>(FindObjectsInactive)' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\_Game\Scripts\Editor\OldPurge.cs(62,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\OldPurge.cs(61,38): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\LightProbe.cs(35,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\LightProbe.cs(34,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\PostFxBuilder.cs(75,69): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\PostFxBuilder.cs(75,36): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\PostFxBuilder.cs(103,69): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\PostFxBuilder.cs(103,36): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\TreeSwap.cs(70,60): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\TreeSwap.cs(69,23): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\TreeSwap.cs(118,63): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\TreeSwap.cs(117,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(40,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(39,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(64,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(63,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\PostFxBuilder.cs(103,69): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\PostFxBuilder.cs(103,36): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\TreeSwap.cs(118,63): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\TreeSwap.cs(117,26): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\OldPurge.cs(62,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\OldPurge.cs(61,38): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\TreeSwap.cs(167,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\TreeSwap.cs(166,25): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(209,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
@@ -578,10 +573,10 @@ Assets\_Game\Scripts\Editor\SceneWeight.cs(32,46): warning CS0618: 'FindObjectsS
 Assets\_Game\Scripts\Editor\SceneWeight.cs(31,28): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\SceneWeight.cs(91,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\SceneWeight.cs(90,32): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\TreeNavFix.cs(46,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\TreeNavFix.cs(45,25): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\SceneEye.cs(150,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\SceneEye.cs(149,38): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\TreeNavFix.cs(46,62): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\TreeNavFix.cs(45,25): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\SceneProbe.cs(36,64): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\SceneProbe.cs(35,29): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\SceneProbe.cs(79,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
@@ -595,15 +590,15 @@ Assets\_Game\Scripts\Editor\SyntyForest.cs(65,46): warning CS0618: 'FindObjectsS
 Assets\_Game\Scripts\Editor\SyntyForest.cs(64,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\SyntyForest.cs(110,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\SyntyForest.cs(109,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\SyntyRoom.cs(92,29): warning CS0162: Unreachable code detected
+Assets\_Game\Scripts\Editor\SyntyMeadow.cs(91,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\SyntyMeadow.cs(90,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\SyntyWater.cs(81,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\SyntyWater.cs(80,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(287,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(286,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(310,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\PnbAnalyze.cs(309,31): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\SyntyWater.cs(81,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\SyntyWater.cs(80,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\SyntyRoom.cs(92,29): warning CS0162: Unreachable code detected
-Assets\_Game\Scripts\Editor\SyntyMeadow.cs(91,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\SyntyMeadow.cs(90,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\TerrainRelief.cs(42,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\TerrainRelief.cs(41,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\SyntySky.cs(78,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
@@ -612,13 +607,13 @@ Assets\_Game\Scripts\Editor\SyntySky.cs(163,55): warning CS0618: 'FindObjectsSor
 Assets\_Game\Scripts\Editor\SyntySky.cs(162,33): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\TerrainRelief.cs(190,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\TerrainRelief.cs(189,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\SyntyRoom.cs(287,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
 Assets\_Game\Scripts\Editor\SyntySky.cs(202,56): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\SyntySky.cs(201,23): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\SyntyRoom.cs(287,26): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
-Assets\_Game\Scripts\Editor\SyntySky.cs(301,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\SyntySky.cs(300,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\SyntyMeadow.cs(313,46): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\SyntyMeadow.cs(312,27): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\SyntySky.cs(301,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\SyntySky.cs(300,35): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\SyntySky.cs(409,55): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\SyntySky.cs(408,33): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\PendingTasks.cs(260,63): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
@@ -627,118 +622,117 @@ Assets\_Game\Scripts\Editor\PendingTasks.cs(308,58): warning CS0618: 'FindObject
 Assets\_Game\Scripts\Editor\PendingTasks.cs(307,36): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
 Assets\_Game\Scripts\Editor\PendingTasks.cs(442,75): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
 Assets\_Game\Scripts\Editor\PendingTasks.cs(441,53): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\PendingTasks.cs(458,58): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\PendingTasks.cs(457,33): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\PendingTasks.cs(843,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\PendingTasks.cs(842,49): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\PendingTasks.cs(942,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\PendingTasks.cs(941,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\PendingTasks.cs(1011,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\PendingTasks.cs(1010,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-Assets\_Game\Scripts\Editor\PendingTasks.cs(1046,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
-Assets\_Game\Scripts\Editor\PendingTasks.cs(1045,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
-AssetDatabase: script compilation time: 4.048681s
+Assets\_Game\Scripts\Editor\PendingTasks.cs(799,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(798,49): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(898,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(897,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(967,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(966,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(1002,67): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\_Game\Scripts\Editor\PendingTasks.cs(1001,43): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsInactive, FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+AssetDatabase: script compilation time: 4.511441s
 Begin MonoManager ReloadAssembly
 Total cache size 112306678
-Total cache size after purge 112306678, took 00:00:00.1831714
+Total cache size after purge 112306678, took 00:00:00.1702173
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  3.698 seconds
-Domain Reload Profiling: 4861ms
-	BeginReloadAssembly (316ms)
-		DisableScriptedObjects (48ms)
-		CreateAndSetChildDomain (60ms)
+- Finished resetting the current domain, in  3.793 seconds
+Domain Reload Profiling: 4881ms
+	BeginReloadAssembly (295ms)
+		DisableScriptedObjects (47ms)
+		CreateAndSetChildDomain (46ms)
 	RebuildCommonClasses (10ms)
 	RebuildNativeTypeToScriptingClass (21ms)
-	initialDomainReloadingComplete (69ms)
-	LoadAllAssembliesAndSetupDomain (746ms)
-		LoadAssemblies (406ms)
-		AnalyzeDomain (322ms)
-			TypeCache.Refresh (230ms)
-				TypeCache.ScanAssembly (217ms)
-			BuildScriptInfoCaches (76ms)
-			ResolveRequiredComponents (13ms)
-	FinalizeReload (3699ms)
+	initialDomainReloadingComplete (68ms)
+	LoadAllAssembliesAndSetupDomain (693ms)
+		LoadAssemblies (383ms)
+		AnalyzeDomain (302ms)
+			TypeCache.Refresh (217ms)
+				TypeCache.ScanAssembly (203ms)
+			BuildScriptInfoCaches (73ms)
+			ResolveRequiredComponents (10ms)
+	FinalizeReload (3794ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (3ms)
-			BeforeProcessingInitializeOnLoad (105ms)
-			ProcessInitializeOnLoadAttributes (2916ms)
-			ProcessInitializeOnLoadMethodAttributes (200ms)
+			BeforeProcessingInitializeOnLoad (107ms)
+			ProcessInitializeOnLoadAttributes (3063ms)
+			ProcessInitializeOnLoadMethodAttributes (172ms)
 			AfterProcessingInitializeOnLoad (8ms)
 		AwakeInstancesAfterBackupRestoration (34ms)
+Importing 'GUID: 1db5328198c19b0498cd0b8070257b84 - Path: Assets/_Game/Scenes/Arena.unity' with importer (DefaultImporter)
+Imported 'GUID: 1db5328198c19b0498cd0b8070257b84' -> (Import Result ID: 'd797ff44ab3d64f5f0b7fd194d526338') in 0.012 seconds [static dependencies only]. Details - ImportResultOutputID=e4fba7802ff6df5867da0246ee067480 DependenciesID=ee7d533410a78d756dce1d31b0d8946f StaticDependenciesID=6d0d3e0dae25589c6351ce248eefeeed 
+Importing 'GUID: 036682092434c264889e3dec5e2060aa - Path: Assets/_Game/Art/Materials/ArenaTerrain.asset' with importer (NativeFormatImporter)
+Invalid TypeTree file format. Expected header to be 'tthm'
+Invalid serialized file header. File: "Assets/_Game/Art/Materials/ArenaTerrain.asset".
+Unknown error occurred while loading 'Assets/_Game/Art/Materials/ArenaTerrain.asset'.
+Imported 'GUID: 036682092434c264889e3dec5e2060aa' -> (Import Result ID: 'f4dca2329e47227125f8f9664110af52') in 0.031 seconds [static dependencies only]. Details - ImportResultOutputID=d958ce98dcf0ee033c37eafdc010a267 DependenciesID=5225df70b24586355ec02bfc94a83ae4 StaticDependenciesID=77a571127e342d0aedf08cbcb88c84cf 
+Importing 'GUID: a3a594e6faa07164dbbaafc5f517246e - Path: Assets/_Game/Scenes/Arena/NavMesh-ArenaTerrain.asset' with importer (NativeFormatImporter)
+Invalid serialized file header. File: "Assets/_Game/Scenes/Arena/NavMesh-ArenaTerrain.asset".
+Unknown error occurred while loading 'Assets/_Game/Scenes/Arena/NavMesh-ArenaTerrain.asset'.
+Imported 'GUID: a3a594e6faa07164dbbaafc5f517246e' -> (Import Result ID: 'f1c4b73f73e8a32a2d73d2d6e4248a3e') in 0.003 seconds [static dependencies only]. Details - ImportResultOutputID=9976d592bcb63c2a75d29b3afe20c856 DependenciesID=1b2da59aecd04a786b40b3ce492102d7 StaticDependenciesID=82b06a6298a7ab2a263b0dfbf69c6e65 
 Starting new worker id: 0 with log in D:/GAME Ai/IsoRPG/Logs/AssetImportWorkerHW0.log
+Loaded 1 ExamplePackConfig assets
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SyntyPackageHelper:LoadSyntyPackageHelperConfigs () (at Assets/Synty/SyntyPackageHelper/Editor/SyntyPackageHelper.cs:46)
+SyntyPackageHelper:OnProjectChanged () (at Assets/Synty/SyntyPackageHelper/Editor/SyntyPackageHelper.cs:55)
+UnityEditor.EditorApplication:Internal_CallProjectHasChanged ()
 
-Asset Pipeline Refresh (id=fdc7e9b2b7ca5eb468363578807ba58b): Total: 11.710 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+(Filename: Assets/Synty/SyntyPackageHelper/Editor/SyntyPackageHelper.cs Line: 46)
+
+Importing 'GUID: 00000000000000004000000000000000 - Path: ProjectSettings/ProjectSettings.asset' with importer (LibraryAssetImporter)
+Imported 'GUID: 00000000000000004000000000000000' -> (Import Result ID: '702a474f2f7fe9e1744228f7ca14a83e') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=276a810dac73e1f29404d5e5f692e214 DependenciesID=e9590249c6f9f8d265009e082151b49d StaticDependenciesID=61f55734f348b8337d9323239d2d26f5 
+Worker ready: AssetImportWorkerHW0 0
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.25 seconds
+
+Asset Pipeline Refresh (id=eaff9b9d8b2e6bf4fa9ce9fd7b0ad3b5): Total: 14.418 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	(Values over 0.05ms)
 	Summary:
-		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=5352 ms
-		Asset DB Callback time: managed=985 ms, native=24 ms
-		Scripting: domain reloads=1, domain reload time=1226 ms, compile time=4050 ms, other=71 ms
+		Imports: total=4 (actual=4, local cache=0, cache server=0)
+		Asset DB Process Time: managed=2 ms, native=7137 ms
+		Asset DB Callback time: managed=1080 ms, native=467 ms
+		Scripting: domain reloads=1, domain reload time=1146 ms, compile time=4513 ms, other=71 ms
 		Project Asset Count: scripts=2761, non-scripts=43637
-		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Asset File Changes: new=0, changed=5, moved=0, deleted=0
 		Scan Filter Count: 0
-	InvokePackagesCallback: 19.593ms
-	ApplyChangesToAssetFolders: 0.715ms
-	Scan: 240.431ms
-	Collect global state as custom dependencies: 19.536ms
-	OnSourceAssetsModified: 0.699ms
-	CategorizeScriptCompilationAssets: 56.479ms
-	ProcessAssetsWithTransientArtifactChanges: 128.085ms
-	CategorizeAssets: 485.742ms
-	CompileScripts: 4049.972ms
-	ImportOutOfDateAssets: 4256.579ms (3731.649ms without children)
-		UnloadImportedAssets: 0.825ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 9.201ms
-		ImportSchedulerStart: 514.861ms
-	PostProcessAllAssets: 986.269ms
-		VCAutoAddAssetPostprocess 1.054ms
-		XRBuildSystem.XRAssetImported 0.328ms
-		MonoPostProcessAllAssets: 984.422ms
-			AssetPostprocessor.OnPostprocessAllAssets 845.731ms
-			StyleCatalogPostProcessor.OnPostprocessAllAssets 77.310ms
-			SyncVS.PostprocessSyncProject 11.020ms
-			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 10.870ms
-			BuilderAssetPostprocessor.OnPostprocessAllAssets 8.422ms
-			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 2.484ms
-			SpeedTree9Postprocessor.OnPostprocessAllAssets 1.960ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.533ms
-			AssetChangedListener.OnPostprocessAllAssets 1.447ms
-			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.327ms
-			EditModeScopePostprocessor.OnPostprocessAllAssets 0.896ms
-			MaterialPostprocessor.OnPostprocessAllAssets 0.756ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.743ms
-			PluginAssetPostProcessor.OnPostprocessAllAssets 0.570ms
-			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.563ms
-			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.561ms
-			CozyShaderPostProcessor.OnPostprocessAllAssets 0.500ms
-			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.493ms
-			AssetEvents.OnPostprocessAllAssets 0.414ms
-			AudioMixerPostprocessor.OnPostprocessAllAssets 0.411ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.387ms
-			SampleDependencyImporterPostProcessor.OnPostprocessAllAssets 0.362ms
-			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.357ms
-			ShaderReflectionAssetPostProcessor.OnPostprocessAllAssets 0.344ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 0.341ms
-			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.303ms
-			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.265ms
-			ConfigAssetsTracker.OnPostprocessAllAssets 0.246ms
-			PostProcessor.OnPostprocessAllAssets 0.231ms
-			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.218ms
-			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.191ms
-			AssetReloadNotifier.OnPostprocessAllAssets 0.171ms
-			SamplePostprocessor.OnPostprocessAllAssets 0.155ms
-			SpeedTreePostProcessor.OnPostprocessAllAssets 0.148ms
-			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.142ms
-			AudioContainerPostProcessor.OnPostprocessAllAssets 0.105ms
-	PostAssetChangesProfiler: 5.133ms
-	UnloadStreamsBegin: 3.751ms
-	PersistCurrentRevisions: 4.633ms
-	GenerateScriptTypeHashes: 20.637ms
-	GenerateScriptTypeSerializationHashes: 26.406ms
-	Untracked: 1441.265ms
+	InvokePackagesCallback: 20.950ms
+	ApplyChangesToAssetFolders: 0.902ms
+	Scan: 483.605ms
+	Collect global state as custom dependencies: 20.344ms
+	OnSourceAssetsModified: 0.756ms
+	CategorizeScriptCompilationAssets: 57.905ms
+	ProcessAssetsWithTransientArtifactChanges: 111.876ms
+	CategorizeAssets: 1003.557ms
+	CompileScripts: 4512.721ms
+	ImportOutOfDateAssets: 5219.391ms (3874.273ms without children)
+		ImportManagerImport: 53.908ms (6.039ms without children)
+			UpdateCategorizedAssets: 0.057ms
+		ReloadNativeAssets: 0.115ms
+		UnloadImportedAssets: 1.042ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 25.952ms
+		ImportSchedulerStart: 1264.076ms
+	PostProcessAllAssets: 2152.828ms
+		VCAutoAddAssetPostprocess 13.796ms
+		XRBuildSystem.XRAssetImported 0.661ms
+		PostProcessCallbackCreateDeferredMaterials 0.052ms
+		MonoPostProcessAllAssets: 1028.495ms
+			AssetPostprocessor.OnPostprocessAllAssets 3.028ms
+			SyncVS.PostprocessSyncProject 1.112ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.095ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.058ms
+	PostAssetChangesProfiler: 753.562ms
+	GatherAllCurrentPrimaryImportResultRevisions: 7.833ms
+	UnloadStreamsBegin: 3.889ms
+	PersistCurrentRevisions: 8.019ms
+	UnloadStreamsEnd: 0.169ms
+	GenerateScriptTypeHashes: 5.358ms
+	GenerateScriptTypeSerializationHashes: 8.487ms
+	Untracked: 1363.079ms
 
 Application.AssetDatabase Initial Refresh End
 Shader 'SyntyStudios/SkyboxUnlit': fallback shader 'wiiu' not found
@@ -747,14 +741,7 @@ Shader 'SyntyStudios/TriplanarBasic': fallback shader 'wiiu' not found
 Shader 'SyntyStudios/CloudShaderNoFog': fallback shader 'wiiu' not found
 Shader 'SyntyStudios/SkyboxUnlitNoFog': fallback shader 'wiiu' not found
 Shader 'SyntyStudios/Basic_LOD_Shader': fallback shader 'wiiu' not found
-Launched and connected shader compiler UnityShaderCompiler.exe after 0.01 seconds
-Shader 'SyntyStudios/CloudShader': fallback shader 'wiiu' not found
-Shader 'SyntyStudios/SkyboxUnlit': fallback shader 'wiiu' not found
-Shader 'SyntyStudios/TriplanarBasic': fallback shader 'wiiu' not found
-Shader 'SyntyStudios/SkyboxUnlitNoFog': fallback shader 'wiiu' not found
-Shader 'SyntyStudios/CloudShaderNoFog': fallback shader 'wiiu' not found
-Shader 'SyntyStudios/Basic_LOD_Shader': fallback shader 'wiiu' not found
-Scanning for USB devices : 3.221ms
+Scanning for USB devices : 2.376ms
 Initializing Unity extensions:
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
@@ -762,10 +749,9 @@ Initializing Unity extensions:
 Curl error 35: Cert verify failed. Certificate could not be verified (either omitted or unsupported). UnityTls error code: 7
 Unloading 89 Unused Serialized files (Serialized files now loaded: 0)
 Curl error 35: Cert verify failed. Certificate could not be verified (either omitted or unsupported). UnityTls error code: 7
-Worker ready: AssetImportWorkerHW0 0
-Unloading 7700 unused Assets / (28.0 MB). Loaded Objects now: 8750.
-Memory consumption went from 0.79 GB to 0.77 GB.
-Total: 38.681200 ms (FindLiveObjects: 0.942900 ms CreateObjectMapping: 3.482900 ms MarkObjects: 6.500500 ms  DeleteObjects: 27.752500 ms)
+Unloading 7701 unused Assets / (28.1 MB). Loaded Objects now: 8752.
+Memory consumption went from 0.77 GB to 0.74 GB.
+Total: 25.500500 ms (FindLiveObjects: 0.897900 ms CreateObjectMapping: 3.280100 ms MarkObjects: 7.558900 ms  DeleteObjects: 13.761400 ms)
 
 [IsoRPG] Пакетный запуск: начинаю.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -780,8 +766,7 @@ IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunne
 
 Opening scene 'Assets/_Game/Scenes/Arena.unity'
 Invalid serialized file header. File: "Assets/_Game/Scenes/Arena/NavMesh-ArenaTerrain.asset".
-Unknown error occurred while loading 'Assets/_Game/Scenes/Arena/NavMesh-ArenaTerrain.asset'.
-Unloading 48 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 47 Unused Serialized files (Serialized files now loaded: 0)
 Invalid TypeTree file format. Expected header to be 'tthm'
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
@@ -791,14 +776,6 @@ IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunne
 [Assets/_Game/Scripts/Editor/BatchRunner.cs line 48]
 
 Invalid serialized file header. File: "Assets/_Game/Art/Materials/ArenaTerrain.asset".
-UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
-UnityEngine.StackTraceUtility:ExtractStackTrace ()
-UnityEditor.SceneManagement.EditorSceneManager:OpenScene (string,UnityEditor.SceneManagement.OpenSceneMode)
-IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:48)
-
-[Assets/_Game/Scripts/Editor/BatchRunner.cs line 48]
-
-Unknown error occurred while loading 'Assets/_Game/Art/Materials/ArenaTerrain.asset'.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEditor.SceneManagement.EditorSceneManager:OpenScene (string,UnityEditor.SceneManagement.OpenSceneMode)
@@ -821,14 +798,14 @@ IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunne
 [./Library/PackageCache/com.unity.ai.navigation@134dd6a3b97b/Runtime/NavMeshSurface.cs line 587]
 
 Loaded scene 'Assets/_Game/Scenes/Arena.unity'
-	Deserialize:            108.748 ms
-	Integration:            541.075 ms
-	Integration of assets:  0.114 ms
-	Thread Wait Time:       0.053 ms
-	Total Operation Time:   649.990 ms
+	Deserialize:            115.464 ms
+	Integration:            540.300 ms
+	Integration of assets:  0.111 ms
+	Thread Wait Time:       0.048 ms
+	Total Operation Time:   655.923 ms
 Unloading 2 unused Assets / (2.0 KB). Loaded Objects now: 40271.
-Memory consumption went from 0.84 GB to 0.84 GB.
-Total: 17.292200 ms (FindLiveObjects: 4.184900 ms CreateObjectMapping: 3.501100 ms MarkObjects: 9.530400 ms  DeleteObjects: 0.075100 ms)
+Memory consumption went from 0.81 GB to 0.81 GB.
+Total: 16.890500 ms (FindLiveObjects: 3.860300 ms CreateObjectMapping: 3.435200 ms MarkObjects: 9.534200 ms  DeleteObjects: 0.060100 ms)
 
 [IsoRPG] Открыта сцена Assets/_Game/Scenes/Arena.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -841,32 +818,8 @@ IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunne
 
 (Filename: Assets/_Game/Scripts/Editor/BatchRunner.cs Line: 49)
 
-
-Asset Pipeline Refresh (id=903b93ba8b3310d4084bd92971f01cdb): Total: 0.744 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
-	(Values over 0.05ms)
-	Summary:
-		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=744 ms
-		Asset DB Callback time: managed=0 ms, native=0 ms
-		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
-		Project Asset Count: scripts=2761, non-scripts=43637
-		Asset File Changes: new=0, changed=0, moved=0, deleted=0
-		Scan Filter Count: 0
-	ApplyChangesToAssetFolders: 0.167ms
-	Scan: 6.283ms
-	Collect global state as custom dependencies: 0.472ms
-	ProcessAssetsWithTransientArtifactChanges: 0.189ms
-	CategorizeAssets: 290.132ms
-	ImportOutOfDateAssets: 383.804ms (19.950ms without children)
-		UnloadImportedAssets: 0.086ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 8.140ms
-		ImportSchedulerStart: 355.581ms
-	GatherAllCurrentPrimaryImportResultRevisions: 2.453ms
-	UnloadStreamsBegin: 1.755ms
-	PersistCurrentRevisions: 2.314ms
-	Untracked: 48.473ms
-
-[IsoRPG] Выполняю задание: terrain-repair
+Asset Pipeline Refresh (id=da5e60805deffae4f852b3fb74bfa106): Total: 0.024 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+[IsoRPG] Выполняю задание: relief
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
@@ -884,206 +837,216 @@ Invalid TypeTree file format. Expected header to be 'tthm'
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.Terrain:get_terrainData ()
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:462)
+IsoRPG.EditorTools.TerrainRelief:Build () (at Assets/_Game/Scripts/Editor/TerrainRelief.cs:50)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:467)
 IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
 IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
 IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
 
-[Assets/_Game/Scripts/Editor/PendingTasks.cs line 462]
+[Assets/_Game/Scripts/Editor/TerrainRelief.cs line 50]
 
 Invalid serialized file header. File: "Assets/_Game/Art/Materials/ArenaTerrain.asset".
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.Terrain:get_terrainData ()
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:462)
+IsoRPG.EditorTools.TerrainRelief:Build () (at Assets/_Game/Scripts/Editor/TerrainRelief.cs:50)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:467)
 IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
 IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
 IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
 
-[Assets/_Game/Scripts/Editor/PendingTasks.cs line 462]
+[Assets/_Game/Scripts/Editor/TerrainRelief.cs line 50]
 
 Unknown error occurred while loading 'Assets/_Game/Art/Materials/ArenaTerrain.asset'.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.Terrain:get_terrainData ()
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:462)
+IsoRPG.EditorTools.TerrainRelief:Build () (at Assets/_Game/Scripts/Editor/TerrainRelief.cs:50)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:467)
 IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
 IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
 IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
 
-[Assets/_Game/Scripts/Editor/PendingTasks.cs line 462]
+[Assets/_Game/Scripts/Editor/TerrainRelief.cs line 50]
 
+[IsoRPG] Задание «relief» упало: Object reference not set to an instance of an object
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogError (object)
+IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:129)
+IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
+
+(Filename: Assets/_Game/Scripts/Editor/PendingTasks.cs Line: 129)
+
+[IsoRPG] Выполняю задание: pond
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:146)
+IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
+IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
+
+(Filename: Assets/_Game/Scripts/Editor/PendingTasks.cs Line: 146)
+
+[IsoRPG] Задание «pond» упало: Object reference not set to an instance of an object
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogError (object)
+IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:129)
+IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
+
+(Filename: Assets/_Game/Scripts/Editor/PendingTasks.cs Line: 129)
+
+[IsoRPG] Выполняю задание: meadow-ground
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:146)
+IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
+IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
+
+(Filename: Assets/_Game/Scripts/Editor/PendingTasks.cs Line: 146)
+
+[IsoRPG] Задание «meadow-ground» упало: Object reference not set to an instance of an object
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogError (object)
+IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:129)
+IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
+
+(Filename: Assets/_Game/Scripts/Editor/PendingTasks.cs Line: 129)
+
+Importing 'GUID: 224d63e1442241943b8cafe00b71bdbd - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Dirt_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: 224d63e1442241943b8cafe00b71bdbd' -> (Import Result ID: '443830d777be86c95020c2344c2fe31f') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=2b1d43f1454139531655ad568703e7cf DependenciesID=58bccbfc067a1f04d07e9c2ffd7e759a StaticDependenciesID=dab7553da7b7c4223d74660eb614f321 
+Importing 'GUID: 927c01133fc01cf449019fb21429322d - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Footpath_Tile_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: 927c01133fc01cf449019fb21429322d' -> (Import Result ID: 'ea078efbacb8030a80384a9cc85f8c12') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=8713b51cc22fcd718dc0e9c98323f7cf DependenciesID=9c2efb7cea20f171a8d0bc4c8ba520b8 StaticDependenciesID=105292a2fb1f2b3c5c22bf1c824621ff 
+Importing 'GUID: 18206772b2c5a7a4b9682aa8188d3de0 - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Dirt_Cracked_Pebbles_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: 18206772b2c5a7a4b9682aa8188d3de0' -> (Import Result ID: 'c3837446c6f9ce4a7aeec06844b978c6') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=d7af519ea43b007314968f714f5c2ab9 DependenciesID=b3e3870619047d98ddb766c416eefcc2 StaticDependenciesID=cdac734754e1ac88c13856de297af07c 
+Importing 'GUID: e8a19b753c680d24c98f0aee4c3f6f1a - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Grass_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: e8a19b753c680d24c98f0aee4c3f6f1a' -> (Import Result ID: 'a43a9f2bc7198903338fbdd3ba332250') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=61807fdf5aa5f2ef3ee66c89a29bf15a DependenciesID=39549710f042087f2af55747ae469410 StaticDependenciesID=ef87d208d0563e5bebc1f0d5321086b9 
+Importing 'GUID: cbd19f98974e48444a516ccf4c843381 - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Dirt_Cracked_Leaves_Heavy_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: cbd19f98974e48444a516ccf4c843381' -> (Import Result ID: '7ca2e4e5870e3b93d6a0c432cb13ccfa') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=c6aaa8883e3ef17e8849524aa5d17989 DependenciesID=3afc97f2dcf34929f48e64d7bf3997f2 StaticDependenciesID=350b93c280f13b7728ef9ac13a6820ea 
+Importing 'GUID: 9f5c36e3546010746940a515bbf0494b - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Grass_Leaves_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: 9f5c36e3546010746940a515bbf0494b' -> (Import Result ID: '6895b99ca8b6d62e2544a96fbd3cf42f') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=2620016723843e448fd61adcd7a616e1 DependenciesID=1cafec4ef2a5001cbf30a64e7bc88a0a StaticDependenciesID=7f08e287efc9fc967c4a1dfb6e2e092c 
 Invalid TypeTree file format. Expected header to be 'tthm'
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
-UnityEditor.AssetDatabase:LoadAssetAtPath (string,System.Type)
-GSPAWN.PluginAssetModificationProcessor:OnWillDeleteAsset (string,UnityEditor.RemoveAssetOptions) (at Assets/GSpawn - Level Designer/Scripts/PluginAssetModificationProcessor.cs:50)
-System.Reflection.RuntimeMethodInfo:Invoke (object,System.Reflection.BindingFlags,System.Reflection.Binder,object[],System.Globalization.CultureInfo)
-System.Reflection.MethodBase:Invoke (object,object[])
-UnityEditor.AssetModificationProcessorInternal:OnWillDeleteAssets (string[],UnityEditor.AssetDeleteResult[],UnityEditor.RemoveAssetOptions)
-UnityEditor.AssetDatabase:DeleteAsset (string)
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:478)
-IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
-IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
-IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:63)
 
-[Assets/GSpawn - Level Designer/Scripts/PluginAssetModificationProcessor.cs line 50]
+[Assets/_Game/Scripts/Editor/BatchRunner.cs line 63]
 
 Invalid serialized file header. File: "Assets/_Game/Art/Materials/ArenaTerrain.asset".
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
-UnityEditor.AssetDatabase:LoadAssetAtPath (string,System.Type)
-GSPAWN.PluginAssetModificationProcessor:OnWillDeleteAsset (string,UnityEditor.RemoveAssetOptions) (at Assets/GSpawn - Level Designer/Scripts/PluginAssetModificationProcessor.cs:50)
-System.Reflection.RuntimeMethodInfo:Invoke (object,System.Reflection.BindingFlags,System.Reflection.Binder,object[],System.Globalization.CultureInfo)
-System.Reflection.MethodBase:Invoke (object,object[])
-UnityEditor.AssetModificationProcessorInternal:OnWillDeleteAssets (string[],UnityEditor.AssetDeleteResult[],UnityEditor.RemoveAssetOptions)
-UnityEditor.AssetDatabase:DeleteAsset (string)
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:478)
-IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
-IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
-IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:63)
 
-[Assets/GSpawn - Level Designer/Scripts/PluginAssetModificationProcessor.cs line 50]
+[Assets/_Game/Scripts/Editor/BatchRunner.cs line 63]
 
-Loaded 1 ExamplePackConfig assets
-UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
-UnityEngine.StackTraceUtility:ExtractStackTrace ()
-UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
-UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
-UnityEngine.Logger:Log (UnityEngine.LogType,object)
-UnityEngine.Debug:Log (object)
-SyntyPackageHelper:LoadSyntyPackageHelperConfigs () (at Assets/Synty/SyntyPackageHelper/Editor/SyntyPackageHelper.cs:46)
-SyntyPackageHelper:OnProjectChanged () (at Assets/Synty/SyntyPackageHelper/Editor/SyntyPackageHelper.cs:55)
-UnityEditor.EditorApplication:Internal_CallProjectHasChanged ()
-UnityEditor.AssetDatabase:DeleteAsset (string)
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:478)
-IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
-IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
-IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
 
-(Filename: Assets/Synty/SyntyPackageHelper/Editor/SyntyPackageHelper.cs Line: 46)
-
-Importing 'GUID: 00000000000000004000000000000000 - Path: ProjectSettings/ProjectSettings.asset' with importer (LibraryAssetImporter)
-Imported 'GUID: 00000000000000004000000000000000' -> (Import Result ID: '702a474f2f7fe9e1744228f7ca14a83e') in 0.004 seconds [static dependencies only]. Details - ImportResultOutputID=276a810dac73e1f29404d5e5f692e214 DependenciesID=e9590249c6f9f8d265009e082151b49d StaticDependenciesID=61f55734f348b8337d9323239d2d26f5 
-
-Asset Pipeline Refresh (id=4d0a5536a1f43434e8de8a4646b85f5d): Total: 1.080 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=45495dcddc6b9434c9f45ce09c6e5fc8): Total: 0.455 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 	(Values over 0.05ms)
 	Summary:
-		Imports: total=1 (actual=1, local cache=0, cache server=0)
-		Asset DB Process Time: managed=1 ms, native=927 ms
-		Asset DB Callback time: managed=142 ms, native=8 ms
-		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
-		Project Asset Count: scripts=2761, non-scripts=43636
-		Asset File Changes: new=0, changed=0, moved=0, deleted=1
-		Scan Filter Count: 0
-	ApplyChangesToAssetFolders: 0.303ms
-	Scan: 19.327ms
-	Collect global state as custom dependencies: 0.712ms
-	OnSourceAssetsModified: 0.622ms
-	ProcessAssetsWithTransientArtifactChanges: 0.170ms
-	CategorizeAssets: 90.627ms
-	ImportOutOfDateAssets: 761.522ms (41.788ms without children)
-		ImportManagerImport: 6.021ms (1.595ms without children)
-		ReloadNativeAssets: 0.086ms
-		UnloadImportedAssets: 0.438ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 17.880ms
-		ImportSchedulerStart: 695.301ms
-	PostProcessAllAssets: 7.944ms
-		XRBuildSystem.XRAssetImported 2.376ms
-		MonoPostProcessAllAssets: 5.303ms
-			SyncVS.PostprocessSyncProject 0.783ms
-			AssetPostprocessor.OnPostprocessAllAssets 0.221ms
-	PostAssetChangesProfiler: 583.785ms
-	GatherAllCurrentPrimaryImportResultRevisions: 7.757ms
-	UnloadStreamsBegin: 1.108ms
-	PersistCurrentRevisions: 4.629ms
-	UnloadStreamsEnd: 0.210ms
-	Untracked: 22.798ms
-
-Importing 'GUID: 036682092434c264889e3dec5e2060aa - Path: Assets/_Game/Art/Materials/ArenaTerrain.asset' with importer (NativeFormatImporter)
-Imported 'GUID: 036682092434c264889e3dec5e2060aa' -> (Import Result ID: 'd103118f71b6e7dbc678d478fd40438a') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=343ee83b76dca5d34e1acade03f16f16 DependenciesID=72ec7c31da4eb01eb177973e70624c4c StaticDependenciesID=5047da2a17b6b3e973ff254f8a3eeffc 
-
-Asset Pipeline Refresh (id=4d19c706a70d7d4429970ca045837138): Total: 0.508 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
-	(Values over 0.05ms)
-	Summary:
-		Imports: total=1 (actual=1, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=502 ms
-		Asset DB Callback time: managed=1 ms, native=3 ms
+		Imports: total=6 (actual=6, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=447 ms
+		Asset DB Callback time: managed=1 ms, native=5 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2761, non-scripts=43637
-		Asset File Changes: new=1, changed=1, moved=0, deleted=0
-		Scan Filter Count: 5
-	ApplyChangesToAssetFolders: 0.097ms
-	Scan: 6.996ms
-	Collect global state as custom dependencies: 0.241ms
-	ProcessAssetsWithTransientArtifactChanges: 0.086ms
-	CategorizeAssets: 69.852ms
-	ImportOutOfDateAssets: 396.354ms (21.898ms without children)
-		ImportManagerImport: 8.472ms (7.011ms without children)
-		UnloadImportedAssets: 0.240ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 8.969ms
-		ImportSchedulerStart: 356.719ms
-	PostProcessAllAssets: 1.830ms
-		XRBuildSystem.XRAssetImported 0.315ms
-		MonoPostProcessAllAssets: 1.415ms
-			SyncVS.PostprocessSyncProject 0.803ms
-			AssetChangedListener.OnPostprocessAllAssets 0.191ms
-			AssetPostprocessor.OnPostprocessAllAssets 0.054ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.050ms
-	PostAssetChangesProfiler: 3.459ms
-	GatherAllCurrentPrimaryImportResultRevisions: 2.477ms
-	PersistCurrentRevisions: 2.398ms
-	Untracked: 24.116ms
-
-[IsoRPG] Карта высот пересоздана: 600x600 м, высота 100, карта высот 513, карта текстур 1024. Дальше нужен «relief».
-UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
-UnityEngine.StackTraceUtility:ExtractStackTrace ()
-UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
-UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
-UnityEngine.Logger:Log (UnityEngine.LogType,object)
-UnityEngine.Debug:Log (object)
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:494)
-IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
-IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
-IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
-
-(Filename: Assets/_Game/Scripts/Editor/PendingTasks.cs Line: 494)
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 10
+	ApplyChangesToAssetFolders: 0.089ms
+	Scan: 7.482ms
+	Collect global state as custom dependencies: 0.267ms
+	ProcessAssetsWithTransientArtifactChanges: 0.088ms
+	CategorizeAssets: 22.826ms
+	ImportOutOfDateAssets: 391.296ms (21.500ms without children)
+		ImportManagerImport: 10.401ms (4.640ms without children)
+			UpdateCategorizedAssets: 0.071ms
+		ReloadNativeAssets: 0.060ms
+		UnloadImportedAssets: 0.229ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 8.856ms
+		ImportSchedulerStart: 350.237ms
+	PostProcessAllAssets: 4.119ms
+		XRBuildSystem.XRAssetImported 2.071ms
+		MonoPostProcessAllAssets: 1.854ms
+			SyncVS.PostprocessSyncProject 0.866ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.257ms
+			AssetPostprocessor.OnPostprocessAllAssets 0.113ms
+			PostProcessor.OnPostprocessAllAssets 0.072ms
+			CozyShaderPostProcessor.OnPostprocessAllAssets 0.052ms
+	PostAssetChangesProfiler: 3.245ms
+	GatherAllCurrentPrimaryImportResultRevisions: 2.372ms
+	PersistCurrentRevisions: 2.778ms
+	Untracked: 20.871ms
 
 Importing 'GUID: 1db5328198c19b0498cd0b8070257b84 - Path: Assets/_Game/Scenes/Arena.unity' with importer (DefaultImporter)
-Imported 'GUID: 1db5328198c19b0498cd0b8070257b84' -> (Import Result ID: '32cdd0494ae6f272658f6b7a6e1f61b0') in 0.003 seconds [static dependencies only]. Details - ImportResultOutputID=e4fba7802ff6df5867da0246ee067480 DependenciesID=f9a8e3bde48263d3d59e00db7bad7d29 StaticDependenciesID=e0b33a4bdc079aec7eadb3115cb99ef0 
+Imported 'GUID: 1db5328198c19b0498cd0b8070257b84' -> (Import Result ID: '8c180ad860fbcb4125cec5357e54292c') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=e4fba7802ff6df5867da0246ee067480 DependenciesID=342aa4c44ad119590b43d57e82ab8708 StaticDependenciesID=de9b33b4f93c3819e058213ede91edfa 
+Invalid TypeTree file format. Expected header to be 'tthm'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:63)
 
-Asset Pipeline Refresh (id=2454c6458d4390442a298ec15e38ecd9): Total: 0.505 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[Assets/_Game/Scripts/Editor/BatchRunner.cs line 63]
+
+Invalid serialized file header. File: "Assets/_Game/Art/Materials/ArenaTerrain.asset".
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:63)
+
+[Assets/_Game/Scripts/Editor/BatchRunner.cs line 63]
+
+
+Asset Pipeline Refresh (id=36d6afe43664a1b4fb38de94b5f04429): Total: 0.483 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 	(Values over 0.05ms)
 	Summary:
 		Imports: total=1 (actual=1, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=500 ms
-		Asset DB Callback time: managed=1 ms, native=3 ms
+		Asset DB Process Time: managed=0 ms, native=477 ms
+		Asset DB Callback time: managed=2 ms, native=3 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2761, non-scripts=43637
 		Asset File Changes: new=0, changed=1, moved=0, deleted=0
 		Scan Filter Count: 4
-	ApplyChangesToAssetFolders: 0.097ms
-	Scan: 7.720ms
-	Collect global state as custom dependencies: 0.232ms
-	ProcessAssetsWithTransientArtifactChanges: 0.099ms
-	CategorizeAssets: 69.642ms
-	ImportOutOfDateAssets: 394.777ms (20.797ms without children)
-		ImportManagerImport: 7.340ms (4.020ms without children)
-		UnloadImportedAssets: 0.225ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 8.812ms
-		ImportSchedulerStart: 357.544ms
-	PostProcessAllAssets: 2.093ms
-		XRBuildSystem.XRAssetImported 0.346ms
-		MonoPostProcessAllAssets: 1.656ms
-			SyncVS.PostprocessSyncProject 0.844ms
-			AssetChangedListener.OnPostprocessAllAssets 0.335ms
-			AssetPostprocessor.OnPostprocessAllAssets 0.066ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.054ms
-	PostAssetChangesProfiler: 2.583ms
-	GatherAllCurrentPrimaryImportResultRevisions: 2.714ms
-	UnloadStreamsBegin: 0.141ms
-	PersistCurrentRevisions: 2.314ms
-	Untracked: 22.562ms
+	ApplyChangesToAssetFolders: 0.090ms
+	Scan: 7.733ms
+	Collect global state as custom dependencies: 0.242ms
+	OnSourceAssetsModified: 0.678ms
+	ProcessAssetsWithTransientArtifactChanges: 0.097ms
+	CategorizeAssets: 65.519ms
+	ImportOutOfDateAssets: 374.686ms (24.527ms without children)
+		ImportManagerImport: 5.373ms (4.112ms without children)
+		UnloadImportedAssets: 0.226ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 8.421ms
+		ImportSchedulerStart: 336.079ms
+	PostProcessAllAssets: 1.854ms
+		XRBuildSystem.XRAssetImported 0.340ms
+		MonoPostProcessAllAssets: 1.426ms
+			SyncVS.PostprocessSyncProject 0.821ms
+			AssetChangedListener.OnPostprocessAllAssets 0.183ms
+			AssetPostprocessor.OnPostprocessAllAssets 0.053ms
+	PostAssetChangesProfiler: 2.859ms
+	GatherAllCurrentPrimaryImportResultRevisions: 2.504ms
+	UnloadStreamsBegin: 0.102ms
+	PersistCurrentRevisions: 2.421ms
+	Untracked: 24.302ms
 
 [IsoRPG] Сцена и ассеты сохранены.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -1120,13 +1083,9 @@ Lingering sessions upon destruction of worker manager
 AcceleratorClientConnectionCallback - disconnected - :0
 Cleanup mono
 CodeReloadManager destroyed
-abort_threads: Failed aborting id: 0000000000004300, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000003CA8, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 00000000000023E0, mono_thread_manage will ignore it
-
-abort_threads: Failed aborting id: 0000000000004300, mono_thread_manage will ignore it
-
-abort_threads: Failed aborting id: 00000000000023E0, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000003CA8, mono_thread_manage will ignore it
 
 debugger-agent: Unable to listen on 3560
 Exiting batchmode successfully now!

@@ -5,8 +5,8 @@ OS: 'Windows 10  (10.0.19045) 64bit Professional' Language: 'ru' Physical Memory
 BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
 System  architecture: x64
 Process architecture: x64
-Date: 2026-08-29T00:53:10Z
-[Licensing::Module] Successfully launched the LicensingClient (PId: 16952)
+Date: 2026-08-29T01:14:43Z
+[Licensing::Module] Successfully launched the LicensingClient (PId: 12812)
 
 COMMAND LINE ARGUMENTS:
 C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Unity.exe
@@ -57,31 +57,31 @@ D:/GAME Ai/IsoRPG
     "memorysetup-job-temp-allocator-block-size=2097152"
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
-Logging is directed to a specific file, skipping project log.Player connection [10456]  Target information:
+Logging is directed to a specific file, skipping project log.Player connection [14016]  Target information:
 
-Player connection [10456]  * "[IP] 192.168.50.79 [Port] 55504 [Flags] 2 [Guid] 3472182558 [EditorId] 3472182558 [Version] 1048832 [Id] WindowsEditor(7,HOME-PC) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [14016]  * "[IP] 192.168.50.79 [Port] 55504 [Flags] 2 [Guid] 3841812610 [EditorId] 3841812610 [Version] 1048832 [Id] WindowsEditor(7,HOME-PC) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [10456] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [10456] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Player connection [14016] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [14016] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
 Starting IPC server.
 Waiting for clients to connect on \\.\pipe\Unity-LicenseClient-OXBOX, press Ctrl-C to exit.
-[Package Manager] Connected to IPC stream "Upm-17372" after 0.3 seconds.
-[Licensing::Module] Licensing is not yet initialized.
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-OXBOX" at "2026-08-29T00:53:10.9955649Z"
-[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 16952, path: "C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-OXBOX" at "2026-08-29T01:14:43.7987905Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 12812, path: "C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
 [Licensing::Module] LicensingClient has failed validation; ignoring
+[Package Manager] Connected to IPC stream "Upm-8300" after 0.3 seconds.
+[Licensing::Module] Licensing is not yet initialized.
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.18.3+d7ffd15
-  Session Id:              e159c8a78131489e81617d9d392b6948
-  Correlation Id:          1f69ee847a646cde070fa2fcf6409103
-  External correlation Id: 5787126474853625044
+  Session Id:              ef589aaf699741b08f8ac99eb5f979c2
+  Correlation Id:          9460c3220f60680530ec10bd3bcfc916
+  External correlation Id: 8077050169548542782
   Machine Id:              19RmDKYJv1/zK4N+lW1e75F5Dx4=
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-OXBOX" (connect: 0.37s, validation: 0.07s, handshake: 0.05s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-OXBOX-notifications" at "2026-08-29T00:53:11.1147277Z"
-[Licensing::Module] Connected to LicensingClient (PId: 16952, launch time: 0.00, total connection time: 0.49s)
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-OXBOX" (connect: 0.37s, validation: 0.12s, handshake: 0.09s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-OXBOX-notifications" at "2026-08-29T01:14:44.0063022Z"
+[Licensing::Module] Connected to LicensingClient (PId: 12812, launch time: 0.00, total connection time: 0.58s)
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group:
@@ -91,8 +91,8 @@ Waiting for clients to connect on \\.\pipe\Unity-LicenseClient-OXBOX, press Ctrl
   Expiration: Unlimited
 [Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
 [Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] Licensing Background thread has ended after 0.54s
-[Licensing::Module] Licensing is initialized (took 0.17s).
+[Licensing::Module] Licensing Background thread has ended after 0.63s
+[Licensing::Module] Licensing is initialized (took 0.15s).
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 [Physics::Module] Selected backend.
@@ -119,7 +119,7 @@ Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Managed
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/BCLExtensions/runtime/netstandard2.1'
 Mono path[2] = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56372
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56300
 CodeReloadManager initialized
 ImportWorker Server TCP listen port: 0
 AcceleratorClientConnectionCallback - disconnected - :0
@@ -127,30 +127,30 @@ Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.002540 seconds.
+Registered in 0.002850 seconds.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 Package Manager log level set to [2]
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.545 seconds
-Domain Reload Profiling: 1152ms
-	BeginReloadAssembly (165ms)
-		CreateAndSetChildDomain (10ms)
+- Finished resetting the current domain, in  0.558 seconds
+Domain Reload Profiling: 1163ms
+	BeginReloadAssembly (159ms)
+		CreateAndSetChildDomain (5ms)
 	RebuildCommonClasses (6ms)
-	RebuildNativeTypeToScriptingClass (22ms)
-	initialDomainReloadingComplete (74ms)
-	LoadAllAssembliesAndSetupDomain (340ms)
-		LoadAssemblies (152ms)
-		AnalyzeDomain (252ms)
-			TypeCache.Refresh (250ms)
-				TypeCache.ScanAssembly (234ms)
-	FinalizeReload (546ms)
+	RebuildNativeTypeToScriptingClass (21ms)
+	initialDomainReloadingComplete (77ms)
+	LoadAllAssembliesAndSetupDomain (341ms)
+		LoadAssemblies (151ms)
+		AnalyzeDomain (249ms)
+			TypeCache.Refresh (247ms)
+				TypeCache.ScanAssembly (231ms)
+	FinalizeReload (559ms)
 		SetupLoadedEditorAssemblies (0ms)
 			InitializePlatformSupportModulesInManaged (3ms)
-			BeforeProcessingInitializeOnLoad (105ms)
-			ProcessInitializeOnLoadAttributes (110ms)
-			ProcessInitializeOnLoadMethodAttributes (245ms)
+			BeforeProcessingInitializeOnLoad (108ms)
+			ProcessInitializeOnLoadAttributes (111ms)
+			ProcessInitializeOnLoadMethodAttributes (251ms)
 [Licensing::Client] Successfully resolved entitlement details
 Application.AssetDatabase Initial Refresh Start
 [Package Manager] Restoring resolved packages state from cache
@@ -234,7 +234,7 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 31.2175ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 31.4166ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: D:/GAME Ai/IsoRPG
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
@@ -253,85 +253,84 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 120.2953ms
-ExitCode: 0 Duration: 0s336ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 124.0600ms
+ExitCode: 0 Duration: 0s341ms
 [752/957    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
-*** Tundra build success (0.30 seconds), 1 items updated, 957 evaluated
-AssetDatabase: script compilation time: 0.794688s
+*** Tundra build success (0.31 seconds), 1 items updated, 957 evaluated
+AssetDatabase: script compilation time: 0.797095s
 Begin MonoManager ReloadAssembly
 Total cache size 112306678
-Total cache size after purge 112306678, took 00:00:00.1741417
+Total cache size after purge 112306678, took 00:00:00.1782218
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  3.578 seconds
-Domain Reload Profiling: 4682ms
-	BeginReloadAssembly (298ms)
-		DisableScriptedObjects (51ms)
-		CreateAndSetChildDomain (48ms)
+- Finished resetting the current domain, in  3.830 seconds
+Domain Reload Profiling: 4955ms
+	BeginReloadAssembly (317ms)
+		DisableScriptedObjects (58ms)
+		CreateAndSetChildDomain (61ms)
 	RebuildCommonClasses (10ms)
-	RebuildNativeTypeToScriptingClass (22ms)
-	initialDomainReloadingComplete (71ms)
-	LoadAllAssembliesAndSetupDomain (702ms)
-		LoadAssemblies (384ms)
-		AnalyzeDomain (311ms)
-			TypeCache.Refresh (225ms)
-				TypeCache.ScanAssembly (212ms)
+	RebuildNativeTypeToScriptingClass (21ms)
+	initialDomainReloadingComplete (68ms)
+	LoadAllAssembliesAndSetupDomain (707ms)
+		LoadAssemblies (392ms)
+		AnalyzeDomain (309ms)
+			TypeCache.Refresh (222ms)
+				TypeCache.ScanAssembly (208ms)
 			BuildScriptInfoCaches (74ms)
 			ResolveRequiredComponents (10ms)
-	FinalizeReload (3579ms)
+	FinalizeReload (3831ms)
 		SetupLoadedEditorAssemblies (0ms)
-			InitializePlatformSupportModulesInManaged (3ms)
-			BeforeProcessingInitializeOnLoad (103ms)
-			ProcessInitializeOnLoadAttributes (2805ms)
+			BeforeProcessingInitializeOnLoad (105ms)
+			ProcessInitializeOnLoadAttributes (3096ms)
 			ProcessInitializeOnLoadMethodAttributes (169ms)
 			AfterProcessingInitializeOnLoad (8ms)
-		AwakeInstancesAfterBackupRestoration (50ms)
+		AwakeInstancesAfterBackupRestoration (32ms)
 Starting new worker id: 0 with log in D:/GAME Ai/IsoRPG/Logs/AssetImportWorkerHW0.log
 
-Asset Pipeline Refresh (id=e009a688e20a7d74fbebdff95b6a961c): Total: 7.434 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Asset Pipeline Refresh (id=c072c1498f251ce448c993195bc00850): Total: 7.731 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	(Values over 0.05ms)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=5337 ms
-		Asset DB Callback time: managed=46 ms, native=22 ms
-		Scripting: domain reloads=1, domain reload time=1163 ms, compile time=796 ms, other=67 ms
+		Asset DB Process Time: managed=0 ms, native=5537 ms
+		Asset DB Callback time: managed=124 ms, native=18 ms
+		Scripting: domain reloads=1, domain reload time=1183 ms, compile time=798 ms, other=68 ms
 		Project Asset Count: scripts=2761, non-scripts=43637
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 0
-	InvokePackagesCallback: 24.092ms
-	ApplyChangesToAssetFolders: 0.715ms
-	Scan: 261.297ms
-	Collect global state as custom dependencies: 19.450ms
-	CategorizeScriptCompilationAssets: 57.022ms
-	ProcessAssetsWithTransientArtifactChanges: 118.158ms
-	CategorizeAssets: 482.261ms
-	CompileScripts: 796.001ms
-	ImportOutOfDateAssets: 4202.859ms (3613.503ms without children)
-		UnloadImportedAssets: 0.842ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 9.329ms
-		ImportSchedulerStart: 579.141ms
-	PostProcessAllAssets: 46.815ms
-		MonoPostProcessAllAssets: 46.734ms
-			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 13.553ms
-			SyncVS.PostprocessSyncProject 12.424ms
-			SpeedTree9Postprocessor.OnPostprocessAllAssets 2.807ms
-			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 2.047ms
-			EditModeScopePostprocessor.OnPostprocessAllAssets 0.961ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.721ms
-			PluginAssetPostProcessor.OnPostprocessAllAssets 0.535ms
-			ShaderReflectionAssetPostProcessor.OnPostprocessAllAssets 0.517ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.447ms
-			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.304ms
-			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.279ms
-			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.199ms
-			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.179ms
-	UnloadStreamsBegin: 3.726ms
-	PersistCurrentRevisions: 3.163ms
-	GenerateScriptTypeHashes: 14.218ms
-	GenerateScriptTypeSerializationHashes: 17.143ms
-	Untracked: 1381.060ms
+	InvokePackagesCallback: 20.490ms
+	ApplyChangesToAssetFolders: 0.867ms
+	Scan: 241.720ms
+	Collect global state as custom dependencies: 19.040ms
+	CategorizeScriptCompilationAssets: 58.760ms
+	ProcessAssetsWithTransientArtifactChanges: 122.890ms
+	CategorizeAssets: 479.109ms
+	CompileScripts: 798.399ms
+	ImportOutOfDateAssets: 4441.701ms (3866.658ms without children)
+		UnloadImportedAssets: 0.826ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 11.250ms
+		ImportSchedulerStart: 562.921ms
+	PostProcessAllAssets: 124.920ms
+		MonoPostProcessAllAssets: 124.831ms
+			SyncVS.PostprocessSyncProject 39.157ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 27.196ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 19.003ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 2.855ms
+			EditModeScopePostprocessor.OnPostprocessAllAssets 1.308ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 1.297ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.976ms
+			PluginAssetPostProcessor.OnPostprocessAllAssets 0.854ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.654ms
+			ShaderReflectionAssetPostProcessor.OnPostprocessAllAssets 0.557ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.388ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.358ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.326ms
+	UnloadStreamsBegin: 3.935ms
+	PersistCurrentRevisions: 2.959ms
+	GenerateScriptTypeHashes: 8.201ms
+	GenerateScriptTypeSerializationHashes: 11.405ms
+	Untracked: 1395.720ms
 
 Application.AssetDatabase Initial Refresh End
 Shader 'SyntyStudios/SkyboxUnlit': fallback shader 'wiiu' not found
@@ -342,12 +341,12 @@ Shader 'SyntyStudios/SkyboxUnlitNoFog': fallback shader 'wiiu' not found
 Shader 'SyntyStudios/Basic_LOD_Shader': fallback shader 'wiiu' not found
 Launched and connected shader compiler UnityShaderCompiler.exe after 0.01 seconds
 Shader 'SyntyStudios/TriplanarBasic': fallback shader 'wiiu' not found
-Shader 'SyntyStudios/SkyboxUnlitNoFog': fallback shader 'wiiu' not found
 Shader 'SyntyStudios/Basic_LOD_Shader': fallback shader 'wiiu' not found
-Shader 'SyntyStudios/SkyboxUnlit': fallback shader 'wiiu' not found
 Shader 'SyntyStudios/CloudShaderNoFog': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/SkyboxUnlit': fallback shader 'wiiu' not found
 Shader 'SyntyStudios/CloudShader': fallback shader 'wiiu' not found
-Scanning for USB devices : 2.224ms
+Shader 'SyntyStudios/SkyboxUnlitNoFog': fallback shader 'wiiu' not found
+Scanning for USB devices : 2.265ms
 Initializing Unity extensions:
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
@@ -355,9 +354,9 @@ Initializing Unity extensions:
 Curl error 35: Cert verify failed. Certificate could not be verified (either omitted or unsupported). UnityTls error code: 7
 Unloading 89 Unused Serialized files (Serialized files now loaded: 0)
 Curl error 35: Cert verify failed. Certificate could not be verified (either omitted or unsupported). UnityTls error code: 7
-Unloading 7700 unused Assets / (28.4 MB). Loaded Objects now: 8750.
+Unloading 7700 unused Assets / (28.3 MB). Loaded Objects now: 8750.
 Memory consumption went from 0.74 GB to 0.71 GB.
-Total: 44.273400 ms (FindLiveObjects: 0.927700 ms CreateObjectMapping: 3.256500 ms MarkObjects: 7.203400 ms  DeleteObjects: 32.883600 ms)
+Total: 37.819400 ms (FindLiveObjects: 0.955100 ms CreateObjectMapping: 3.397800 ms MarkObjects: 6.747700 ms  DeleteObjects: 26.716500 ms)
 
 [IsoRPG] Пакетный запуск: начинаю.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -374,14 +373,14 @@ Opening scene 'Assets/_Game/Scenes/Arena.unity'
 Unloading 48 Unused Serialized files (Serialized files now loaded: 0)
 Worker ready: AssetImportWorkerHW0 0
 Loaded scene 'Assets/_Game/Scenes/Arena.unity'
-	Deserialize:            107.739 ms
-	Integration:            620.442 ms
+	Deserialize:            105.357 ms
+	Integration:            618.245 ms
 	Integration of assets:  0.125 ms
-	Thread Wait Time:       0.020 ms
-	Total Operation Time:   728.325 ms
-Unloading 2 unused Assets / (2.0 KB). Loaded Objects now: 40345.
+	Thread Wait Time:       0.056 ms
+	Total Operation Time:   723.784 ms
+Unloading 2 unused Assets / (2.0 KB). Loaded Objects now: 40301.
 Memory consumption went from 0.86 GB to 0.86 GB.
-Total: 18.871900 ms (FindLiveObjects: 3.795000 ms CreateObjectMapping: 3.345500 ms MarkObjects: 11.647900 ms  DeleteObjects: 0.082600 ms)
+Total: 15.675500 ms (FindLiveObjects: 4.168800 ms CreateObjectMapping: 3.428700 ms MarkObjects: 7.998100 ms  DeleteObjects: 0.078900 ms)
 
 [IsoRPG] Открыта сцена Assets/_Game/Scenes/Arena.unity
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -395,30 +394,30 @@ IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunne
 (Filename: Assets/_Game/Scripts/Editor/BatchRunner.cs Line: 49)
 
 
-Asset Pipeline Refresh (id=c44c70d2d433cb04eb118f943124fff2): Total: 0.736 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=387dfad3906bb554cb620323bf9111f0): Total: 0.761 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
 	(Values over 0.05ms)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=735 ms
+		Asset DB Process Time: managed=0 ms, native=761 ms
 		Asset DB Callback time: managed=0 ms, native=0 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2761, non-scripts=43637
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 0
-	ApplyChangesToAssetFolders: 0.190ms
-	Scan: 6.340ms
-	Collect global state as custom dependencies: 0.506ms
-	ProcessAssetsWithTransientArtifactChanges: 0.237ms
-	CategorizeAssets: 287.804ms
-	ImportOutOfDateAssets: 381.923ms (21.791ms without children)
-		ReloadNativeAssets: 0.059ms
-		UnloadImportedAssets: 0.085ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 10.903ms
-		ImportSchedulerStart: 349.078ms
-	GatherAllCurrentPrimaryImportResultRevisions: 3.677ms
-	UnloadStreamsBegin: 2.452ms
-	PersistCurrentRevisions: 2.407ms
-	Untracked: 40.817ms
+	ApplyChangesToAssetFolders: 0.156ms
+	Scan: 6.334ms
+	Collect global state as custom dependencies: 0.510ms
+	ProcessAssetsWithTransientArtifactChanges: 0.191ms
+	CategorizeAssets: 298.599ms
+	ImportOutOfDateAssets: 398.235ms (21.986ms without children)
+		ReloadNativeAssets: 0.057ms
+		UnloadImportedAssets: 0.118ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 9.028ms
+		ImportSchedulerStart: 367.039ms
+	GatherAllCurrentPrimaryImportResultRevisions: 3.118ms
+	UnloadStreamsBegin: 1.702ms
+	PersistCurrentRevisions: 2.958ms
+	Untracked: 40.474ms
 
 [IsoRPG] Выполняю задание: build
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -436,62 +435,63 @@ IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunne
 
 Importing 'GUID: 4b83569d67af61e458304325a23e5dfd - Path: Assets/Settings/PC_RPAsset.asset' with importer (NativeFormatImporter)
 Imported 'GUID: 4b83569d67af61e458304325a23e5dfd' -> (Import Result ID: 'daf9879240ec6feb99278cab62d55aee') in 0.004 seconds [static dependencies only]. Details - ImportResultOutputID=a2c380b05c0806a1719dc81ec2d5e1d7 DependenciesID=810b98459990c20cc61b901448fc53b9 StaticDependenciesID=95bb8a416c8bbf976437da25be5380aa 
+Refreshing native plugins compatible for Editor in 2.10 ms, found 4 plugins.
 
-Asset Pipeline Refresh (id=b1e0864aea73b8a41af1939c3439e62a): Total: 0.718 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=0b781136c2b616149a0165f3a833addf): Total: 0.728 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 	(Values over 0.05ms)
 	Summary:
 		Imports: total=1 (actual=1, local cache=0, cache server=0)
-		Asset DB Process Time: managed=1 ms, native=458 ms
-		Asset DB Callback time: managed=253 ms, native=5 ms
+		Asset DB Process Time: managed=1 ms, native=469 ms
+		Asset DB Callback time: managed=250 ms, native=6 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2761, non-scripts=43637
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 3
-	ApplyChangesToAssetFolders: 0.102ms
-	Scan: 6.369ms
-	Collect global state as custom dependencies: 0.219ms
-	ProcessAssetsWithTransientArtifactChanges: 0.077ms
-	CategorizeAssets: 23.112ms
-	ImportOutOfDateAssets: 405.615ms (22.669ms without children)
-		ImportManagerImport: 10.280ms (5.992ms without children)
-		ReloadNativeAssets: 0.137ms
-		UnloadImportedAssets: 0.215ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 10.295ms
-		ImportSchedulerStart: 362.004ms
-	PostProcessAllAssets: 255.504ms
-		XRBuildSystem.XRAssetImported 2.047ms
-		MonoPostProcessAllAssets: 253.064ms
-			AssetPostprocessor.OnPostprocessAllAssets 193.788ms
-			StyleCatalogPostProcessor.OnPostprocessAllAssets 40.989ms
-			BuilderAssetPostprocessor.OnPostprocessAllAssets 6.117ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.444ms
-			AssetChangedListener.OnPostprocessAllAssets 1.416ms
-			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.278ms
-			SyncVS.PostprocessSyncProject 1.009ms
-			MaterialPostprocessor.OnPostprocessAllAssets 0.795ms
-			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.503ms
-			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.413ms
-			SampleDependencyImporterPostProcessor.OnPostprocessAllAssets 0.406ms
-			AudioMixerPostprocessor.OnPostprocessAllAssets 0.373ms
-			TextAssetPostProcessor.OnPostprocessAllAssets 0.351ms
-			CozyShaderPostProcessor.OnPostprocessAllAssets 0.342ms
-			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.317ms
-			AssetEvents.OnPostprocessAllAssets 0.307ms
-			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.301ms
-			PostProcessor.OnPostprocessAllAssets 0.221ms
+	ApplyChangesToAssetFolders: 0.103ms
+	Scan: 6.405ms
+	Collect global state as custom dependencies: 0.217ms
+	ProcessAssetsWithTransientArtifactChanges: 0.096ms
+	CategorizeAssets: 22.200ms
+	ImportOutOfDateAssets: 419.210ms (20.463ms without children)
+		ImportManagerImport: 10.019ms (5.501ms without children)
+		ReloadNativeAssets: 0.107ms
+		UnloadImportedAssets: 0.232ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 10.837ms
+		ImportSchedulerStart: 377.541ms
+	PostProcessAllAssets: 253.201ms
+		XRBuildSystem.XRAssetImported 2.018ms
+		MonoPostProcessAllAssets: 250.789ms
+			AssetPostprocessor.OnPostprocessAllAssets 187.892ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 43.571ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 6.147ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.472ms
+			AssetChangedListener.OnPostprocessAllAssets 1.471ms
+			SyncVS.PostprocessSyncProject 1.392ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.346ms
+			MaterialPostprocessor.OnPostprocessAllAssets 0.994ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.513ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.446ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.413ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.411ms
+			SampleDependencyImporterPostProcessor.OnPostprocessAllAssets 0.381ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.362ms
+			CozyShaderPostProcessor.OnPostprocessAllAssets 0.328ms
+			AssetEvents.OnPostprocessAllAssets 0.295ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.272ms
+			PostProcessor.OnPostprocessAllAssets 0.227ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.209ms
 			ConfigAssetsTracker.OnPostprocessAllAssets 0.178ms
-			SamplePostprocessor.OnPostprocessAllAssets 0.160ms
-			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.154ms
-			SpeedTreePostProcessor.OnPostprocessAllAssets 0.151ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.156ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.153ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.138ms
 			AssetReloadNotifier.OnPostprocessAllAssets 0.126ms
-			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.109ms
 			AudioContainerPostProcessor.OnPostprocessAllAssets 0.081ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.061ms
-	PostAssetChangesProfiler: 2.903ms
-	GatherAllCurrentPrimaryImportResultRevisions: 2.384ms
-	UnloadStreamsBegin: 0.144ms
-	PersistCurrentRevisions: 2.327ms
-	Untracked: 18.891ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.079ms
+	PostAssetChangesProfiler: 4.169ms
+	GatherAllCurrentPrimaryImportResultRevisions: 2.370ms
+	UnloadStreamsBegin: 0.151ms
+	PersistCurrentRevisions: 2.180ms
+	Untracked: 17.632ms
 
 1 URP assets included in build
 - PC_RPAsset - Assets/Settings/PC_RPAsset.asset
@@ -510,7 +510,7 @@ UnityEditor.Build.BuildPipelineInterfaces:OnBuildPreProcess (UnityEditor.Build.R
 UnityEditor.BuildPipeline:BuildPlayerInternal (string[],string,string,UnityEditor.BuildTargetGroup,UnityEditor.BuildTarget,int,UnityEditor.BuildOptions,string[],string[],bool)
 UnityEditor.BuildPipeline:BuildPlayer (UnityEditor.BuildPlayerOptions)
 IsoRPG.EditorTools.GameBuilder:BuildGame () (at Assets/_Game/Scripts/Editor/GameBuilder.cs:108)
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:615)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:659)
 IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
 IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
 IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
@@ -532,7 +532,7 @@ UnityEditor.Build.BuildPipelineInterfaces:OnBuildPreProcess (UnityEditor.Build.R
 UnityEditor.BuildPipeline:BuildPlayerInternal (string[],string,string,UnityEditor.BuildTargetGroup,UnityEditor.BuildTarget,int,UnityEditor.BuildOptions,string[],string[],bool)
 UnityEditor.BuildPipeline:BuildPlayer (UnityEditor.BuildPlayerOptions)
 IsoRPG.EditorTools.GameBuilder:BuildGame () (at Assets/_Game/Scripts/Editor/GameBuilder.cs:108)
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:615)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:659)
 IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
 IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
 IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
@@ -554,7 +554,7 @@ UnityEditor.Build.BuildPipelineInterfaces:OnBuildPreProcess (UnityEditor.Build.R
 UnityEditor.BuildPipeline:BuildPlayerInternal (string[],string,string,UnityEditor.BuildTargetGroup,UnityEditor.BuildTarget,int,UnityEditor.BuildOptions,string[],string[],bool)
 UnityEditor.BuildPipeline:BuildPlayer (UnityEditor.BuildPlayerOptions)
 IsoRPG.EditorTools.GameBuilder:BuildGame () (at Assets/_Game/Scripts/Editor/GameBuilder.cs:108)
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:615)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:659)
 IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
 IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
 IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
@@ -564,38 +564,38 @@ IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunne
 Importing 'GUID: 4b83569d67af61e458304325a23e5dfd - Path: Assets/Settings/PC_RPAsset.asset' with importer (NativeFormatImporter)
 Imported 'GUID: 4b83569d67af61e458304325a23e5dfd' -> (Import Result ID: 'daf9879240ec6feb99278cab62d55aee') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=a2c380b05c0806a1719dc81ec2d5e1d7 DependenciesID=810b98459990c20cc61b901448fc53b9 StaticDependenciesID=95bb8a416c8bbf976437da25be5380aa 
 
-Asset Pipeline Refresh (id=74f3d58582e02534194de2d1dce81d26): Total: 0.458 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=599966df5d5c50b49b6749c4ca9c9e59): Total: 0.439 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 	(Values over 0.05ms)
 	Summary:
 		Imports: total=1 (actual=1, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=451 ms
-		Asset DB Callback time: managed=3 ms, native=3 ms
+		Asset DB Process Time: managed=0 ms, native=432 ms
+		Asset DB Callback time: managed=3 ms, native=2 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2761, non-scripts=43637
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 3
-	ApplyChangesToAssetFolders: 0.089ms
-	Scan: 6.607ms
-	Collect global state as custom dependencies: 0.224ms
-	ProcessAssetsWithTransientArtifactChanges: 0.090ms
-	CategorizeAssets: 23.007ms
-	ImportOutOfDateAssets: 398.029ms (21.279ms without children)
-		ImportManagerImport: 5.491ms (4.160ms without children)
-		ReloadNativeAssets: 0.110ms
-		UnloadImportedAssets: 0.228ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 9.935ms
-		ImportSchedulerStart: 360.974ms
-	PostProcessAllAssets: 4.167ms
-		XRBuildSystem.XRAssetImported 0.356ms
-		MonoPostProcessAllAssets: 3.720ms
-			AssetPostprocessor.OnPostprocessAllAssets 2.355ms
-			SyncVS.PostprocessSyncProject 0.853ms
-			AssetChangedListener.OnPostprocessAllAssets 0.095ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.060ms
-	PostAssetChangesProfiler: 3.051ms
-	GatherAllCurrentPrimaryImportResultRevisions: 2.411ms
-	PersistCurrentRevisions: 2.241ms
-	Untracked: 18.345ms
+	ApplyChangesToAssetFolders: 0.092ms
+	Scan: 6.415ms
+	Collect global state as custom dependencies: 0.222ms
+	ProcessAssetsWithTransientArtifactChanges: 0.099ms
+	CategorizeAssets: 22.343ms
+	ImportOutOfDateAssets: 380.164ms (21.567ms without children)
+		ImportManagerImport: 5.068ms (3.792ms without children)
+		ReloadNativeAssets: 0.107ms
+		UnloadImportedAssets: 0.208ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 9.726ms
+		ImportSchedulerStart: 343.475ms
+	PostProcessAllAssets: 4.063ms
+		XRBuildSystem.XRAssetImported 0.340ms
+		MonoPostProcessAllAssets: 3.635ms
+			AssetPostprocessor.OnPostprocessAllAssets 2.313ms
+			SyncVS.PostprocessSyncProject 0.833ms
+			AssetChangedListener.OnPostprocessAllAssets 0.093ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.058ms
+	PostAssetChangesProfiler: 2.539ms
+	GatherAllCurrentPrimaryImportResultRevisions: 2.298ms
+	PersistCurrentRevisions: 2.239ms
+	Untracked: 18.865ms
 
 Importing 'GUID: 00000000000000004000000000000000 - Path: ProjectSettings/ProjectSettings.asset' with importer (LibraryAssetImporter)
 Imported 'GUID: 00000000000000004000000000000000' -> (Import Result ID: '702a474f2f7fe9e1744228f7ca14a83e') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=276a810dac73e1f29404d5e5f692e214 DependenciesID=e9590249c6f9f8d265009e082151b49d StaticDependenciesID=61f55734f348b8337d9323239d2d26f5 
@@ -604,40 +604,40 @@ Imported 'GUID: 00000000000000006100000000000000' -> (Import Result ID: '940f8a2
 Importing 'GUID: 18dc0cd2c080841dea60987a38ce93fa - Path: Assets/Settings/UniversalRenderPipelineGlobalSettings.asset' with importer (NativeFormatImporter)
 Imported 'GUID: 18dc0cd2c080841dea60987a38ce93fa' -> (Import Result ID: 'f93e5e808365ac25efafb6bde5e3f195') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=c084f644ca43aee71ac43dc9da64fcf5 DependenciesID=875d31d98fb65f61560722e1af61c784 StaticDependenciesID=a8c9545b4876c5084a5807daf72b62e3 
 
-Asset Pipeline Refresh (id=fa2405e472235184f842e5235d19bb22): Total: 0.465 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=4f02fde5acd3d604185cd21e96ad9ca6): Total: 0.444 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 	(Values over 0.05ms)
 	Summary:
 		Imports: total=3 (actual=3, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=455 ms
+		Asset DB Process Time: managed=0 ms, native=435 ms
 		Asset DB Callback time: managed=5 ms, native=3 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2761, non-scripts=43637
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 5
-	ApplyChangesToAssetFolders: 0.098ms
-	Scan: 6.943ms
+	ApplyChangesToAssetFolders: 0.107ms
+	Scan: 6.720ms
 	Collect global state as custom dependencies: 0.218ms
-	ProcessAssetsWithTransientArtifactChanges: 0.083ms
-	CategorizeAssets: 23.821ms
-	ImportOutOfDateAssets: 398.160ms (20.835ms without children)
-		ImportManagerImport: 9.210ms (4.969ms without children)
-		ReloadNativeAssets: 0.125ms
-		UnloadImportedAssets: 0.214ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 9.509ms
-		ImportSchedulerStart: 358.256ms
-	PostProcessAllAssets: 6.091ms
-		XRBuildSystem.XRAssetImported 0.350ms
-		MonoPostProcessAllAssets: 5.480ms
-			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 3.702ms
-			SyncVS.PostprocessSyncProject 0.797ms
-			AssetChangedListener.OnPostprocessAllAssets 0.293ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.160ms
-			AssetPostprocessor.OnPostprocessAllAssets 0.088ms
-	PostAssetChangesProfiler: 2.717ms
-	GatherAllCurrentPrimaryImportResultRevisions: 3.546ms
-	UnloadStreamsBegin: 0.107ms
-	PersistCurrentRevisions: 2.344ms
-	Untracked: 20.457ms
+	ProcessAssetsWithTransientArtifactChanges: 0.086ms
+	CategorizeAssets: 23.583ms
+	ImportOutOfDateAssets: 380.812ms (24.066ms without children)
+		ImportManagerImport: 8.514ms (4.646ms without children)
+		ReloadNativeAssets: 0.114ms
+		UnloadImportedAssets: 0.225ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 8.703ms
+		ImportSchedulerStart: 339.181ms
+	PostProcessAllAssets: 5.775ms
+		XRBuildSystem.XRAssetImported 0.341ms
+		MonoPostProcessAllAssets: 5.179ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 3.476ms
+			SyncVS.PostprocessSyncProject 0.795ms
+			AssetChangedListener.OnPostprocessAllAssets 0.275ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.156ms
+			AssetPostprocessor.OnPostprocessAllAssets 0.077ms
+	PostAssetChangesProfiler: 2.581ms
+	GatherAllCurrentPrimaryImportResultRevisions: 2.496ms
+	UnloadStreamsBegin: 0.144ms
+	PersistCurrentRevisions: 2.340ms
+	Untracked: 19.481ms
 
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - application/grpc -
@@ -646,17 +646,17 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 0.4328ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 0.4057ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aESkipCompile.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssembliesAndTypeDB
 WorkingDir: D:/GAME Ai/IsoRPG
-ExitCode: 0 Duration: 0s163ms
-*** Tundra build success (0.14 seconds), 0 items updated, 3 evaluated
+ExitCode: 0 Duration: 0s135ms
+*** Tundra build success (0.11 seconds), 0 items updated, 3 evaluated
 Total cache size 112306678
-Total cache size after purge 112306678, took 00:00:00.1713666
-Importing 'GUID: e2c2143b8ff228b4abd10bdfff2a2d08 - Path: Assets/Resources/PerformanceTestRunSettings.json' with importer (TextScriptImporter)
-Imported 'GUID: e2c2143b8ff228b4abd10bdfff2a2d08' -> (Import Result ID: '54cc8bd1eb2a0470749bde2d64fa84ed') in 0.008 seconds [static dependencies only]. Details - ImportResultOutputID=aa7c936c3e902e24fee1950ce52b3ac1 DependenciesID=583af61b01d73f7414ab42118cfdb4f1 StaticDependenciesID=f482d6416a0755f8c0a59c9817f68d7e 
-Importing 'GUID: 5f04a2b28bd57e3469ad3757ad9ed5d4 - Path: Assets/Resources/PerformanceTestRunInfo.json' with importer (TextScriptImporter)
-Imported 'GUID: 5f04a2b28bd57e3469ad3757ad9ed5d4' -> (Import Result ID: '6c7a9530daf7d3ea03c1cd11a07f437a') in 0.006 seconds [static dependencies only]. Details - ImportResultOutputID=58112244957d6e609e17e9f53a4cd595 DependenciesID=e865ece3243f7458c7897300bcbbacda StaticDependenciesID=991135692fa2245eb7695125c1592994 
+Total cache size after purge 112306678, took 00:00:00.1637467
+Importing 'GUID: b16867fafdacdce419d2afbbd6e6bc1b - Path: Assets/Resources/PerformanceTestRunSettings.json' with importer (TextScriptImporter)
+Imported 'GUID: b16867fafdacdce419d2afbbd6e6bc1b' -> (Import Result ID: 'fa6b67b77c63863db582cf74203a8609') in 0.004 seconds [static dependencies only]. Details - ImportResultOutputID=889b5655309397a0ff021086eb63e1f0 DependenciesID=68363feb947bc18563611c274e51ee15 StaticDependenciesID=dacb4791bba9a343316ea8f24a9ff849 
+Importing 'GUID: f9bb1e3eedbf6d849a264da09e30bf93 - Path: Assets/Resources/PerformanceTestRunInfo.json' with importer (TextScriptImporter)
+Imported 'GUID: f9bb1e3eedbf6d849a264da09e30bf93' -> (Import Result ID: 'a10eff971838b09bf1fb42410239db8e') in 0.005 seconds [static dependencies only]. Details - ImportResultOutputID=010f4b6a3c26b764238127d2bc4f15d4 DependenciesID=cb4a8c6e54bf76e8207595a75c6d26b1 StaticDependenciesID=cd73cd6a05babf5112a92115d9d7a71b 
 Loaded 1 ExamplePackConfig assets
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
@@ -670,7 +670,7 @@ UnityEditor.EditorApplication:Internal_CallProjectHasChanged ()
 UnityEditor.BuildPipeline:BuildPlayerInternal (string[],string,string,UnityEditor.BuildTargetGroup,UnityEditor.BuildTarget,int,UnityEditor.BuildOptions,string[],string[],bool)
 UnityEditor.BuildPipeline:BuildPlayer (UnityEditor.BuildPlayerOptions)
 IsoRPG.EditorTools.GameBuilder:BuildGame () (at Assets/_Game/Scripts/Editor/GameBuilder.cs:108)
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:615)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:659)
 IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
 IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
 IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
@@ -678,39 +678,39 @@ IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunne
 (Filename: Assets/Synty/SyntyPackageHelper/Editor/SyntyPackageHelper.cs Line: 46)
 
 
-Asset Pipeline Refresh (id=a0f674b9ffa01474a9b2a80a4bc3192f): Total: 0.643 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=f0c45a05271a420418151143161a6776): Total: 0.617 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
 	(Values over 0.05ms)
 	Summary:
 		Imports: total=2 (actual=2, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=521 ms
-		Asset DB Callback time: managed=117 ms, native=3 ms
+		Asset DB Process Time: managed=0 ms, native=496 ms
+		Asset DB Callback time: managed=116 ms, native=3 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2761, non-scripts=43639
 		Asset File Changes: new=2, changed=2, moved=0, deleted=0
 		Scan Filter Count: 0
-	ApplyChangesToAssetFolders: 0.187ms
-	Scan: 16.599ms
-	Collect global state as custom dependencies: 0.502ms
-	OnSourceAssetsModified: 0.792ms
-	ProcessAssetsWithTransientArtifactChanges: 0.083ms
-	CategorizeAssets: 67.890ms
-	ImportOutOfDateAssets: 399.625ms (23.782ms without children)
-		ImportManagerImport: 20.329ms (5.369ms without children)
-		ReloadNativeAssets: 0.132ms
-		UnloadImportedAssets: 0.196ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 10.544ms
-		ImportSchedulerStart: 344.632ms
-	PostProcessAllAssets: 1.863ms
-		XRBuildSystem.XRAssetImported 0.343ms
-		MonoPostProcessAllAssets: 1.379ms
-			SyncVS.PostprocessSyncProject 0.830ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.089ms
-			AssetPostprocessor.OnPostprocessAllAssets 0.069ms
-	PostAssetChangesProfiler: 130.230ms
-	GatherAllCurrentPrimaryImportResultRevisions: 5.661ms
-	PersistCurrentRevisions: 2.376ms
-	UnloadStreamsEnd: 0.158ms
-	Untracked: 26.962ms
+	ApplyChangesToAssetFolders: 0.188ms
+	Scan: 17.278ms
+	Collect global state as custom dependencies: 0.460ms
+	OnSourceAssetsModified: 0.800ms
+	ProcessAssetsWithTransientArtifactChanges: 0.099ms
+	CategorizeAssets: 66.162ms
+	ImportOutOfDateAssets: 377.544ms (21.498ms without children)
+		ImportManagerImport: 14.408ms (4.251ms without children)
+		ReloadNativeAssets: 0.131ms
+		UnloadImportedAssets: 0.199ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 9.643ms
+		ImportSchedulerStart: 331.653ms
+	PostProcessAllAssets: 1.823ms
+		XRBuildSystem.XRAssetImported 0.337ms
+		MonoPostProcessAllAssets: 1.350ms
+			SyncVS.PostprocessSyncProject 0.812ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.088ms
+			AssetPostprocessor.OnPostprocessAllAssets 0.067ms
+	PostAssetChangesProfiler: 127.766ms
+	GatherAllCurrentPrimaryImportResultRevisions: 5.708ms
+	PersistCurrentRevisions: 2.392ms
+	UnloadStreamsEnd: 0.140ms
+	Untracked: 25.509ms
 
 [ScriptCompilation] Requested script compilation because: Recompiling scripts for player build.
 BuildPlayer: start building target 19
@@ -721,7 +721,7 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 0.1553ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 0.1506ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aP.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssembliesAndTypeDB
 WorkingDir: D:/GAME Ai/IsoRPG
 info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
@@ -741,76 +741,76 @@ info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 77.4515ms
-ExitCode: 0 Duration: 0s483ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 77.5215ms
+ExitCode: 0 Duration: 0s361ms
 [441/650    0s] WriteResponseFile Library/Bee/artifacts/rsp/4747638433968585886.rsp
 [554/650    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
-[586/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.DocCodeExamples.dll
-[587/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.dll
-[588/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.AI.Navigation.dll
-[589/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InternalAPIEngineBridge.004.dll
+[586/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Mathematics.dll
+[587/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared.dll
+[588/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InternalAPIEngineBridge.004.dll
+[589/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Multiplayer.Center.Common.dll
 [590/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Config.Runtime.dll
-[591/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared.dll
-[592/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.ShaderLibrary.dll
-[593/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Mathematics.dll
-[594/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/UnityEngine.UI.dll
-[595/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Collections.dll
+[591/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.UnifiedRayTracing.Runtime.dll
+[592/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.2D.Runtime.dll
+[593/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.ShaderLibrary.dll
+[594/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.State.dll
+[595/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/UnityEngine.UI.dll
 [596/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.Runtime.Shared.dll
-[597/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.ForUI.dll
-[598/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.TextMeshPro.dll
-[599/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.GPUDriven.Runtime.dll
-[600/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/DistantLands.Cozy.Runtime.dll
-[601/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.2D.Runtime.dll
-[602/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.Flow.dll
-[603/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Shaders.dll
-[604/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Assembly-CSharp.dll
-[605/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Multiplayer.Center.Common.dll
-[606/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.UnifiedRayTracing.Runtime.dll
-[607/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll
-[608/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.State.dll
-[609/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.dll
-[610/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.PathTracing.Runtime.dll
-[611/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InternalAPIEngineBridge.004.pdb
-[612/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.SurfaceCache.Runtime.dll
-[613/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.pdb
-[614/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/DistantLands.Cozy.Runtime.pdb
-[615/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.Flow.pdb
-[616/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.TextMeshPro.pdb
-[617/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Timeline.dll
-[618/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared.pdb
-[619/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.Runtime.Shared.pdb
-[620/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Collections.pdb
-[621/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Burst.dll
-[622/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Assembly-CSharp.pdb
-[623/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.pdb
-[624/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Shaders.pdb
-[625/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.AI.Navigation.pdb
-[626/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.PathTracing.Runtime.pdb
-[627/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Multiplayer.Center.Common.pdb
-[628/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Timeline.pdb
-[629/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Mathematics.pdb
-[630/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.GPUDriven.Runtime.pdb
-[631/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Burst.pdb
-[632/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.2D.Runtime.pdb
-[633/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.ForUI.pdb
-[634/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.SurfaceCache.Runtime.pdb
-[635/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.Core.dll
-[636/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.dll
-[637/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.DocCodeExamples.pdb
-[638/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.Runtime.pdb
-[639/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.pdb
-[640/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Config.Runtime.pdb
-[641/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.UnifiedRayTracing.Runtime.pdb
-[642/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/UnityEngine.UI.pdb
+[597/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Shaders.dll
+[598/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.GPUDriven.Runtime.dll
+[599/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.AI.Navigation.dll
+[600/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Collections.dll
+[601/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.dll
+[602/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.ForUI.dll
+[603/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.PathTracing.Runtime.dll
+[604/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.Flow.dll
+[605/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll
+[606/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.DocCodeExamples.dll
+[607/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.SurfaceCache.Runtime.dll
+[608/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.dll
+[609/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InternalAPIEngineBridge.004.pdb
+[610/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/DistantLands.Cozy.Runtime.dll
+[611/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.Runtime.Shared.pdb
+[612/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.Flow.pdb
+[613/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared.pdb
+[614/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.pdb
+[615/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Timeline.dll
+[616/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Assembly-CSharp.dll
+[617/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Shaders.pdb
+[618/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Collections.pdb
+[619/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.pdb
+[620/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.GPUDriven.Runtime.pdb
+[621/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Multiplayer.Center.Common.pdb
+[622/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Burst.dll
+[623/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Mathematics.pdb
+[624/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.AI.Navigation.pdb
+[625/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.2D.Runtime.pdb
+[626/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.ForUI.pdb
+[627/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Timeline.pdb
+[628/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.Burst.pdb
+[629/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/DistantLands.Cozy.Runtime.pdb
+[630/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.Core.dll
+[631/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.TextMeshPro.dll
+[632/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Assembly-CSharp.pdb
+[633/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.PathTracing.Runtime.pdb
+[634/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.TextMeshPro.pdb
+[635/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.SurfaceCache.Runtime.pdb
+[636/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Universal.Config.Runtime.pdb
+[637/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.InputSystem.dll
+[638/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.UnifiedRayTracing.Runtime.pdb
+[639/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.Runtime.dll
+[640/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.Runtime.pdb
+[641/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/UnityEngine.UI.pdb
+[642/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.ShaderLibrary.pdb
 [643/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.pdb
-[644/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.ShaderLibrary.pdb
-[645/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.State.pdb
-[646/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.Core.pdb
-[647/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipelines.Core.Runtime.dll
-*** Tundra build success (0.46 seconds), 64 items updated, 650 evaluated
+[644/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.DocCodeExamples.pdb
+[645/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.Core.pdb
+[646/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.VisualScripting.State.pdb
+[647/650    0s] CopyFiles Library/Bee/PlayerScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.pdb
+*** Tundra build success (0.34 seconds), 64 items updated, 650 evaluated
 Rebuilding Data files because Assets/_Game/Scenes/Arena.unity is dirty (hash)
 Total cache size 112306678
-Total cache size after purge 112306678, took 00:00:00.1629629
+Total cache size after purge 112306678, took 00:00:00.1597524
 
 
 Mono dependencies included in the build
@@ -1145,42 +1145,42 @@ Dependency assembly - PEAPI.dll
 Opening scene 'Assets/_Game/Scenes/MainMenu.unity'
 Unloading 7 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/_Game/Scenes/MainMenu.unity'
-	Deserialize:            8.000 ms
-	Integration:            250.558 ms
-	Integration of assets:  0.300 ms
-	Thread Wait Time:       0.035 ms
-	Total Operation Time:   258.893 ms
-Unloading 3973 unused Assets / (141.8 MB). Loaded Objects now: 8980.
-Memory consumption went from 0.95 GB to 0.81 GB.
-Total: 21.376300 ms (FindLiveObjects: 0.781400 ms CreateObjectMapping: 2.072200 ms MarkObjects: 9.379000 ms  DeleteObjects: 9.142800 ms)
+	Deserialize:            8.061 ms
+	Integration:            258.887 ms
+	Integration of assets:  0.278 ms
+	Thread Wait Time:       0.041 ms
+	Total Operation Time:   267.266 ms
+Unloading 3929 unused Assets / (170.0 MB). Loaded Objects now: 8980.
+Memory consumption went from 0.97 GB to 0.81 GB.
+Total: 19.203700 ms (FindLiveObjects: 0.811600 ms CreateObjectMapping: 2.000800 ms MarkObjects: 8.529700 ms  DeleteObjects: 7.860800 ms)
 
 Opening scene 'Assets/_Game/Scenes/Arena.unity'
 Unloading 540 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Assets/_Game/Scenes/Arena.unity'
-	Deserialize:            104.891 ms
-	Integration:            543.093 ms
-	Integration of assets:  0.098 ms
-	Thread Wait Time:       0.053 ms
-	Total Operation Time:   648.134 ms
-Unloading 1055 unused Assets / (278.8 MB). Loaded Objects now: 40465.
-Memory consumption went from 1.29 GB to 1.01 GB.
-Total: 26.283800 ms (FindLiveObjects: 3.564200 ms CreateObjectMapping: 3.535100 ms MarkObjects: 9.895500 ms  DeleteObjects: 9.288300 ms)
+	Deserialize:            108.044 ms
+	Integration:            547.112 ms
+	Integration of assets:  0.101 ms
+	Thread Wait Time:       0.021 ms
+	Total Operation Time:   655.279 ms
+Unloading 1055 unused Assets / (287.7 MB). Loaded Objects now: 40421.
+Memory consumption went from 1.28 GB to 1.00 GB.
+Total: 27.241600 ms (FindLiveObjects: 3.791200 ms CreateObjectMapping: 3.561000 ms MarkObjects: 9.302900 ms  DeleteObjects: 10.585800 ms)
 
 Shader 'SyntyStudios/TriplanarBasic': fallback shader 'wiiu' not found
-Unloading 169 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 3912 unused Assets / (277.5 MB). Loaded Objects now: 8876.
+Unloading 152 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 3867 unused Assets / (270.4 MB). Loaded Objects now: 8876.
 Memory consumption went from 1.08 GB to 0.81 GB.
-Total: 25.094400 ms (FindLiveObjects: 0.702200 ms CreateObjectMapping: 2.127100 ms MarkObjects: 6.744300 ms  DeleteObjects: 15.520000 ms)
+Total: 25.409200 ms (FindLiveObjects: 0.701700 ms CreateObjectMapping: 1.937800 ms MarkObjects: 7.132100 ms  DeleteObjects: 15.636800 ms)
 
 Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
 Unloading 0 unused Assets / (Unknown). Loaded Objects now: 8876.
 Memory consumption went from 0.81 GB to 0.81 GB.
-Total: 8.698100 ms (FindLiveObjects: 0.510600 ms CreateObjectMapping: 1.194300 ms MarkObjects: 6.975900 ms  DeleteObjects: 0.016400 ms)
+Total: 9.427700 ms (FindLiveObjects: 0.494900 ms CreateObjectMapping: 1.209100 ms MarkObjects: 7.710800 ms  DeleteObjects: 0.012100 ms)
 
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
 Unloading 160 unused Assets / (77.4 MB). Loaded Objects now: 8876.
-Memory consumption went from 0.86 GB to 0.79 GB.
-Total: 26.551700 ms (FindLiveObjects: 0.547700 ms CreateObjectMapping: 1.219100 ms MarkObjects: 6.713100 ms  DeleteObjects: 18.071100 ms)
+Memory consumption went from 0.87 GB to 0.79 GB.
+Total: 26.989200 ms (FindLiveObjects: 0.488400 ms CreateObjectMapping: 1.218400 ms MarkObjects: 6.961400 ms  DeleteObjects: 18.320000 ms)
 
 Compiling shader "Hidden/Universal Render Pipeline/Sampling"
   Pass "BoxDownsample" (vp)
@@ -1189,7 +1189,7 @@ Compiling shader "Hidden/Universal Render Pipeline/Sampling"
     After settings filtering:   1
     After built-in stripping:   1
     After scriptable stripping: 1
-    Processed in 0.62 seconds
+    Processed in 0.61 seconds
   Pass "BoxDownsample" (fp)
     Target graphics API: d3d11
     Full variant space:         1
@@ -1366,9 +1366,9 @@ Compiling shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
     Prepared data for serialisation in 0.00s
   Pass SSAO_Gaussian_HorizontalBlur (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass SSAO_Gaussian_HorizontalBlur (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass SSAO_Gaussian_HorizontalBlur (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass SSAO_Gaussian_VerticalBlur (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass SSAO_Gaussian_VerticalBlur (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass SSAO_Gaussian_VerticalBlur (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -1549,15 +1549,15 @@ Compiling shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
     After built-in stripping:   1
     After scriptable stripping: 1
     Processed in 0.00 seconds
-  Pass Camera Motion Blur - Low Quality (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Camera Motion Blur - Low Quality (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Camera Motion Blur - Low Quality (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Camera Motion Blur - Low Quality (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Camera Motion Blur - Medium Quality (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Camera Motion Blur - Medium Quality (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Camera Motion Blur - Medium Quality (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Camera Motion Blur - Medium Quality (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Camera Motion Blur - High Quality (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Camera Motion Blur - High Quality (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass Camera Motion Blur - High Quality (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -1677,9 +1677,9 @@ Compiling shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWaving
     After built-in stripping:   1
     After scriptable stripping: 1
     Processed in 0.00 seconds
-  Pass ForwardLit (vp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass ForwardLit (vp, d3d11) finished in 0.00 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass ForwardLit (fp, d3d11) finished in 0.01 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass ForwardLit (fp, d3d11) finished in 0.00 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass DepthOnly (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -1832,11 +1832,11 @@ Compiling shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
     After built-in stripping:   1
     After scriptable stripping: 1
     Processed in 0.00 seconds
-  Pass Bokeh Depth Of Field CoC (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Bokeh Depth Of Field CoC (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Bokeh Depth Of Field CoC (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Bokeh Depth Of Field CoC (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Bokeh Depth Of Field Prefilter (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Bokeh Depth Of Field Prefilter (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass Bokeh Depth Of Field Prefilter (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -1852,13 +1852,13 @@ Compiling shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
     Prepared data for serialisation in 0.00s
   Pass Bokeh Depth Of Field Composite (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Bokeh Depth Of Field CoC (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Bokeh Depth Of Field CoC (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Bokeh Depth Of Field CoC (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Bokeh Depth Of Field CoC (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Bokeh Depth Of Field Prefilter (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Bokeh Depth Of Field Prefilter (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Bokeh Depth Of Field Prefilter (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Bokeh Depth Of Field Prefilter (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass Bokeh Depth Of Field Blur (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -1919,7 +1919,7 @@ Compiling shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampl
     After settings filtering:   1
     After built-in stripping:   1
     After scriptable stripping: 1
-    Processed in 0.01 seconds
+    Processed in 0.00 seconds
   Pass "EASU" (fp)
     Target graphics API: d3d11
     Full variant space:         2
@@ -2168,7 +2168,7 @@ Compiling shader "Hidden/Universal Render Pipeline/Bloom"
     Prepared data for serialisation in 0.00s
   Pass Bloom Prefilter (fp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Bloom Blur Horizontal (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Bloom Blur Horizontal (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass Bloom Blur Horizontal (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -2364,7 +2364,7 @@ Compiling shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
     After built-in stripping:   1
     After scriptable stripping: 1
     Processed in 0.00 seconds
-  Pass LensFlareAdditive (vp, d3d11) finished in 0.00 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass LensFlareAdditive (vp, d3d11) finished in 0.01 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass LensFlareAdditive (fp, d3d11) finished in 0.00 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -2851,73 +2851,73 @@ Compiling shader "Hidden/Universal/CoreBlit"
     After built-in stripping:   2
     After scriptable stripping: 2
     Processed in 0.00 seconds
-  Pass Nearest (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Nearest (vp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Nearest (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Nearest (fp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Bilinear (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Bilinear (vp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Bilinear (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Bilinear (fp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestQuad (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestQuad (vp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestQuad (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestQuad (fp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuad (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuad (vp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuad (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuad (fp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestQuadPadding (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestQuadPadding (vp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestQuadPadding (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestQuadPadding (fp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPadding (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPadding (vp, d3d11) finished in 0.04 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPadding (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPadding (fp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestQuadPaddingRepeat (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestQuadPaddingRepeat (vp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestQuadPaddingRepeat (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestQuadPaddingRepeat (fp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPaddingRepeat (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPaddingRepeat (vp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPaddingRepeat (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPaddingRepeat (fp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPaddingOctahedral (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPaddingOctahedral (vp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPaddingOctahedral (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPaddingOctahedral (fp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestQuadPaddingAlphaBlend (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestQuadPaddingAlphaBlend (vp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestQuadPaddingAlphaBlend (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestQuadPaddingAlphaBlend (fp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPaddingAlphaBlend (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPaddingAlphaBlend (vp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPaddingAlphaBlend (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPaddingAlphaBlend (fp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestQuadPaddingAlphaBlendRepeat (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestQuadPaddingAlphaBlendRepeat (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestQuadPaddingAlphaBlendRepeat (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestQuadPaddingAlphaBlendRepeat (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPaddingAlphaBlendRepeat (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPaddingAlphaBlendRepeat (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPaddingAlphaBlendRepeat (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPaddingAlphaBlendRepeat (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPaddingAlphaBlendOctahedral (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPaddingAlphaBlendOctahedral (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadPaddingAlphaBlendOctahedral (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadPaddingAlphaBlendOctahedral (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass CubeToOctahedral (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass CubeToOctahedral (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass CubeToOctahedral (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass CubeToOctahedral (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass CubeToOctahedralLuminance (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass CubeToOctahedralLuminance (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass CubeToOctahedralLuminance (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass CubeToOctahedralLuminance (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass CubeToOctahedralAlpha (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass CubeToOctahedralAlpha (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass CubeToOctahedralAlpha (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass CubeToOctahedralAlpha (fp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass CubeToOctahedralRed (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -2933,15 +2933,15 @@ Compiling shader "Hidden/Universal/CoreBlit"
     Prepared data for serialisation in 0.00s
   Pass BilinearQuadRed (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearQuadRed (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearQuadRed (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestCubeToOctahedralPadding (vp, d3d11) finished in 0.00 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestCubeToOctahedralPadding (vp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass NearestCubeToOctahedralPadding (fp, d3d11) finished in 0.00 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass NearestCubeToOctahedralPadding (fp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearCubeToOctahedralPadding (vp, d3d11) finished in 0.00 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearCubeToOctahedralPadding (vp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass BilinearCubeToOctahedralPadding (fp, d3d11) finished in 0.00 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass BilinearCubeToOctahedralPadding (fp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass BilinearDebugDraw (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -2967,7 +2967,7 @@ Compiling shader "Hidden/Universal Render Pipeline/TemporalAA"
     After settings filtering:   1
     After built-in stripping:   1
     After scriptable stripping: 1
-    Processed in 0.00 seconds
+    Processed in 0.01 seconds
   Pass "TemporalAA - Accumulate - Quality Low" (vp)
     Target graphics API: d3d11
     Full variant space:         1
@@ -3038,9 +3038,9 @@ Compiling shader "Hidden/Universal Render Pipeline/TemporalAA"
     After built-in stripping:   1
     After scriptable stripping: 1
     Processed in 0.00 seconds
-  Pass TemporalAA - Accumulate - Quality Very Low (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass TemporalAA - Accumulate - Quality Very Low (vp, d3d11) finished in 0.02 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass TemporalAA - Accumulate - Quality Very Low (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass TemporalAA - Accumulate - Quality Very Low (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass TemporalAA - Accumulate - Quality Low (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -3203,7 +3203,7 @@ Compiling shader "SyntyStudios/SkyboxUnlit"
     Processed in 0.00 seconds
   Pass Forward (vp, d3d11) finished in 0.01 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Forward (fp, d3d11) finished in 0.01 seconds. Local cache hits 16 (0.02s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Forward (fp, d3d11) finished in 0.01 seconds. Local cache hits 16 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass ShadowCaster (vp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -3215,7 +3215,7 @@ Compiling shader "SyntyStudios/SkyboxUnlit"
     Prepared data for serialisation in 0.00s
   Pass DepthNormals (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass DepthNormals (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass DepthNormals (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
 Serialized binary data for shader SyntyStudios/SkyboxUnlit in 0.00s
     d3d11 (total internal programs: 27, unique: 26)
@@ -3280,11 +3280,11 @@ Compiling shader "Hidden/Universal Render Pipeline/FinalPost"
     Processed in 0.00 seconds
   Pass FinalPost (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass FinalPost (fp, d3d11) finished in 0.00 seconds. Local cache hits 32 (0.03s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass FinalPost (fp, d3d11) finished in 0.00 seconds. Local cache hits 32 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass FinalPost (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass FinalPost (fp, d3d11) finished in 0.00 seconds. Local cache hits 32 (0.01s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass FinalPost (fp, d3d11) finished in 0.00 seconds. Local cache hits 32 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
 Serialized binary data for shader Hidden/Universal Render Pipeline/FinalPost in 0.00s
     d3d11 (total internal programs: 66, unique: 66)
@@ -3548,7 +3548,7 @@ Compiling shader "Hidden/Universal Render Pipeline/UberPost"
     Processed in 0.00 seconds
   Pass UberPost (vp, d3d11) finished in 0.03 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass UberPost (fp, d3d11) finished in 0.01 seconds. Local cache hits 576 (0.15s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass UberPost (fp, d3d11) finished in 0.00 seconds. Local cache hits 576 (0.05s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
 Serialized binary data for shader Hidden/Universal Render Pipeline/UberPost in 0.00s
     d3d11 (total internal programs: 577, unique: 577)
@@ -3773,7 +3773,7 @@ Compiling shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
     Processed in 0.00 seconds
   Pass TerrainDetailVertex (vp, d3d11) finished in 0.00 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass TerrainDetailVertex (fp, d3d11) finished in 0.00 seconds. Local cache hits 8 (0.01s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass TerrainDetailVertex (fp, d3d11) finished in 0.00 seconds. Local cache hits 8 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass TerrainDetailVertex - GBuffer (vp, d3d11) finished in 0.00 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -3808,7 +3808,7 @@ Serialized binary data for shader Hidden/Universal Render Pipeline/XR/XRMotionVe
     d3d11 (total internal programs: 0, unique: 0)
 Compiling compute shader "ProbeVolumeSamplingDebugPositionNormal"
     starting stripping...
-    finished in 0.00 seconds. 2 of 2 variants left
+    finished in 0.01 seconds. 2 of 2 variants left
     2 variants, starting compilation...
     finished in 0.00 seconds. Local cache hits 2, remote cache hits 0, compiled 0 variants
 Compiling compute shader "VrsTexture"
@@ -3928,7 +3928,7 @@ Compiling shader "Synty/Generic_Basic"
     After settings filtering:   774.144
     After built-in stripping:   384
     After scriptable stripping: 0
-    Processed in 0.02 seconds
+    Processed in 0.03 seconds
   Pass "BuiltIn ForwardAdd" (vp)
     Target graphics API: d3d11
     Full variant space:         577.536
@@ -3995,9 +3995,9 @@ Compiling shader "Synty/Generic_Basic"
     Prepared data for serialisation in 0.00s
   Pass MotionVectors (vp, d3d11) finished in 0.11 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass MotionVectors (fp, d3d11) finished in 0.10 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass MotionVectors (fp, d3d11) finished in 0.11 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass DepthOnly (vp, d3d11) finished in 0.10 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass DepthOnly (vp, d3d11) finished in 0.11 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass DepthOnly (fp, d3d11) finished in 0.10 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -4365,7 +4365,7 @@ Compiling shader "Distant Lands/Cozy/URP/Fog Culling"
     Processed in 0.00 seconds
   Pass Forward (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Forward (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Forward (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass DepthOnly (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -4455,7 +4455,7 @@ Compiling shader "Distant Lands/Cozy/URP/Demo/Stlylized Leaves"
     Processed in 0.00 seconds
   Pass Forward (vp, d3d11) finished in 0.01 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass Forward (fp, d3d11) finished in 0.01 seconds. Local cache hits 32 (0.01s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Forward (fp, d3d11) finished in 0.01 seconds. Local cache hits 32 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass ShadowCaster (vp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -4474,9 +4474,9 @@ Serialized binary data for shader Distant Lands/Cozy/URP/Demo/Stlylized Leaves i
 Shader warning in 'Distant Lands/Cozy/URP/Demo/Stlylized Leaves': _FORWARD_PLUS shader keyword has been deprecated. Please update your shaders to use _CLUSTER_LIGHT_LOOP shader keyword instead, otherwise shader compilation times may be negatively affected. at /GAME Ai/IsoRPG/Library/PackageCache/com.unity.render-pipelines.universal@d7774c218bdf/ShaderLibrary/ForwardPlusKeyword.deprecated.hlsl(12)
 Shader warning in 'Distant Lands/Cozy/URP/Demo/Stlylized Leaves': pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them at Leaves.shader(718) (on d3d11)
 
-Compiling Subshader: 0, Pass: Forward, Fragment program with _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_OCCLUSION
+Compiling Subshader: 0, Pass: Forward, Fragment program with _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS_CASCADE _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_OCCLUSION
 Platform defines: SHADER_API_DESKTOP UNITY_ENABLE_DETAIL_NORMALMAP UNITY_ENABLE_REFLECTION_BUFFERS UNITY_LIGHTMAP_FULL_HDR UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_PBS_USE_BRDF1 UNITY_PLATFORM_SUPPORTS_DEPTH_FETCH UNITY_SPECCUBE_BLENDING UNITY_SPECCUBE_BOX_PROJECTION UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS
-Disabled keywords: DIRLIGHTMAP_COMBINED DOTS_INSTANCING_ON DYNAMICLIGHTMAP_ON EVALUATE_SH_MIXED EVALUATE_SH_VERTEX FOG_EXP FOG_EXP2 FOG_LINEAR INSTANCING_ON LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING LOD_FADE_CROSSFADE SHADER_API_GLES30 SHADER_API_GLES31 SHADER_API_GLES32 SHADOWS_SHADOWMASK UNITY_ASTC_NORMALMAP_ENCODING UNITY_COLORSPACE_GAMMA UNITY_FRAMEBUFFER_FETCH_AVAILABLE UNITY_HARDWARE_TIER1 UNITY_HARDWARE_TIER2 UNITY_HARDWARE_TIER3 UNITY_LIGHTMAP_DLDR_ENCODING UNITY_LIGHTMAP_RGBM_ENCODING UNITY_METAL_SHADOWS_USE_POINT_FILTERING UNITY_NO_DXT5nm UNITY_NO_SCREENSPACE_SHADOWS UNITY_PBS_USE_BRDF2 UNITY_PBS_USE_BRDF3 UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION UNITY_UNIFIED_SHADER_PRECISION_MODEL UNITY_VIRTUAL_TEXTURING _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHTS_VERTEX _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3 _FORWARD_PLUS _LIGHT_COOKIES _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN _RECEIVE_SHADOWS_OFF _SHADOWS_SOFT _SHADOWS_SOFT_HIGH _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _WRITE_RENDERING_LAYERS
+Disabled keywords: DIRLIGHTMAP_COMBINED DOTS_INSTANCING_ON DYNAMICLIGHTMAP_ON EVALUATE_SH_MIXED EVALUATE_SH_VERTEX FOG_EXP FOG_EXP2 FOG_LINEAR INSTANCING_ON LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING LOD_FADE_CROSSFADE SHADER_API_GLES30 SHADER_API_GLES31 SHADER_API_GLES32 SHADOWS_SHADOWMASK UNITY_ASTC_NORMALMAP_ENCODING UNITY_COLORSPACE_GAMMA UNITY_FRAMEBUFFER_FETCH_AVAILABLE UNITY_HARDWARE_TIER1 UNITY_HARDWARE_TIER2 UNITY_HARDWARE_TIER3 UNITY_LIGHTMAP_DLDR_ENCODING UNITY_LIGHTMAP_RGBM_ENCODING UNITY_METAL_SHADOWS_USE_POINT_FILTERING UNITY_NO_DXT5nm UNITY_NO_SCREENSPACE_SHADOWS UNITY_PBS_USE_BRDF2 UNITY_PBS_USE_BRDF3 UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION UNITY_UNIFIED_SHADER_PRECISION_MODEL UNITY_VIRTUAL_TEXTURING _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHTS_VERTEX _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3 _FORWARD_PLUS _LIGHT_COOKIES _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_SCREEN _RECEIVE_SHADOWS_OFF _SHADOWS_SOFT _SHADOWS_SOFT_HIGH _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _WRITE_RENDERING_LAYERS
 Compiling shader "Distant Lands/Cozy/URP/Stylized Clouds (Ghibli Desktop)"
   Pass "Forward" (vp)
     Target graphics API: d3d11
@@ -4787,7 +4787,7 @@ Compiling shader "Universal Render Pipeline/Unlit"
     After built-in stripping:   4
     After scriptable stripping: 0
     Processed in 0.00 seconds
-  Pass Unlit (vp, d3d11) finished in 0.00 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass Unlit (vp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass Unlit (fp, d3d11) finished in 0.00 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -4866,7 +4866,7 @@ Compiling shader "Distant Lands/Cozy/URP/Stylized Sky Desktop"
     Prepared data for serialisation in 0.00s
   Pass Forward (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass ShadowCaster (vp, d3d11) finished in 0.00 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass ShadowCaster (vp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass ShadowCaster (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -5912,9 +5912,9 @@ Shader warning in 'Distant Lands/Cozy/URP/Demo/Stylized Grass': _FORWARD_PLUS sh
 Shader warning in 'Distant Lands/Cozy/URP/Demo/Stylized Grass': "UnityGBuffer.hlsl" is deprecated in 6.1! Please upgrade your shaders to include "GBufferOutput.hlsl" or "GBufferInput.hlsl" instead!
 Shader warning in 'Distant Lands/Cozy/URP/Demo/Stylized Grass': pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them at Grass.shader(706) (on d3d11)
 
-Compiling Subshader: 0, Pass: Forward, Fragment program with _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_OCCLUSION
+Compiling Subshader: 0, Pass: Forward, Fragment program with INSTANCING_ON LOD_FADE_CROSSFADE _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON _LIGHT_COOKIES _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_OCCLUSION _SHADOWS_SOFT
 Platform defines: SHADER_API_DESKTOP UNITY_ENABLE_DETAIL_NORMALMAP UNITY_ENABLE_REFLECTION_BUFFERS UNITY_LIGHTMAP_FULL_HDR UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_PBS_USE_BRDF1 UNITY_PLATFORM_SUPPORTS_DEPTH_FETCH UNITY_SPECCUBE_BLENDING UNITY_SPECCUBE_BOX_PROJECTION UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS
-Disabled keywords: DIRLIGHTMAP_COMBINED DOTS_INSTANCING_ON DYNAMICLIGHTMAP_ON EVALUATE_SH_MIXED EVALUATE_SH_VERTEX FOG_EXP FOG_EXP2 FOG_LINEAR INSTANCING_ON LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING LOD_FADE_CROSSFADE SHADER_API_GLES30 SHADER_API_GLES31 SHADER_API_GLES32 SHADOWS_SHADOWMASK UNITY_ASTC_NORMALMAP_ENCODING UNITY_COLORSPACE_GAMMA UNITY_FRAMEBUFFER_FETCH_AVAILABLE UNITY_HARDWARE_TIER1 UNITY_HARDWARE_TIER2 UNITY_HARDWARE_TIER3 UNITY_LIGHTMAP_DLDR_ENCODING UNITY_LIGHTMAP_RGBM_ENCODING UNITY_METAL_SHADOWS_USE_POINT_FILTERING UNITY_NO_DXT5nm UNITY_NO_SCREENSPACE_SHADOWS UNITY_PBS_USE_BRDF2 UNITY_PBS_USE_BRDF3 UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION UNITY_UNIFIED_SHADER_PRECISION_MODEL UNITY_VIRTUAL_TEXTURING _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHTS_VERTEX _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3 _FORWARD_PLUS _LIGHT_COOKIES _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN _RECEIVE_SHADOWS_OFF _SHADOWS_SOFT _SHADOWS_SOFT_HIGH _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _WRITE_RENDERING_LAYERS
+Disabled keywords: DIRLIGHTMAP_COMBINED DOTS_INSTANCING_ON DYNAMICLIGHTMAP_ON EVALUATE_SH_MIXED EVALUATE_SH_VERTEX FOG_EXP FOG_EXP2 FOG_LINEAR LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADER_API_GLES30 SHADER_API_GLES31 SHADER_API_GLES32 SHADOWS_SHADOWMASK UNITY_ASTC_NORMALMAP_ENCODING UNITY_COLORSPACE_GAMMA UNITY_FRAMEBUFFER_FETCH_AVAILABLE UNITY_HARDWARE_TIER1 UNITY_HARDWARE_TIER2 UNITY_HARDWARE_TIER3 UNITY_LIGHTMAP_DLDR_ENCODING UNITY_LIGHTMAP_RGBM_ENCODING UNITY_METAL_SHADOWS_USE_POINT_FILTERING UNITY_NO_DXT5nm UNITY_NO_SCREENSPACE_SHADOWS UNITY_PBS_USE_BRDF2 UNITY_PBS_USE_BRDF3 UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION UNITY_UNIFIED_SHADER_PRECISION_MODEL UNITY_VIRTUAL_TEXTURING _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHTS_VERTEX _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3 _FORWARD_PLUS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN _RECEIVE_SHADOWS_OFF _SHADOWS_SOFT_HIGH _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _WRITE_RENDERING_LAYERS
 Compressed shader 'Distant Lands/Cozy/URP/Demo/Stylized Grass' on d3d11 from 1.62MB to 0.23MB
 Compressed shader 'Distant Lands/Cozy/URP/Demo/Stylized Grass' in 0.11s
 Compiling shader "Distant Lands/Cozy/URP/Stylized Sky Mobile"
@@ -6017,9 +6017,9 @@ Compressed shader 'TextMeshPro/Mobile/Distance Field' on d3d11 from 1.97MB to 0.
 Compressed shader 'TextMeshPro/Mobile/Distance Field' in 0.02s
 Request Asset Garbage Collect because used heap size increased from 0.79 GB to 1.13 GB, exceeding the threshold of 256.0 MB.
 Unloading 486 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 988 unused Assets / (242.8 MB). Loaded Objects now: 8905.
-Memory consumption went from 1.13 GB to 0.89 GB.
-Total: 17.922300 ms (FindLiveObjects: 0.510300 ms CreateObjectMapping: 1.207000 ms MarkObjects: 8.599200 ms  DeleteObjects: 7.604700 ms)
+Unloading 988 unused Assets / (248.4 MB). Loaded Objects now: 8905.
+Memory consumption went from 1.13 GB to 0.88 GB.
+Total: 17.263400 ms (FindLiveObjects: 0.551600 ms CreateObjectMapping: 1.394800 ms MarkObjects: 8.284800 ms  DeleteObjects: 7.031300 ms)
 
 Compiling shader "Skybox/Procedural"
   Pass "" (vp)
@@ -6317,7 +6317,7 @@ Compiling shader "Standard"
     Prepared data for serialisation in 0.00s
   Pass FORWARD_DELTA (vp, d3d11) finished in 0.01 seconds. Local cache hits 13 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass FORWARD_DELTA (fp, d3d11) finished in 0.00 seconds. Local cache hits 13 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass FORWARD_DELTA (fp, d3d11) finished in 0.01 seconds. Local cache hits 13 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass ShadowCaster (vp, d3d11) finished in 0.00 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -7159,7 +7159,7 @@ Compiling shader "SyntyStudios/VegitationShader"
     Prepared data for serialisation in 0.00s
   Pass DepthNormals (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass DepthNormals (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass DepthNormals (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
 Serialized binary data for shader SyntyStudios/VegitationShader in 0.00s
     d3d11 (total internal programs: 27, unique: 26)
@@ -7402,113 +7402,6 @@ Compiling shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
     Prepared data for serialisation in 0.00s
 Serialized binary data for shader Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen) in 0.00s
     d3d11 (total internal programs: 4, unique: 3)
-Compiling shader "TriForge/Fantasy Forest/TreeWind2"
-  Pass "Forward" (vp)
-    Target graphics API: d3d11
-    Full variant space:         6.144
-    After settings filtering:   1.024
-    After built-in stripping:   8
-    After scriptable stripping: 8
-    Processed in 0.00 seconds
-  Pass "Forward" (fp)
-    Target graphics API: d3d11
-    Full variant space:         62.914.560
-    After settings filtering:   8.192
-    After built-in stripping:   64
-    After scriptable stripping: 64
-    Processed in 0.00 seconds
-  Pass "ShadowCaster" (vp)
-    Target graphics API: d3d11
-    Full variant space:         4
-    After settings filtering:   4
-    After built-in stripping:   4
-    After scriptable stripping: 4
-    Processed in 0.00 seconds
-  Pass "ShadowCaster" (fp)
-    Target graphics API: d3d11
-    Full variant space:         4
-    After settings filtering:   4
-    After built-in stripping:   4
-    After scriptable stripping: 4
-    Processed in 0.00 seconds
-  Pass "DepthOnly" (vp)
-    Target graphics API: d3d11
-    Full variant space:         2
-    After settings filtering:   2
-    After built-in stripping:   2
-    After scriptable stripping: 2
-    Processed in 0.00 seconds
-  Pass "DepthOnly" (fp)
-    Target graphics API: d3d11
-    Full variant space:         4
-    After settings filtering:   4
-    After built-in stripping:   4
-    After scriptable stripping: 4
-    Processed in 0.00 seconds
-  Pass "Universal2D" (vp)
-    Target graphics API: d3d11
-    Full variant space:         1
-    After settings filtering:   1
-    After built-in stripping:   1
-    After scriptable stripping: 0
-    Processed in 0.00 seconds
-  Pass "Universal2D" (fp)
-    Target graphics API: d3d11
-    Full variant space:         1
-    After settings filtering:   1
-    After built-in stripping:   1
-    After scriptable stripping: 0
-    Processed in 0.00 seconds
-  Pass "DepthNormals" (vp)
-    Target graphics API: d3d11
-    Full variant space:         2
-    After settings filtering:   2
-    After built-in stripping:   2
-    After scriptable stripping: 2
-    Processed in 0.00 seconds
-  Pass "DepthNormals" (fp)
-    Target graphics API: d3d11
-    Full variant space:         8
-    After settings filtering:   4
-    After built-in stripping:   4
-    After scriptable stripping: 4
-    Processed in 0.00 seconds
-  Pass "GBuffer" (vp)
-    Target graphics API: d3d11
-    Full variant space:         1.024
-    After settings filtering:   512
-    After built-in stripping:   4
-    After scriptable stripping: 0
-    Processed in 0.00 seconds
-  Pass "GBuffer" (fp)
-    Target graphics API: d3d11
-    Full variant space:         1.310.720
-    After settings filtering:   2.048
-    After built-in stripping:   16
-    After scriptable stripping: 0
-    Processed in 0.00 seconds
-  Pass Forward (vp, d3d11) finished in 0.01 seconds. Local cache hits 8 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
-    Prepared data for serialisation in 0.00s
-  Pass Forward (fp, d3d11) finished in 0.01 seconds. Local cache hits 64 (0.01s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
-    Prepared data for serialisation in 0.00s
-  Pass ShadowCaster (vp, d3d11) finished in 0.01 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
-    Prepared data for serialisation in 0.00s
-  Pass ShadowCaster (fp, d3d11) finished in 0.01 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
-    Prepared data for serialisation in 0.00s
-  Pass DepthOnly (vp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
-    Prepared data for serialisation in 0.00s
-  Pass DepthOnly (fp, d3d11) finished in 0.01 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
-    Prepared data for serialisation in 0.00s
-  Pass DepthNormals (vp, d3d11) finished in 0.01 seconds. Local cache hits 2 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
-    Prepared data for serialisation in 0.00s
-  Pass DepthNormals (fp, d3d11) finished in 0.01 seconds. Local cache hits 4 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
-    Prepared data for serialisation in 0.00s
-Serialized binary data for shader TriForge/Fantasy Forest/TreeWind2 in 0.00s
-    d3d11 (total internal programs: 92, unique: 88)
-Shader warning in 'TriForge/Fantasy Forest/TreeWind2': _FORWARD_PLUS shader keyword has been deprecated. Please update your shaders to use _CLUSTER_LIGHT_LOOP shader keyword instead, otherwise shader compilation times may be negatively affected. at /GAME Ai/IsoRPG/Library/PackageCache/com.unity.render-pipelines.universal@d7774c218bdf/ShaderLibrary/ForwardPlusKeyword.deprecated.hlsl(12)
-Shader warning in 'TriForge/Fantasy Forest/TreeWind2': "UnityGBuffer.hlsl" is deprecated in 6.1! Please upgrade your shaders to include "GBufferOutput.hlsl" or "GBufferInput.hlsl" instead!
-Compressed shader 'TriForge/Fantasy Forest/TreeWind2' on d3d11 from 1.05MB to 0.13MB
-Compressed shader 'TriForge/Fantasy Forest/TreeWind2' in 0.06s
 Compiling shader "SyntyStudios/VegitationShader_Basic"
   Pass "Forward" (vp)
     Target graphics API: d3d11
@@ -7616,9 +7509,9 @@ Shader warning in 'SyntyStudios/VegitationShader_Basic': _FORWARD_PLUS shader ke
 Shader warning in 'SyntyStudios/VegitationShader_Basic': "UnityGBuffer.hlsl" is deprecated in 6.1! Please upgrade your shaders to include "GBufferOutput.hlsl" or "GBufferInput.hlsl" instead!
 Shader warning in 'SyntyStudios/VegitationShader_Basic': pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them at Assets/PolygonNatureBiomes/PNB_Core/Shaders/SyntyStudios_VegitationShader_Basic.shader(587) (on d3d11)
 
-Compiling Subshader: 0, Pass: Forward, Fragment program with _ADDITIONAL_LIGHT_SHADOWS _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS_CASCADE _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_OCCLUSION
+Compiling Subshader: 0, Pass: Forward, Fragment program with _ADDITIONAL_LIGHT_SHADOWS _LIGHT_LAYERS _MAIN_LIGHT_SHADOWS _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION _SCREEN_SPACE_OCCLUSION
 Platform defines: SHADER_API_DESKTOP UNITY_ENABLE_DETAIL_NORMALMAP UNITY_ENABLE_REFLECTION_BUFFERS UNITY_LIGHTMAP_FULL_HDR UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_PBS_USE_BRDF1 UNITY_PLATFORM_SUPPORTS_DEPTH_FETCH UNITY_SPECCUBE_BLENDING UNITY_SPECCUBE_BOX_PROJECTION UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS
-Disabled keywords: DEBUG_DISPLAY DIRLIGHTMAP_COMBINED DYNAMICLIGHTMAP_ON FOG_EXP FOG_EXP2 FOG_LINEAR INSTANCING_ON LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADER_API_GLES30 SHADER_API_GLES31 SHADER_API_GLES32 SHADOWS_SHADOWMASK UNITY_ASTC_NORMALMAP_ENCODING UNITY_COLORSPACE_GAMMA UNITY_FRAMEBUFFER_FETCH_AVAILABLE UNITY_HARDWARE_TIER1 UNITY_HARDWARE_TIER2 UNITY_HARDWARE_TIER3 UNITY_LIGHTMAP_DLDR_ENCODING UNITY_LIGHTMAP_RGBM_ENCODING UNITY_METAL_SHADOWS_USE_POINT_FILTERING UNITY_NO_DXT5nm UNITY_NO_SCREENSPACE_SHADOWS UNITY_PBS_USE_BRDF2 UNITY_PBS_USE_BRDF3 UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION UNITY_UNIFIED_SHADER_PRECISION_MODEL UNITY_VIRTUAL_TEXTURING _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHTS_VERTEX _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3 _ENVIRONMENTREFLECTIONS_OFF _FORWARD_PLUS _LIGHT_COOKIES _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_SCREEN _RECEIVE_SHADOWS_OFF _SHADOWS_SOFT _SPECULARHIGHLIGHTS_OFF _WRITE_RENDERING_LAYERS
+Disabled keywords: DEBUG_DISPLAY DIRLIGHTMAP_COMBINED DYNAMICLIGHTMAP_ON FOG_EXP FOG_EXP2 FOG_LINEAR INSTANCING_ON LIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADER_API_GLES30 SHADER_API_GLES31 SHADER_API_GLES32 SHADOWS_SHADOWMASK UNITY_ASTC_NORMALMAP_ENCODING UNITY_COLORSPACE_GAMMA UNITY_FRAMEBUFFER_FETCH_AVAILABLE UNITY_HARDWARE_TIER1 UNITY_HARDWARE_TIER2 UNITY_HARDWARE_TIER3 UNITY_LIGHTMAP_DLDR_ENCODING UNITY_LIGHTMAP_RGBM_ENCODING UNITY_METAL_SHADOWS_USE_POINT_FILTERING UNITY_NO_DXT5nm UNITY_NO_SCREENSPACE_SHADOWS UNITY_PBS_USE_BRDF2 UNITY_PBS_USE_BRDF3 UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION UNITY_UNIFIED_SHADER_PRECISION_MODEL UNITY_VIRTUAL_TEXTURING _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHTS_VERTEX _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3 _ENVIRONMENTREFLECTIONS_OFF _FORWARD_PLUS _LIGHT_COOKIES _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN _RECEIVE_SHADOWS_OFF _SHADOWS_SOFT _SPECULARHIGHLIGHTS_OFF _WRITE_RENDERING_LAYERS
 Compiling shader "Legacy Shaders/VertexLit"
   Pass "" (vp)
     Target graphics API: d3d11
@@ -9083,7 +8976,7 @@ Compiling shader "Hidden/Internal-ODSWorldTexture"
     Processed in 0.00 seconds
   Pass  (vp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
-  Pass  (fp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
+  Pass  (fp, d3d11) finished in 0.01 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
   Pass  (vp, d3d11) finished in 0.00 seconds. Local cache hits 1 (0.00s CPU time), remote cache hits 0 (0.00s CPU time), compiled 0 variants (0.00s CPU time), skipped 0 variants.
     Prepared data for serialisation in 0.00s
@@ -9599,64 +9492,54 @@ info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
 info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 0.1553ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 0.1461ms
 Starting: C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --dagfile="Library/Bee/Playerbdb7fdde.dag" --profile="Library/Bee/backend1.traceevents" Player
 WorkingDir: D:/GAME Ai/IsoRPG
-Rebuilding DAG because directory contents changed: Library/PlayerDataCache/Win642/Data
-*** Tundra requires additional run (0.07 seconds), 0 items updated, 0 evaluated
-ExitCode: 4 Duration: 0s97ms
-Starting: C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\netcorerun\netcorerun.exe "C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\PlaybackEngines\WindowsStandaloneSupport\WinPlayerBuildProgram.exe" "C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/Bee;C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Tools/BuildPipeline" "Library/Bee/Playerbdb7fdde.dag.json" "Library/Bee/Playerbdb7fdde-inputdata.json" "Library\Bee\buildprogram0.traceevents"
-WorkingDir: D:/GAME Ai/IsoRPG
-DisplayProgressbar: Incremental Player Build
-ExitCode: 0 Duration: 0s371ms
-Starting: C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --dagfile="Library/Bee/Playerbdb7fdde.dag" --dagfilejson="Library\Bee\Playerbdb7fdde.dag.json" --profile="Library/Bee/backend2.traceevents" Player
-WorkingDir: D:/GAME Ai/IsoRPG
-Finished compiling graph: 495 nodes, 1279 flattened edges (1279 ToBuild, 0 ToUse), maximum node priority 301
-[149/494    0s] WriteText Library/Bee/artifacts/csharpactions/boot.config_tyr4.info
 [150/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/app.info
-[151/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.5/DefaultWsdlHelpGenerator.aspx
-[152/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/config
-[153/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/browscap.ini
-[154/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.5/Browsers/Compat.browser
-[155/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/mconfig/config.xml
-[156/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.5/web.config
-[157/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.5/settings.map
-[158/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.5/machine.config
-[159/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.0/machine.config
-[160/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.0/settings.map
-[161/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.0/web.config
-[162/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.0/Browsers/Compat.browser
-[163/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/2.0/web.config
-[164/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.0/DefaultWsdlHelpGenerator.aspx
-[165/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/2.0/settings.map
-[166/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/2.0/machine.config
-[167/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/2.0/DefaultWsdlHelpGenerator.aspx
-[168/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/2.0/Browsers/Compat.browser
+[151/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/config
+[152/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.5/Browsers/Compat.browser
+[153/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.0/web.config
+[154/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.0/settings.map
+[155/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.0/machine.config
+[156/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.0/DefaultWsdlHelpGenerator.aspx
+[157/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.0/Browsers/Compat.browser
+[158/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/2.0/web.config
+[159/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/2.0/settings.map
+[160/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/2.0/machine.config
+[161/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/2.0/Browsers/Compat.browser
+[162/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/2.0/DefaultWsdlHelpGenerator.aspx
+[163/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/mconfig/config.xml
+[164/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.5/web.config
+[165/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.5/settings.map
+[166/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/browscap.ini
+[167/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.5/machine.config
+[168/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/etc/mono/4.5/DefaultWsdlHelpGenerator.aspx
 [169/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Resources/unity default resources
-[170/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/UnityCrashHandler64.exe
-[171/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets1.resource
+[170/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets1.resource
+[171/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/dstorage.dll
 [172/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/EmbedRuntime/MonoPosixHelper.dll
-[173/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/dstorage.dll
-[174/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/dstoragecore.dll
-[175/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets0.assets
-[176/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/ScriptingAssemblies.json
-[177/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/RuntimeInitializeOnLoads.json
-[178/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets0.assets.resS
-[179/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets0.resource
-[180/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Resources/unity_builtin_extra
-[181/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Plugins/x86_64/libonigwrap.dll
+[173/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets0.resource
+[174/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Plugins/x86_64/libonigwrap.dll
+[175/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/UnityCrashHandler64.exe
+[176/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets0.assets
+[177/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/ScriptingAssemblies.json
+[178/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/RuntimeInitializeOnLoads.json
+[179/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Resources/unity_builtin_extra
+[180/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/dstoragecore.dll
+[181/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets0.assets.resS
 [182/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/resources.assets
-[183/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/D3D12/D3D12Core.dll
-[184/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/level1
-[185/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/level0
-[186/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/globalgamemanagers.assets
-[187/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/globalgamemanagers.assets.resS
-[188/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/globalgamemanagers
-[189/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets1.assets
-[190/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/level1.resS
-[191/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/EmbedRuntime/mono-2.0-bdwgc.dll
-[192/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/resources.resource
-[193/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya.exe
+[183/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/level1
+[184/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/level0
+[185/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/globalgamemanagers.assets.resS
+[186/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets1.assets
+[187/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/globalgamemanagers.assets
+[188/494    0s] CopyFiles D:/GAME Ai/Build/AdDisplayProgressbar: Incremental Player Build
+venturesOfZhenya/AdventuresOfZhenya_Data/globalgamemanagers
+[189/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/D3D12/D3D12Core.dll
+[190/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya.exe
+[191/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/resources.resource
+[192/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/MonoBleedingEdge/EmbedRuntime/mono-2.0-bdwgc.dll
+[193/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/level1.resS
 [194/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/resources.assets.resS
 [195/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/sharedassets1.assets.resS
 [196/494    0s] AddBootConfigGUID Library/Bee/artifacts/WinPlayerBuildProgram/boot.config
@@ -9664,8 +9547,8 @@ Finished compiling graph: 495 nodes, 1279 flattened edges (1279 ToBuild, 0 ToUse
 [198/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/UnityPlayer.dll
 [199/494    0s] UnityLinker D:/GAME Ai/IsoRPG/Library/Bee/artifacts/unitylinker_dwek.traceevents
 C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\il2cpp\build\deploy\UnityLinker.exe @Library\Bee\artifacts\rsp\1307126149333088936.rsp
-[205/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.CrashReportingModule.dll
-[206/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ClusterRendererModule.dll
+[205/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ClusterRendererModule.dll
+[206/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.CrashReportingModule.dll
 [207/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ClusterInputModule.dll
 [208/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.InputForUIModule.dll
 [214/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityCurlModule.dll
@@ -9673,206 +9556,204 @@ C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\il2cpp\build\deploy\Uni
 [220/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Mono.Security.dll
 [221/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.DSPGraphModule.dll
 [222/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.GraphicsStateCollectionSerializerModule.dll
-[232/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.SubstanceModule.dll
-[233/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Timeline.dll
-[238/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.MathematicsModule.dll
+[225/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.MathematicsModule.dll
+[233/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.SubstanceModule.dll
+[234/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.MultiplayerModule.dll
+[235/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Timeline.dll
 [245/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TextRenderingModule.dll
-[248/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.MultiplayerModule.dll
 [250/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TerrainModule.dll
-[256/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.PhysicsCore2DModule.dll
+[255/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.PhysicsCore2DModule.dll
 [257/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.XRModule.dll
-[258/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.PhysicsBackendPhysXModule.dll
-[259/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.Physics2DModule.dll
-[261/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.PhysicsModule.dll
-[262/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TerrainPhysicsModule.dll
+[258/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.PhysicsModule.dll
+[259/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.PhysicsBackendPhysXModule.dll
+[260/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.Physics2DModule.dll
 [264/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Collections.LowLevel.ILSupport.dll
-[265/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AMDModule.dll
-[266/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.MarshallingModule.dll
+[265/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TerrainPhysicsModule.dll
+[266/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AMDModule.dll
 [267/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.VideoModule.dll
-[268/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Collections.dll
-[269/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.GridModule.dll
-[270/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ClothModule.dll
-[276/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UmbraModule.dll
-[292/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Universal.Config.Runtime.dll
+[268/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.MarshallingModule.dll
+[269/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Collections.dll
+[270/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.GridModule.dll
+[271/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ClothModule.dll
+[275/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.NVIDIAModule.dll
+[278/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UmbraModule.dll
+[279/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ScriptingModule.dll
+[280/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Universal.Config.Runtime.dll
+[285/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Security.dll
+[288/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Numerics.dll
+[290/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.InputLegacyModule.dll
+[291/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ImageConversionModule.dll
+[292/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.ServiceModel.Internals.dll
 [293/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Data.DataSetExtensions.dll
-[294/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Numerics.dll
-[295/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.UnifiedRayTracing.Runtime.dll
-[297/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.InputLegacyModule.dll
-[298/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ScriptingModule.dll
-[300/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.ServiceModel.Internals.dll
-[304/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.NVIDIAModule.dll
-[305/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ImageConversionModule.dll
-[317/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Security.dll
-[318/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Data.dll
-[319/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AndroidJNIModule.dll
-[320/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.HotReloadModule.dll
-[321/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Collections.Immutable.dll
-[322/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Runtime.dll
-[323/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared.dll
-[325/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.InternalAPIEngineBridge.004.dll
-[326/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Core.Runtime.Shared.dll
-[327/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Core.ShaderLibrary.dll
-[328/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Universal.Shaders.dll
-[330/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipeline.Universal.ShaderLibrary.dll
-[332/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Universal.2D.Runtime.dll
+[294/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Collections.Immutable.dll
+[296/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.HotReloadModule.dll
+[297/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.UnifiedRayTracing.Runtime.dll
+[298/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Data.dll
+[300/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AndroidJNIModule.dll
+[317/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Runtime.dll
+[318/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared.dll
+[320/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Universal.Shaders.dll
+[321/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Drawing.dll
+[322/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.GPUDriven.Runtime.dll
+[323/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipeline.Universal.ShaderLibrary.dll
+[328/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityAnalyticsModule.dll
+[330/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Universal.2D.Runtime.dll
+[331/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.InternalAPIEngineBridge.004.dll
+[332/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Universal.Runtime.dll
 [333/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Multiplayer.Center.Common.dll
-[335/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.GPUDriven.Runtime.dll
-[339/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityAnalyticsCommonModule.dll
-[340/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TLSModule.dll
-[341/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityAnalyticsModule.dll
-[343/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.GameCenterModule.dll
-[346/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Drawing.dll
-[348/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Buffers.dll
-[352/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.ComponentModel.Composition.dll
-[353/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Burst.Unsafe.dll
-[354/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ShaderVariantAnalyticsModule.dll
-[355/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Universal.Runtime.dll
-[357/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.AI.Navigation.dll
-[358/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Transactions.dll
-[359/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TextCoreFontEngineModule.dll
-[360/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.VehiclesModule.dll
-[363/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TextCoreTextEngineModule.dll
-[365/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Core.Runtime.dll
-[366/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.JSONSerializeModule.dll
-[367/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.InputModule.dll
-[368/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AccessibilityModule.dll
-[369/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.InsightsModule.dll
-[370/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AnimationModule.dll
-[372/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Memory.dll
-[375/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.VirtualTexturingModule.dll
-[376/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Reflection.Metadata.dll
-[377/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/netstandard.dll
-[378/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.U2DRuntimeModule.dll
-[379/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AdaptivePerformanceModule.dll
-[381/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.SubsystemsModule.dll
-[382/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.IMGUIModule.dll
-[384/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Xml.Linq.dll
-[386/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Burst.dll
-[388/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.SpriteMaskModule.dll
-[389/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.VFXModule.dll
-[391/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Assembly-CSharp.dll
-[392/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.IdentifiersModule.dll
-[394/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AssetBundleModule.dll
-[395/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UIModule.dll
-[396/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ScreenCaptureModule.dll
-[402/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.WindModule.dll
-[405/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Mathematics.dll
-[408/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Plugins/x86_64/lib_burst_generated.dll
-[409/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Scripting.dll
-[410/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.SharedInternalsModule.dll
-[413/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TilemapModule.dll
-[414/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.TextMeshPro.dll
-[415/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.SpriteShapeModule.dll
-[417/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ContentLoadModule.dll
-[418/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.RenderAs2DModule.dll
-[420/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.DirectorModule.dll
-[424/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.InputSystem.ForUI.dll
-[425/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.GIModule.dll
-[427/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.VectorGraphicsModule.dll
-[428/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.dll
-[430/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AudioModule.dll
-[431/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/DistantLands.Cozy.Runtime.dll
-[432/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll
-[433/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ParticleSystemModule.dll
-[434/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.LocalizationModule.dll
-[435/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.CoreModule.dll
-[437/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityWebRequestTextureModule.dll
-[438/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityWebRequestAssetBundleModule.dll
-[443/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityWebRequestAudioModule.dll
-[444/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.PropertiesModule.dll
-[445/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityWebRequestWWWModule.dll
-[449/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.EnterpriseServices.dll
-[450/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityWebRequestModule.dll
-[451/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Configuration.dll
-[452/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityConnectModule.dll
-[453/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.dll
-[454/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityConsentModule.dll
-[456/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.HierarchyCoreModule.dll
-[457/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.PerformanceReportingModule.dll
-[458/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UI.dll
-[459/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.HierarchyModule.dll
-[460/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ARModule.dll
-[461/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Core.dll
-[463/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Runtime.CompilerServices.Unsafe.dll
-[464/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.VisualScripting.State.dll
-[465/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.VisualScripting.DocCodeExamples.dll
-[477/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.VisualScripting.Antlr3.Runtime.dll
-[479/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.SurfaceCache.Runtime.dll
-[481/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.IO.Compression.FileSystem.dll
-[482/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AIModule.dll
-[483/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.IO.Compression.dll
-[484/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.VisualScripting.Flow.dll
-[485/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll
-[486/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.StreamingModule.dll
-[487/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Net.Http.dll
-[488/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.VisualScripting.Core.dll
-[489/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Xml.dll
-[490/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Runtime.Serialization.dll
-[491/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.InputSystem.dll
-[492/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UIElementsModule.dll
-[493/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/mscorlib.dll
-*** Tundra build success (2.31 seconds), 198 items updated, 494 evaluated
-ExitCode: 0 Duration: 2s335ms
+[334/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.GameCenterModule.dll
+[336/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.ComponentModel.Composition.dll
+[337/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Buffers.dll
+[338/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Core.Runtime.Shared.dll
+[339/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ShaderVariantAnalyticsModule.dll
+[340/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Core.ShaderLibrary.dll
+[341/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityAnalyticsCommonModule.dll
+[342/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.Core.Runtime.dll
+[344/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TextCoreTextEngineModule.dll
+[346/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Burst.Unsafe.dll
+[347/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TLSModule.dll
+[354/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.JSONSerializeModule.dll
+[355/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AnimationModule.dll
+[356/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TextCoreFontEngineModule.dll
+[357/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.InputModule.dll
+[358/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AccessibilityModule.dll
+[359/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.InsightsModule.dll
+[362/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.VirtualTexturingModule.dll
+[366/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Memory.dll
+[367/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/netstandard.dll
+[368/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.VehiclesModule.dll
+[369/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AdaptivePerformanceModule.dll
+[372/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.IMGUIModule.dll
+[374/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Assembly-CSharp.dll
+[375/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Burst.dll
+[376/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.SubsystemsModule.dll
+[377/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Xml.Linq.dll
+[378/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.dll
+[379/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.CoreModule.dll
+[381/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.SpriteMaskModule.dll
+[383/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AssetBundleModule.dll
+[386/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.IdentifiersModule.dll
+[387/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.WindModule.dll
+[388/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.TextMeshPro.dll
+[389/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.SharedInternalsModule.dll
+[391/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.AI.Navigation.dll
+[393/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ContentLoadModule.dll
+[394/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Scripting.dll
+[396/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.U2DRuntimeModule.dll
+[397/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Transactions.dll
+[399/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.Mathematics.dll
+[401/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Xml.dll
+[402/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.SpriteShapeModule.dll
+[404/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Reflection.Metadata.dll
+[407/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.RenderAs2DModule.dll
+[412/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.DirectorModule.dll
+[414/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.VectorGraphicsModule.dll
+[415/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.dll
+[416/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.GIModule.dll
+[417/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AudioModule.dll
+[418/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/mscorlib.dll
+[419/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UIElementsModule.dll
+[422/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ParticleSystemModule.dll
+[423/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/DistantLands.Cozy.Runtime.dll
+[424/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ScreenCaptureModule.dll
+[426/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UIModule.dll
+[427/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll
+[429/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.VFXModule.dll
+[430/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.LocalizationModule.dll
+[431/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.PropertiesModule.dll
+[432/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityWebRequestTextureModule.dll
+[433/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityWebRequestAssetBundleModule.dll
+[434/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityWebRequestAudioModule.dll
+[436/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Core.dll
+[437/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.EnterpriseServices.dll
+[442/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityWebRequestWWWModule.dll
+[443/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Configuration.dll
+[446/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityConnectModule.dll
+[448/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.HierarchyCoreModule.dll
+[449/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.HierarchyModule.dll
+[450/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UI.dll
+[451/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.PerformanceReportingModule.dll
+[452/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.ARModule.dll
+[454/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Runtime.CompilerServices.Unsafe.dll
+[455/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.VisualScripting.DocCodeExamples.dll
+[456/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityConsentModule.dll
+[458/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.VisualScripting.Antlr3.Runtime.dll
+[459/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.TilemapModule.dll
+[460/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.VisualScripting.Flow.dll
+[466/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.AIModule.dll
+[469/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.SurfaceCache.Runtime.dll
+[472/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.IO.Compression.FileSystem.dll
+[474/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.IO.Compression.dll
+[476/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll
+[479/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.StreamingModule.dll
+[481/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.InputSystem.ForUI.dll
+[482/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Net.Http.dll
+[483/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.InputSystem.dll
+[485/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.VisualScripting.State.dll
+[488/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/UnityEngine.UnityWebRequestModule.dll
+[489/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/Unity.VisualScripting.Core.dll
+[492/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Plugins/x86_64/lib_burst_generated.dll
+[493/494    0s] CopyFiles D:/GAME Ai/Build/AdventuresOfZhenya/AdventuresOfZhenya_Data/Managed/System.Runtime.Serialization.dll
+*** Tundra build success (2.06 seconds), 197 items updated, 494 evaluated
+ExitCode: 0 Duration: 2s80ms
 Total cache size 112306678
-Total cache size after purge 112306678, took 00:00:00.1627719
+Total cache size after purge 112306678, took 00:00:00.1600257
 
-Asset Pipeline Refresh (id=13cda8792de9893478cf70b05ac76a08): Total: 0.701 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=d45c143bcc091f94498a565c9092d04d): Total: 0.609 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
 	(Values over 0.05ms)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=694 ms
-		Asset DB Callback time: managed=2 ms, native=3 ms
+		Asset DB Process Time: managed=0 ms, native=604 ms
+		Asset DB Callback time: managed=2 ms, native=2 ms
 		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
 		Project Asset Count: scripts=2761, non-scripts=43637
 		Asset File Changes: new=0, changed=0, moved=0, deleted=2
 		Scan Filter Count: 0
-	ApplyChangesToAssetFolders: 0.186ms
-	Scan: 21.409ms
-	Collect global state as custom dependencies: 0.477ms
-	OnSourceAssetsModified: 0.066ms
-	ProcessAssetsWithTransientArtifactChanges: 0.163ms
-	CategorizeAssets: 98.311ms
-	ImportOutOfDateAssets: 509.074ms (25.623ms without children)
-		ReloadNativeAssets: 0.176ms
-		UnloadImportedAssets: 0.180ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 10.659ms
-		ImportSchedulerStart: 472.427ms
-	PostProcessAllAssets: 3.165ms
-		XRBuildSystem.XRAssetImported 0.482ms
-		MonoPostProcessAllAssets: 2.528ms
-			SyncVS.PostprocessSyncProject 1.125ms
-			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.570ms
-			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 0.162ms
-			StyleCatalogPostProcessor.OnPostprocessAllAssets 0.103ms
-			AssetChangedListener.OnPostprocessAllAssets 0.061ms
-			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.050ms
-	PostAssetChangesProfiler: 2.799ms
-	GatherAllCurrentPrimaryImportResultRevisions: 2.841ms
-	UnloadStreamsBegin: 2.380ms
-	PersistCurrentRevisions: 3.211ms
-	Untracked: 55.315ms
+	ApplyChangesToAssetFolders: 0.177ms
+	Scan: 21.881ms
+	Collect global state as custom dependencies: 0.567ms
+	OnSourceAssetsModified: 0.061ms
+	ProcessAssetsWithTransientArtifactChanges: 0.159ms
+	CategorizeAssets: 86.703ms
+	ImportOutOfDateAssets: 433.977ms (23.465ms without children)
+		ReloadNativeAssets: 0.134ms
+		UnloadImportedAssets: 0.170ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 7.770ms
+		ImportSchedulerStart: 402.433ms
+	PostProcessAllAssets: 2.236ms
+		XRBuildSystem.XRAssetImported 0.336ms
+		MonoPostProcessAllAssets: 1.787ms
+			SyncVS.PostprocessSyncProject 0.887ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 0.350ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 0.098ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 0.086ms
+	PostAssetChangesProfiler: 2.809ms
+	GatherAllCurrentPrimaryImportResultRevisions: 2.359ms
+	UnloadStreamsBegin: 2.194ms
+	PersistCurrentRevisions: 2.748ms
+	Untracked: 51.918ms
 
 
 -------------------------------------------------------------------------------
 Build Report
 Uncompressed usage by category (Percentages based on user generated assets only):
-Textures               441.7 mb	 70.3% 
-Meshes                 86.2 mb	 13.7% 
+Textures               441.4 mb	 70.6% 
+Meshes                 86.2 mb	 13.8% 
 Animations             480.9 kb	 0.1% 
-Sounds                 78.0 mb	 12.4% 
-Shaders                3.1 mb	 0.5% 
-Other Assets           9.6 mb	 1.5% 
+Sounds                 78.0 mb	 12.5% 
+Shaders                3.0 mb	 0.5% 
+Other Assets           6.4 mb	 1.0% 
 Levels                 8.9 mb	 1.4% 
-File headers           151.1 kb	 0.0% 
-Total User Assets      628.5 mb	 100.0% 
-Complete build size    722.2 mb
+File headers           149.8 kb	 0.0% 
+Total User Assets      624.8 mb	 100.0% 
+Complete build size    718.5 mb
 Used Assets and files from the Resources folder, sorted by uncompressed size:
  29.3 mb	 4.1% Assets/PolygonFantasyHeroCharacters/Models/ModularCharacters.fbx
  21.3 mb	 3.0% Assets/TriForge Assets/Fantasy Forest Environment/Textures/Utility/T_WindMask.png
  16.0 mb	 2.2% Packages/com.distantlands.cozy.core/Content/Art/Textures/Stars and Night FX/constellation_figures_8k.tif
  16.0 mb	 2.2% Packages/com.distantlands.cozy.core/Content/Art/Textures/Stars and Night FX/starmap_2020_8k.png
  16.0 mb	 2.2% Packages/com.distantlands.cozy.core/Content/Art/Textures/Stars and Night FX/galaxymap.png
- 14.4 mb	 2.0% Assets/_Game/Art/Materials/ArenaTerrain.asset
+ 11.2 mb	 1.6% Assets/_Game/Art/Materials/ArenaTerrain.asset
  10.7 mb	 1.5% Packages/com.distantlands.cozy.core/Content/Art/Textures/Cloud Textures/Painted Noise.png
  8.9 mb	 1.2% Packages/com.distantlands.cozy.core/Content/Art/Audio/mixkit-pond-ambience-with-crickets-1783.wav
  5.8 mb	 0.8% Packages/com.distantlands.cozy.core/Content/Art/Audio/mixkit-blizzard-cold-winds-1153.wav
@@ -9958,27 +9839,27 @@ Used Assets and files from the Resources folder, sorted by uncompressed size:
  2.7 mb	 0.4% Packages/com.distantlands.cozy.core/Content/Art/Textures/Cloud Textures/Cirrus 3.png
  2.7 mb	 0.4% Packages/com.distantlands.cozy.core/Content/Art/Audio/mixkit-light-rain-loop-1253.wav
  2.6 mb	 0.4% Assets/_Game/Audio/Music/MenuTheme.mp3
+ 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 7
  2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 5
- 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 15
  2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 21
- 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 19
- 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 16
  2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 9
+ 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 18
+ 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 11
  2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 3
  2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 12
  2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene)
- 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 7
+ 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 8
  2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 14
+ 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 19
+ 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 16
+ 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 17
+ 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 4
  2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 6
  2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 20
- 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 8
- 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 4
- 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 10
- 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 18
- 2.2 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 11
  2.1 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 2
+ 2.1 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 15
  2.1 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 22
- 2.1 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 17
+ 2.1 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 10
  2.1 mb	 0.3% Built-in Mesh: Combined Mesh (root: scene) 13
  1.8 mb	 0.2% Packages/com.distantlands.cozy.core/Content/Art/Audio/mixkit-rain-and-thunder-storm-2390.wav
  1.8 mb	 0.2% Packages/com.distantlands.cozy.core/Content/Art/Audio/mixkit-arctic-winds-1154.wav
@@ -10013,7 +9894,7 @@ Used Assets and files from the Resources folder, sorted by uncompressed size:
  882.8 kb	 0.1% Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Models/SM_Env_Tree_Fruit_01.fbx
  850.6 kb	 0.1% Packages/com.distantlands.cozy.core/Content/Art/Audio/mixkit-big-thunder-with-rain-1291.wav
  825.3 kb	 0.1% Assets/_Game/Audio/Ambience/forest_birds.ogg
- 805.9 kb	 0.1% Assets/_Game/Scenes/Arena/NavMesh-ArenaTerrain.asset
+ 806.6 kb	 0.1% Assets/_Game/Scenes/Arena/NavMesh-ArenaTerrain.asset
  795.2 kb	 0.1% Assets/_Game/Resources/UI/Win2_Corner.png
  793.9 kb	 0.1% Assets/_Game/Resources/UI/Frame_Inset.png
  751.1 kb	 0.1% Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Models/SM_Env_Tree_Fruit_02.fbx
@@ -10033,13 +9914,12 @@ Used Assets and files from the Resources folder, sorted by uncompressed size:
  682.8 kb	 0.1% Packages/com.distantlands.cozy.core/Content/Demo/Textures/Tex4.png
  682.8 kb	 0.1% Packages/com.distantlands.cozy.core/Content/Demo/Textures/Tex3.png
  659.5 kb	 0.1% Assets/Synty/PNB_Core/Models/SM_Env_Cloud_Ring_01.fbx
- 654.8 kb	 0.1% Built-in Mesh: Combined Mesh (root: scene) 23
+ 655.6 kb	 0.1% Built-in Mesh: Combined Mesh (root: scene) 23
  584.5 kb	 0.1% Packages/com.distantlands.cozy.core/Content/Art/Audio/mixkit-electric-welding-and-sparkles-2603.wav
  551.1 kb	 0.1% Assets/_Game/Resources/UI/Frame_ListPanel.png
  384.7 kb	 0.1% Built-in Mesh: Combined Mesh (root: scene) 24
  344.5 kb	 0.0% Assets/TextMesh Pro/Fonts/LiberationSans.ttf
  342.1 kb	 0.0% Assets/_Game/Resources/UI/Abilities_Gem.png
- 341.5 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Textures/T_FFE_Grassset01.tga
  341.5 kb	 0.0% Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Textures/Plants/leafPatch_01.tga
  341.5 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Art/Textures/Particle/Butterfly.png
  341.5 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Demo/Textures/Grass 3.png
@@ -10098,7 +9978,6 @@ Used Assets and files from the Resources folder, sorted by uncompressed size:
  171.6 kb	 0.0% Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLit.shader
  170.8 kb	 0.0% Assets/Synty/PNB_Core/Textures/Noise_Small.png
  153.7 kb	 0.0% Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitAdd.shader
- 151.7 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Shaders/TreeWind2.shader
  147.8 kb	 0.0% Assets/_Game/Resources/UI/Button_Plain.png
  147.8 kb	 0.0% Assets/_Game/Resources/UI/Button_Danger.png
  144.2 kb	 0.0% Built-in Mesh: Combined Mesh (root: scene) 25
@@ -10284,8 +10163,6 @@ Used Assets and files from the Resources folder, sorted by uncompressed size:
  4.9 kb	 0.0% Assets/_Game/Audio/Steps/footstep_concrete_000.ogg
  4.5 kb	 0.0% Packages/com.unity.render-pipelines.universal/Shaders/Utils/CopyDepth.shader
  4.5 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Art/Materials/Skybox.mat
- 4.4 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Meshes/Ground Foliage/MSH_FFE_Flowers_White.fbx
- 4.4 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Meshes/Ground Foliage/MSH_FFE_Flowers_Blue.fbx
  4.2 kb	 0.0% Packages/com.unity.render-pipelines.universal/Shaders/Debug/DebugReplacement.shader
  4.2 kb	 0.0% Packages/com.unity.render-pipelines.universal/Textures/BlueNoise64/L/LDR_LLL1_0.png
  4.0 kb	 0.0% Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/PaniniProjection.shader
@@ -10366,13 +10243,11 @@ Used Assets and files from the Resources folder, sorted by uncompressed size:
  1.6 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Demo/Materials/Roof.mat
  1.6 kb	 0.0% Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Drop Shadow.mat
  1.6 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Demo/Materials/Accent.mat
- 1.6 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Materials/M_FFE_Grassset01.mat
  1.6 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Art/Materials/Moon.mat
  1.6 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Art/Materials/Lightning.mat
  1.6 kb	 0.0% Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Outline.mat
  1.6 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Art/Materials/Particles/Dust Cloud.mat
  1.5 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Art/Materials/Particles/Dust.mat
- 1.5 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Meshes/Ground Foliage/MSH_FFE_Grass_Short01.fbx
  1.5 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Art/Materials/Particles/Dust Motes.mat
  1.5 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Demo/Materials/Old Pine Leaves.mat
  1.5 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Art/Materials/Particles/Leaves.mat
@@ -10389,10 +10264,7 @@ Used Assets and files from the Resources folder, sorted by uncompressed size:
  1.2 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Demo/Materials/Grass Blade.mat
  1.2 kb	 0.0% Packages/com.unity.render-pipelines.universal/Textures/SMAA/SearchTex.tga
  1.1 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Resources/Profiles/Ambience Profiles/Aurora Borealis (Blue and Purple).asset
- 1.1 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Meshes/Ground Foliage/MSH_FFE_Grass_Short02.fbx
- 1.1 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Meshes/Ground Foliage/MSH_FFE_Grass02.fbx
  1.1 kb	 0.0% Assets/_Game/Art/UI/MenuShade.png
- 1.1 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Meshes/Ground Foliage/MSH_FFE_Grass01.fbx
  1.0 kb	 0.0% Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Materials/Rock_Grass_Triplanar_Meadow_01.mat
  1.0 kb	 0.0% Assets/_Game/Art/Materials/M_ArenaTerrain.mat
  1.0 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Resources/Profiles/Ambience Profiles/Vulture Circle.asset
@@ -10403,7 +10275,6 @@ Used Assets and files from the Resources folder, sorted by uncompressed size:
  0.9 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Art/Materials/Particles/Butterfly.mat
  0.9 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Art/Textures/Rainbow.png
  0.9 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Resources/Profiles/Ambience Profiles/Airborne Particles.asset
- 0.9 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Meshes/Ground Foliage/MSH_FFE_Flower_Yellow.fbx
  0.9 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Resources/Cozy Weather Mixer.mixer
  0.9 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Resources/Profiles/Ambience Profiles/Aurora Borealis (Red).asset
  0.9 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Resources/Profiles/Ambience Profiles/Aurora Borealis (Green).asset
@@ -10489,15 +10360,8 @@ Used Assets and files from the Resources folder, sorted by uncompressed size:
  0.3 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Prefabs/Sprite Based Moon Example.prefab
  0.3 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Prefabs/Physical Moon.prefab
  0.3 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Prefabs/Cutout Physical Moon.prefab
- 0.3 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Prefabs/Ground Foliage/P_FFE_Grass_Short_02.Prefab
- 0.3 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Prefabs/Ground Foliage/P_FFE_Grass_Short_01.Prefab
- 0.3 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Prefabs/Ground Foliage/P_FFE_Flowers_White.Prefab
- 0.3 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Prefabs/Ground Foliage/P_FFE_Flowers_Blue.Prefab
- 0.3 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Prefabs/Ground Foliage/P_FFE_Flower_Yellow.Prefab
  0.3 kb	 0.0% Assets/Synty/PolygonFantasyCharacters/Prefabs/SM_Prop_Dagger_01.prefab
  0.3 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Prefabs/Stylized Moon.prefab
- 0.3 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Prefabs/Ground Foliage/P_FFE_Grass_02.Prefab
- 0.3 kb	 0.0% Assets/TriForge Assets/Fantasy Forest Environment/Prefabs/Ground Foliage/P_FFE_Grass_01.Prefab
  0.3 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Resources/Profiles/Weather Profiles/Overcast.asset
  0.3 kb	 0.0% Assets/TextMesh Pro/Resources/LineBreaking Following Characters.txt
  0.3 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Resources/Profiles/Weather Profiles/Light Precipitation.asset
@@ -13484,27 +13348,27 @@ Used Assets and files from the Resources folder, sorted by uncompressed size:
  0.0 kb	 0.0% Packages/com.distantlands.cozy.core/Content/Resources/Profiles/Weighted Random Chance/True.asset
 -------------------------------------------------------------------------------
 Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 324 unused Assets / (1.0 MB). Loaded Objects now: 8955.
-Memory consumption went from 0.85 GB to 0.85 GB.
-Total: 21.893700 ms (FindLiveObjects: 0.993400 ms CreateObjectMapping: 2.243500 ms MarkObjects: 10.184500 ms  DeleteObjects: 8.470800 ms)
+Unloading 281 unused Assets / (0.9 MB). Loaded Objects now: 8954.
+Memory consumption went from 0.84 GB to 0.84 GB.
+Total: 18.253700 ms (FindLiveObjects: 0.539600 ms CreateObjectMapping: 1.242800 ms MarkObjects: 8.826000 ms  DeleteObjects: 7.644400 ms)
 
 DisplayProgressNotification: Build Successful
 Build Finished, Result: Success.
-##utp:{"success":true,"type":"PlayerBuildInfo","version":2,"phase":"Immediate","time":1787964824468,"processId":17372,"steps":[{"description":"Preprocess Player","duration":1733},{"description":"Prepare For Build","duration":5},{"description":"ProducePlayerScriptAssemblies","duration":1609},{"description":"Verify Build setup","duration":80},{"description":"Prepare assets for target platform","duration":0},{"description":"Prepare splash screen","duration":0},{"description":"Build scripts DLLs","duration":30},{"description":"Building scenes","duration":4850},{"description":"Build GlobalGameManagers file","duration":146},{"description":"Writing asset files","duration":5947},{"description":"Building Resources/unity_builtin_extra","duration":125},{"description":"Write data build dirty tracking information","duration":269},{"description":"Postprocess built player","duration":4714}],"duration":19508}
+##utp:{"success":true,"type":"PlayerBuildInfo","version":2,"phase":"Immediate","time":1787966116587,"processId":8300,"steps":[{"description":"Preprocess Player","duration":1751},{"description":"Prepare For Build","duration":5},{"description":"ProducePlayerScriptAssemblies","duration":1419},{"description":"Verify Build setup","duration":73},{"description":"Prepare assets for target platform","duration":0},{"description":"Prepare splash screen","duration":0},{"description":"Build scripts DLLs","duration":26},{"description":"Building scenes","duration":4853},{"description":"Build GlobalGameManagers file","duration":153},{"description":"Writing asset files","duration":5878},{"description":"Building Resources/unity_builtin_extra","duration":123},{"description":"Write data build dirty tracking information","duration":271},{"description":"Postprocess built player","duration":3866}],"duration":18418}
 Unloading 47 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Temp/__Backupscenes/0.backup'
-	Deserialize:            217.863 ms
-	Integration:            624.305 ms
-	Integration of assets:  6.231 ms
-	Thread Wait Time:       0.056 ms
-	Total Operation Time:   848.455 ms
-Unloading 0 unused Assets / (0 B). Loaded Objects now: 40539.
-Memory consumption went from 0.99 GB to 0.99 GB.
-Total: 26.938500 ms (FindLiveObjects: 4.841200 ms CreateObjectMapping: 5.232700 ms MarkObjects: 16.643300 ms  DeleteObjects: 0.219800 ms)
+	Deserialize:            236.478 ms
+	Integration:            597.473 ms
+	Integration of assets:  5.687 ms
+	Thread Wait Time:       0.138 ms
+	Total Operation Time:   839.777 ms
+Unloading 0 unused Assets / (0 B). Loaded Objects now: 40495.
+Memory consumption went from 0.98 GB to 0.98 GB.
+Total: 18.020200 ms (FindLiveObjects: 4.001500 ms CreateObjectMapping: 3.797500 ms MarkObjects: 10.169000 ms  DeleteObjects: 0.051000 ms)
 
 [IsoRPG] Готово, версия 0.7.0. Папка: D:\GAME Ai\Build\AdventuresOfZhenya
 Архив: D:\GAME Ai\Build\AdventuresOfZhenya-0.7.0.zip
-Размер сборки: 722,2 МБ, время 22 с.
+Размер сборки: 718,5 МБ, время 21 с.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
@@ -13512,7 +13376,7 @@ UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,st
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
 IsoRPG.EditorTools.GameBuilder:BuildGame () (at Assets/_Game/Scripts/Editor/GameBuilder.cs:132)
-IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:615)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:659)
 IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
 IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
 IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
@@ -13554,17 +13418,13 @@ Lingering sessions upon destruction of worker manager
 AcceleratorClientConnectionCallback - disconnected - :0
 Cleanup mono
 CodeReloadManager destroyed
-abort_threads: Failed aborting id: 0000000000003D48, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000003CAC, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000003ED8, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000002228, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 00000000000034D8, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000003CAC, mono_thread_manage will ignore it
 
-abort_threads: Failed aborting id: 0000000000003D48, mono_thread_manage will ignore it
-
-abort_threads: Failed aborting id: 0000000000003ED8, mono_thread_manage will ignore it
-
-abort_threads: Failed aborting id: 00000000000034D8, mono_thread_manage will ignore it
+abort_threads: Failed aborting id: 0000000000002228, mono_thread_manage will ignore it
 
 debugger-agent: Unable to listen on 3564
 Exiting batchmode successfully now!

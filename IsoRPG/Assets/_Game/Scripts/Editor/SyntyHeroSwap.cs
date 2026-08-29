@@ -40,20 +40,39 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
-            int number = 23;
+            // В файле-подсказке либо номер пресета Polygon, либо имя
+            // префаба целиком — с приходом Sidekick героев стало два
+            // набора, а строка выбора должна остаться одна.
+            string choice = System.IO.File.Exists(Choice)
+                ? System.IO.File.ReadAllText(Choice).Trim()
+                : "23";
 
-            if (System.IO.File.Exists(Choice) &&
-                int.TryParse(System.IO.File.ReadAllText(Choice).Trim(), out int fromFile))
+            if (choice.Length == 0) choice = "23";
+
+            GameObject prefab;
+            string what;
+
+            if (int.TryParse(choice, out int number))
             {
-                number = fromFile;
+                what = "герой номер " + number;
+                string path = Presets + "/Chr_FantasyHero_Preset_" + number + ".prefab";
+                prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             }
+            else
+            {
+                what = "герой " + choice;
 
-            string path = Presets + "/Chr_FantasyHero_Preset_" + number + ".prefab";
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                var guid = AssetDatabase.FindAssets(choice + " t:Prefab").FirstOrDefault();
+
+                prefab = guid == null
+                    ? null
+                    : AssetDatabase.LoadAssetAtPath<GameObject>(
+                        AssetDatabase.GUIDToAssetPath(guid));
+            }
 
             if (prefab == null)
             {
-                Debug.LogWarning("[IsoRPG] Не найден герой номер " + number + " (" + path + ")");
+                Debug.LogWarning("[IsoRPG] Не найден " + what);
                 return;
             }
 
@@ -78,14 +97,40 @@ namespace IsoRPG.EditorTools
                 Object.DestroyImmediate(old);
             }
 
-            int hidden = 0;
+            // Прежнего героя УДАЛЯЕМ, а не гасим.
+            //
+            // Здесь стояло `r.enabled = false`. Погашенный рендерер — это
+            // объект, который остался в сцене и уехал в сборку целиком, с
+            // мешами и текстурами; он просто не рисуется, пока его кто-то
+            // не включит. А включить есть кому: подсветка силуэтов сквозь
+            // препятствия перебирает рендереры героя, LOD-группа зажигает
+            // свои уровни по дальности камеры. Отсюда и «старый герой
+            // периодически вылезает» — четыре раза подряд, и каждый раз я
+            // гасил его заново вместо того, чтобы убрать.
+            //
+            // Правило записано в STATUS проекта дословно: выключить объект
+            // недостаточно, он остаётся в файле и создаётся при загрузке.
+            //
+            // Новый визуал создаётся ниже, поэтому здесь под удаление
+            // попадает только старое.
+            int removed = 0;
 
-            foreach (var r in player.GetComponentsInChildren<Renderer>(true))
+            foreach (var r in player.GetComponentsInChildren<Renderer>(true).ToList())
             {
-                if (r == null || !r.enabled) continue;
-                r.enabled = false;
-                hidden++;
+                if (r == null) continue;
+
+                Object.DestroyImmediate(r.gameObject);
+                removed++;
             }
+
+            // LOD-группа осталась бы без уровней и всё равно пыталась их
+            // включать.
+            foreach (var lod in player.GetComponentsInChildren<LODGroup>(true).ToList())
+            {
+                if (lod != null) Object.DestroyImmediate(lod);
+            }
+
+            int hidden = removed;
 
             var visual = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
             visual.name = VisualName;
@@ -129,13 +174,13 @@ namespace IsoRPG.EditorTools
                 if (changed) { so.ApplyModifiedProperties(); rebound++; }
             }
 
-            Debug.Log("[IsoRPG] Игрок стал героем номер " + number + " (" + prefab.name +
+            Debug.Log("[IsoRPG] Игрок стал: " + what + " (" + prefab.name +
                       "), аватар " + (animator.avatar != null
                           ? animator.avatar.name + ", human " + animator.avatar.isHuman
                           : "НЕТ") +
                       ", контроллер " + (animator.runtimeAnimatorController != null
                           ? animator.runtimeAnimatorController.name : "НЕТ") +
-                      ", погашено прежних мешей " + hidden +
+                      ", УДАЛЕНО прежних мешей " + hidden +
                       ", ссылок перенацелено " + rebound + ".");
 
             MarkDirty();
@@ -156,6 +201,33 @@ namespace IsoRPG.EditorTools
                                      .FirstOrDefault();
 
                 if (a != null) return a;
+            }
+
+            // Второй заход: аватар рядом с мешем, а не внутри него.
+            //
+            // У Polygon модель — это FBX, и аватар лежит подобъектом внутри
+            // него, первый проход его находит. У Sidekick меш и аватар —
+            // два отдельных ассета в одной папке (Starter_03.asset и
+            // Starter_03-avatar.asset), и первый проход возвращает пусто.
+            // Без аватара humanoid-клипы не играют вовсе, персонаж встаёт
+            // буквой «Т» — молча, без единой строчки в журнале.
+            foreach (var smr in prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                if (smr.sharedMesh == null) continue;
+
+                string meshPath = AssetDatabase.GetAssetPath(smr.sharedMesh);
+                if (string.IsNullOrEmpty(meshPath)) continue;
+
+                string folder = System.IO.Path.GetDirectoryName(meshPath).Replace('\\', '/');
+                if (string.IsNullOrEmpty(folder)) continue;
+
+                foreach (var guid in AssetDatabase.FindAssets("t:Avatar", new[] { folder }))
+                {
+                    var a = AssetDatabase.LoadAssetAtPath<Avatar>(
+                        AssetDatabase.GUIDToAssetPath(guid));
+
+                    if (a != null) return a;
+                }
             }
 
             return null;

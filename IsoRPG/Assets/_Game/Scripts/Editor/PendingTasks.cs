@@ -1226,6 +1226,11 @@ namespace IsoRPG.EditorTools
                     SceneEye.Shot("rogues", new Vector3(0f, 1f, 0f), 6f, 12f, 50f);
                     break;
 
+                case "sidekick":
+                    HeroShowcase.Sidekicks();
+                    SceneEye.Shot("sidekick", new Vector3(0f, 1f, 0f), 6f, 12f, 50f);
+                    break;
+
                 case "heroes":
                     HeroShowcase.Build();
                     SceneEye.Shot("heroes", new Vector3(0f, 1f, 0f), 14f, 22f, 50f);

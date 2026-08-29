@@ -282,15 +282,17 @@ namespace IsoRPG.EditorTools
         {
             get
             {
-                int number = 23;
+                string choice = File.Exists(HeroChoice)
+                    ? File.ReadAllText(HeroChoice).Trim()
+                    : "23";
 
-                if (File.Exists(HeroChoice) &&
-                    int.TryParse(File.ReadAllText(HeroChoice).Trim(), out int fromFile))
-                {
-                    number = fromFile;
-                }
+                if (choice.Length == 0) choice = "23";
 
-                return "Chr_FantasyHero_Preset_" + number;
+                // Номер — это пресет Polygon, всё остальное — имя префаба
+                // как есть: героев стало два набора, а строка выбора одна.
+                return int.TryParse(choice, out int number)
+                    ? "Chr_FantasyHero_Preset_" + number
+                    : choice;
             }
         }
 

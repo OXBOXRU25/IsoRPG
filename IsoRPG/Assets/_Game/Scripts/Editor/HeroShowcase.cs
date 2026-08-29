@@ -155,6 +155,141 @@ namespace IsoRPG.EditorTools
                       ". Слева направо: " + string.Join(", ", names));
         }
 
+        /// <summary>
+        /// Витрина стартовых персонажей Sidekick.
+        ///
+        /// Набор ещё выбирается, поэтому смотрим его в пустой сцене под
+        /// нашим светом, а не в арене: в боевую сцену то, что не решено,
+        /// не тащим. Здесь сразу видно главное — не розовые ли материалы
+        /// в URP 17 и как эти персонажи читаются рядом с нашими.
+        /// </summary>
+        [MenuItem("Tools/IsoRPG/Витрина Sidekick", priority = 46)]
+        public static void Sidekicks()
+        {
+            if (EditorApplication.isPlaying) return;
+
+            var names = new[]
+            {
+                "Starter_01",
+                "Starter_02",
+                "Starter_03",
+                "Starter_04",
+            };
+
+            SidekickMaterials();
+
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            Ground();
+            Sun();
+
+            float spacing = 1.5f;
+            float startX = -(names.Length - 1) * spacing * 0.5f;
+            int placed = 0;
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                var guid = AssetDatabase.FindAssets(names[i] + " t:Prefab").FirstOrDefault();
+
+                if (guid == null)
+                {
+                    Debug.LogWarning("[IsoRPG] Не найден " + names[i]);
+                    continue;
+                }
+
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                    AssetDatabase.GUIDToAssetPath(guid));
+
+                if (prefab == null) continue;
+
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                go.transform.position = new Vector3(startX + i * spacing, 0f, 0f);
+                go.transform.rotation = Quaternion.Euler(0f, CameraYaw + 180f, 0f);
+                go.name = (i + 1) + ". " + names[i];
+
+                placed++;
+            }
+
+            Camera(2.6f);
+
+            EditorSceneManager.SaveScene(scene, "Assets/_Game/Scenes/SidekickShowcase.unity");
+
+            Debug.Log("[IsoRPG] Витрина Sidekick: " + placed + " из " + names.Length +
+                      ". Слева направо: " + string.Join(", ", names));
+        }
+
+        /// <summary>
+        /// Чинит розовые материалы Sidekick.
+        ///
+        /// В стартовом наборе нет ни одного шейдера: материалы ссылаются на
+        /// шейдер из инструмента Sidekick, который качается отдельно с
+        /// GitHub. Без него Unity подставляет свой аварийный — отсюда
+        /// сплошная малиновая заливка. Дело НЕ в URP 17, как выглядит на
+        /// первый взгляд.
+        ///
+        /// Смотреть набор ради этого через загрузку стороннего пакета
+        /// незачем: у Synty вся раскраска лежит в одной цветовой карте,
+        /// и обычный URP/Lit с этой картой показывает персонажа верно.
+        /// Если набор возьмём — поставим родной шейдер и эта починка
+        /// сама перестанет срабатывать: она трогает только материалы с
+        /// потерянным шейдером.
+        /// </summary>
+        private static void SidekickMaterials()
+        {
+            const string Root = "Assets/Synty/SidekickCharacters";
+
+            if (!System.IO.Directory.Exists(Root)) return;
+
+            var lit = Shader.Find("Universal Render Pipeline/Lit");
+
+            if (lit == null)
+            {
+                Debug.LogWarning("[IsoRPG] Нет шейдера URP/Lit — чинить материалы нечем.");
+                return;
+            }
+
+            int repaired = 0;
+
+            foreach (var guid in AssetDatabase.FindAssets("t:Material", new[] { Root }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+                if (mat == null) continue;
+
+                // Потерянный шейдер Unity подменяет аварийным. Целые
+                // материалы не трогаем.
+                if (mat.shader != null && mat.shader.name != "Hidden/InternalErrorShader") continue;
+
+                mat.shader = lit;
+
+                // Цветовая карта лежит в соседней папке Textures.
+                string folder = System.IO.Path.GetDirectoryName(path).Replace('\\', '/');
+                string parent = folder.Substring(0, folder.LastIndexOf('/'));
+
+                var texGuid = AssetDatabase
+                    .FindAssets("ColorMap t:Texture2D", new[] { parent })
+                    .FirstOrDefault();
+
+                if (texGuid != null)
+                {
+                    var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                        AssetDatabase.GUIDToAssetPath(texGuid));
+
+                    if (tex != null) mat.SetTexture("_BaseMap", tex);
+                }
+
+                EditorUtility.SetDirty(mat);
+                repaired++;
+            }
+
+            if (repaired > 0)
+            {
+                AssetDatabase.SaveAssets();
+                Debug.Log("[IsoRPG] Материалов Sidekick переведено на URP/Lit: " + repaired);
+            }
+        }
+
         [MenuItem("Tools/IsoRPG/Витрина героев: собрать", priority = 39)]
         public static void Build()
         {

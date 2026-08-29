@@ -47,6 +47,26 @@ namespace IsoRPG.EditorTools
         // Таблица снята с Demo лугового биома. Порядок — по убыванию плотности.
         private static readonly Kind[] Table =
         {
+            // Плоские коврики — заполнение земли между кустами.
+            //
+            // Половина ассортимента набора у нас не использовалась, и луг от
+            // этого читался пустым: кусты стоят группами, а между ними голая
+            // земля. Коврики низкие и широкие, они закрывают промежутки и при
+            // этом не отрываются на склонах — им нечем торчать.
+            new Kind("SM_Env_Grass_Short_Plane_01", 2.40f, 0.70f, 1.40f, 0.05f),
+            new Kind("SM_Env_Grass_Med_Plane_01",   1.60f, 0.70f, 1.30f, 0.06f),
+
+            // Крупная трава — акценты, чтобы луг не был однородным ковром.
+            new Kind("SM_Env_Grass_Large_01",       0.45f, 0.60f, 1.10f, 0.30f),
+            new Kind("SM_Env_Grass_Large_02",       0.40f, 0.60f, 1.10f, 0.30f),
+            new Kind("SM_Env_Grass_Large_03",       0.35f, 0.60f, 1.05f, 0.28f),
+            new Kind("SM_Env_Grass_Large_04",       0.30f, 0.60f, 1.05f, 0.28f),
+
+            // Родственники тех видов, что уже сеем: разнообразие силуэта.
+            new Kind("SM_Env_Grass_Short_Clump_01", 0.70f, 0.75f, 1.25f, 0.25f),
+            new Kind("SM_Env_Grass_Short_Clump_02", 0.65f, 0.75f, 1.25f, 0.25f),
+            new Kind("SM_Env_Grass_Med_Clump_01",   0.60f, 0.60f, 1.30f, 0.22f),
+
             new Kind("SM_Env_Grass_Tall_Clump_04",  1.21f, 0.60f, 2.92f, 0.58f),
             new Kind("SM_Env_Grass_Tall_Clump_05",  1.10f, 0.63f, 1.47f, 1.27f),
             new Kind("SM_Env_Grass_Med_Clump_02",   0.74f, 0.61f, 1.32f, 0.22f),

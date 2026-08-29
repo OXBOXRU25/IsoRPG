@@ -357,7 +357,17 @@ namespace IsoRPG.EditorTools
                     // 2.5 м плюс мягкий край в 0.9 — куст, отодвинутый на
                     // метр, всё равно стоит на камнях. Заказчик увидел
                     // именно это: куст посреди дороги.
-                    if (OnPath(terrain, new Vector2(x, z), 3f)) { i--; continue; }
+                    // Запас от тропы РАЗНЫЙ для крупного и для мелкого.
+                    //
+                    // Одно число на всех даёт либо куст посреди дороги, либо
+                    // голую полосу метров в восемь: заказчик увидел сначала
+                    // первое, потом второе. У живой тропы трава подходит к
+                    // камням вплотную, а кусты и деревья держатся поодаль.
+                    bool nearPath = k.Name.Contains("Bush") || k.Name.Contains("Tree")
+                                    || k.Name.Contains("Rock") || k.Name.Contains("Tall");
+
+                    if (OnPath(terrain, new Vector2(x, z), nearPath ? 2.5f : 0.4f))
+                    { i--; continue; }
 
                     var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, holder.transform);
 

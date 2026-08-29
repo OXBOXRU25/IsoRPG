@@ -44,10 +44,27 @@ namespace IsoRPG.EditorTools
         /// Водоёмы мира. Большой сделан впятеро по площади от малого —
         /// радиус растёт как корень, поэтому 13 -> 29, а не 13 -> 65.
         /// </summary>
+        /// <summary>Сколько заливов по окружности берега.</summary>
+        private const float ShoreLobes = 2.6f;
+
+        /// <summary>
+        /// Насколько близко к глади может подойти край чаши, в долях
+        /// радиуса глади. Меньше 1.1 нельзя: вода начнёт вылезать на сушу.
+        /// </summary>
+        private const float ShoreKeep = 1.18f;
+
         public static readonly Pond[] Ponds =
         {
             new Pond( 20f, -16f, 13f, 22f, 2.6f),
             new Pond(-46f,  34f, 29f, 46f, 4.2f),
+
+            // Ещё два, покрупнее. Разнесены так, чтобы чаши не перекрывали
+            // друг друга: сложенные радиусы двух соседей должны быть меньше
+            // расстояния между их центрами, иначе две ямы сливаются в одну
+            // канаву. Отсюда и неровные координаты — они посчитаны, а не
+            // выбраны на глаз.
+            new Pond( 60f,  58f, 35f, 52f, 4.6f),
+            new Pond(-62f, -66f, 36f, 50f, 4.8f),
         };
 
         /// <summary>Совместимость со старым кодом: первый пруд.</summary>
@@ -144,9 +161,29 @@ namespace IsoRPG.EditorTools
                     float d = Vector2.Distance(new Vector2(wx, wz), pond.Centre);
                     if (d > pond.Bowl) continue;
 
+                    // Берег гуляет, а не идёт окружностью.
+                    //
+                    // Копали по чистому расстоянию от центра — выходил
+                    // ровный круг с каймой правильной окружности, пруд
+                    // читался как выкопанный экскаватором. В природе (и на
+                    // референсе из WoW) у воды рваный край с заливами.
+                    //
+                    // Гуляет только ВНЕШНИЙ край чаши: у́же глади он не
+                    // становится никогда, иначе вода вылезет на сушу —
+                    // модель водной глади круглая, её форму не поменять.
+                    float ang = Mathf.Atan2(wz - pond.Centre.y, wx - pond.Centre.x);
+
+                    float wob = Mathf.PerlinNoise(
+                        Mathf.Cos(ang) * ShoreLobes + pond.Centre.x * 0.07f,
+                        Mathf.Sin(ang) * ShoreLobes + pond.Centre.y * 0.07f);
+
+                    float edge = Mathf.Lerp(pond.Radius * ShoreKeep, pond.Bowl, wob);
+
+                    if (d > edge) continue;
+
                     // Профиль берега: пологий к краю, плоское дно в середине.
                     // Резкий край дал бы стакан с водой, а не пруд.
-                    float k = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(d / pond.Bowl));
+                    float k = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(d / edge));
 
                     h[y, x] = Mathf.Max(0f, h[y, x] - depthNorm * k * k);
                 }

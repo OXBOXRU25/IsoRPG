@@ -16,11 +16,27 @@ namespace IsoRPG.Combat
     /// </summary>
     public sealed class HandAttachments : MonoBehaviour
     {
-        private const string RightSlotBone = "handslot.r";
-        private const string LeftSlotBone = "handslot.l";
+        /// <summary>
+        /// Куда цеплять оружие, в порядке предпочтения.
+        ///
+        /// Наборы называют кости-держатели по-своему: у KayKit это
+        /// `handslot.r`, у Sidekick — `prop_r`. Обе не участвуют в
+        /// деформации тела и существуют ровно затем, чтобы к ним что-то
+        /// цеплять. Кисть `hand_r` идёт последней запаской: к ней тоже
+        /// можно прицепить, но она гнётся вместе с пальцами, и предмет
+        /// слегка ездит.
+        /// </summary>
+        private static readonly string[] RightSlotBones = { "handslot.r", "prop_r", "hand_r" };
+        private static readonly string[] LeftSlotBones = { "handslot.l", "prop_l", "hand_l" };
 
         [Tooltip("Модель в правой руке: оружие.")]
         [SerializeField] private GameObject rightHand;
+
+        [Tooltip("Доворот оружия в держателе, градусы. Подбирается на кадре.")]
+        [SerializeField] private Vector3 gripRotation = new Vector3(0f, 0f, 90f);
+
+        [Tooltip("Смещение рукояти в держателе, метры.")]
+        [SerializeField] private Vector3 gripOffset = Vector3.zero;
 
         [Tooltip("Модель в левой руке: щит, второй клинок или пусто.")]
         [SerializeField] private GameObject leftHand;
@@ -32,31 +48,62 @@ namespace IsoRPG.Combat
             leftHand = left;
         }
 
+        /// <summary>
+        /// Задать посадку оружия в держателе.
+        ///
+        /// Нужен отдельным вызовом, потому что значения по умолчанию из кода
+        /// достаются только НОВОМУ компоненту. У героя, которому руки уже
+        /// добавили раньше, лежит старое сериализованное число, и правка
+        /// умолчания на него не действует — снаружи это выглядит как «код
+        /// поменял, а в игре ничего не изменилось».
+        /// </summary>
+        public void SetGrip(Vector3 rotation, Vector3 offset)
+        {
+            gripRotation = rotation;
+            gripOffset = offset;
+        }
+
         private void Start()
         {
             // Именно Start, а не Awake: модель персонажа — дочерний объект,
             // и в Awake иерархия может быть ещё не собрана целиком.
-            Attach(rightHand, RightSlotBone);
-            Attach(leftHand, LeftSlotBone);
+            Attach(rightHand, RightSlotBones);
+            Attach(leftHand, LeftSlotBones);
         }
 
-        private void Attach(GameObject model, string boneName)
+        private void Attach(GameObject model, string[] boneNames)
         {
             if (model == null) return;
 
-            var bone = FindBone(boneName);
+            Transform bone = null;
+
+            foreach (var boneName in boneNames)
+            {
+                bone = FindBone(boneName);
+                if (bone != null) break;
+            }
 
             if (bone == null)
             {
-                Debug.LogWarning($"[IsoRPG] У «{name}» нет кости {boneName} — " +
-                                 "оружие показать некуда. Модель не из набора KayKit?");
+                Debug.LogWarning($"[IsoRPG] У «{name}» нет ни одной кости-держателя " +
+                                 $"({string.Join(", ", boneNames)}) — оружие показать некуда.");
                 return;
             }
 
             var instance = Instantiate(model, bone);
             instance.name = "Held_" + model.name;
-            instance.transform.localPosition = Vector3.zero;
-            instance.transform.localRotation = Quaternion.identity;
+
+            // Посадка оружия в кости.
+            //
+            // Раньше стояло «ноль поворота, ноль смещения» — и клинок висел
+            // как попало: у кости-держателя своя ось, у модели оружия своя,
+            // и совпадают они только случайно. Оружие Synty нарисовано
+            // остриём вдоль +Y, а держатель `prop_r` смотрит вдоль кости, —
+            // отсюда доворот. Числа подбираются глазом на живом кадре, и
+            // это нормально: аналитически их не вывести, наборы рисовали
+            // разные люди.
+            instance.transform.localPosition = gripOffset;
+            instance.transform.localRotation = Quaternion.Euler(gripRotation);
             instance.transform.localScale = Vector3.one;
 
             // Коллайдеры снимаем: иначе клик по земле рядом с монстром

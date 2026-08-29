@@ -1231,6 +1231,23 @@ namespace IsoRPG.EditorTools
                     SceneEye.Shot("sidekick", new Vector3(0f, 1f, 0f), 6f, 12f, 50f);
                     break;
 
+                case "anims-native":
+                    SidekickAnimations.Apply();
+                    break;
+
+                case "wolves":
+                    WolfPack.Build();
+                    break;
+
+                case "nav-hole":
+                    NavHoleProbe.Run();
+                    break;
+
+                case "grip-probe":
+                    GripProbe.Build();
+                    SceneEye.Shot("grip", new Vector3(0f, 1f, 0f), 5f, 10f, 40f);
+                    break;
+
                 case "heroes":
                     HeroShowcase.Build();
                     SceneEye.Shot("heroes", new Vector3(0f, 1f, 0f), 14f, 22f, 50f);

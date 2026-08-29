@@ -484,11 +484,48 @@ namespace IsoRPG.EditorTools
         /// на навигационной сетке их не видно. Камням и деревьям коллайдеры
         /// оставляем: в них упираться и надо.
         /// </summary>
+        /// <summary>
+        /// С какого размера камень становится препятствием, метры. Меньше —
+        /// декорация под ногами, её обходить не нужно.
+        /// </summary>
+        private const float SolidRockSize = 0.9f;
+
+        /// <summary>Габариты объекта по всем его кускам.</summary>
+        private static Bounds Bounds(GameObject go)
+        {
+            var parts = go.GetComponentsInChildren<Renderer>(true);
+
+            if (parts.Length == 0) return new Bounds(go.transform.position, Vector3.zero);
+
+            var box = parts[0].bounds;
+            foreach (var part in parts) box.Encapsulate(part.bounds);
+
+            return box;
+        }
+
         private static void Strip(GameObject go)
         {
             string n = go.name.ToLowerInvariant();
 
             bool solid = n.Contains("rock") || n.Contains("tree");
+
+            // Твёрдым камень остаётся только крупный.
+            //
+            // Раньше коллайдер держали ВСЕ камни, а на тропе их сотни —
+            // мелкая галька превращала склон в полосу препятствий: герой в
+            // неё упирался и не мог подняться. Навигационная сетка при этом
+            // ложилась поверх камней и уходила на 89 см выше земли, отчего
+            // звери на ней висели в воздухе.
+            //
+            // Валун в полметра обходить надо, гальку под ногой — нет.
+            if (solid && n.Contains("rock"))
+            {
+                var box = Bounds(go);
+                float size = Mathf.Max(box.size.x, box.size.z);
+
+                if (size < SolidRockSize) solid = false;
+            }
+
             if (solid) return;
 
             foreach (var c in go.GetComponentsInChildren<Collider>(true))

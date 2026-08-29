@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using IsoRPG.Combat;
 using UnityEditor;
 using UnityEngine;
 
@@ -23,10 +24,48 @@ namespace IsoRPG.EditorTools
         private const string Presets =
             "Assets/PolygonFantasyHeroCharacters/Prefabs/Characters_Presets";
 
+        /// <summary>
+        /// Контроллер героя. `AC_Hero_Sidekick` — копия нашего `AC_Rogue`, в
+        /// которой ходьба, бег, стойка и прыжок заменены на родные клипы
+        /// Synty (задание «anims-native»). Параметры и бой в ней те же.
+        /// Откат — вернуть сюда `AC_Rogue.controller`.
+        /// </summary>
         private const string Controller =
-            "Assets/_Game/Art/Animations/Controllers/AC_Rogue.controller";
+            "Assets/_Game/Art/Animations/Controllers/AC_Hero_Sidekick.controller";
 
         private const string VisualName = "Визуал: герой Synty";
+
+        /// <summary>Масштаб головы. 0.9 — на десятую долю меньше авторского.</summary>
+        private const float HeadScale = 0.9f;
+
+        /// <summary>
+        /// На сколько опустить модель, метров. Родные клипы Synty держат
+        /// корень выше клипов ExplosiveLLC, и после перехода герой повис над
+        /// землёй. Число проверяется глазом: ступни должны касаться грунта,
+        /// но не тонуть в нём.
+        /// </summary>
+        private const float VisualDrop = -0.1f;
+
+        /// <summary>Что вкладываем в руки. Набор эльфийской локации Synty.</summary>
+        private const string Dagger = "SM_Wep_Dagger_01";
+
+        /// <summary>
+        /// Посадка клинка в держателе. Снято щупом «grip-probe» на герое
+        /// в СТОЙКЕ: из шести доворотов этот единственный кладёт клинок
+        /// вдоль ноги, остальные торчат вбок.
+        /// </summary>
+        private static readonly Vector3 GripRotation = new Vector3(0f, 0f, 90f);
+        private static readonly Vector3 GripOffset = Vector3.zero;
+
+        /// <summary>Найти модель по имени: путь у наборов свой у каждого.</summary>
+        private static GameObject FindPrefabByName(string prefabName)
+        {
+            var guid = AssetDatabase.FindAssets(prefabName + " t:Prefab").FirstOrDefault();
+
+            return guid == null
+                ? null
+                : AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+        }
 
         /// <summary>Файл с номером выбранного героя.</summary>
         private const string Choice = "Assets/_Game/Scenes/hero-number.txt";
@@ -135,8 +174,58 @@ namespace IsoRPG.EditorTools
             var visual = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
             visual.name = VisualName;
             visual.transform.SetParent(player.transform, false);
-            visual.transform.localPosition = Vector3.zero;
+            // Просадка визуала.
+            //
+            // Клипы Synty держат корень выше, чем анимации ExplosiveLLC, на
+            // которых герой стоял раньше, — после перехода на родные он
+            // приподнялся над землёй. Разница живёт в самих клипах, поэтому
+            // чинится не в них, а здесь: опускаем модель на ту же величину.
+            visual.transform.localPosition = new Vector3(0f, VisualDrop, 0f);
             visual.transform.localRotation = Quaternion.identity;
+
+            // Голова чуть меньше.
+            //
+            // Synty рисует персонажей с крупной головой — это их приём,
+            // читаемость лица издалека. На нашей камере в двадцати метрах
+            // лицо всё равно не разобрать, а пропорция бросается в глаза.
+            // Масштаб живёт на кости: humanoid-анимация меняет повороты и
+            // положения, но scale не трогает, поэтому число держится во
+            // всех клипах. Волосы и шлем сидят на той же кости и ужимаются
+            // вместе с головой.
+            var headBone = visual.GetComponentsInChildren<Transform>(true)
+                                 .FirstOrDefault(t => t.name == "head");
+
+            if (headBone != null)
+                headBone.localScale = Vector3.one * HeadScale;
+            else
+                Debug.LogWarning("[IsoRPG] Кости «head» нет — голову не уменьшить.");
+
+            // Клинки в руки.
+            //
+            // Оружие здесь — часть облика, а не имущества: что вложили при
+            // сборке, то герой и держит. Крепление само найдёт кости-
+            // держатели `prop_r` и `prop_l` — у Sidekick они есть и в
+            // деформации тела не участвуют.
+            var dagger = FindPrefabByName(Dagger);
+
+            if (dagger != null)
+            {
+                var hands = player.GetComponent<HandAttachments>();
+                if (hands == null) hands = player.AddComponent<HandAttachments>();
+
+                hands.Setup(dagger, dagger);
+
+                // Посадку задаём явно. У компонента, добавленного прошлым
+                // прогоном, лежит старое сериализованное число, и правка
+                // умолчания в коде его не трогает.
+                hands.SetGrip(GripRotation, GripOffset);
+
+                EditorUtility.SetDirty(hands);
+            }
+            else
+            {
+                Debug.LogWarning("[IsoRPG] Кинжал «" + Dagger + "» не найден — руки пустые.");
+            }
 
             // Аниматор снимаем со всего игрока и ставим заново на модель.
             foreach (var a in player.GetComponentsInChildren<Animator>(true))

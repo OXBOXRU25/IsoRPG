@@ -28,7 +28,7 @@ namespace IsoRPG.World
         [SerializeField] private float rayLength = 14f;
 
         [Tooltip("Утопить на долю собственной высоты: иначе виден плоский низ.")]
-        [SerializeField] private float sinkShare = 0.15f;
+        [SerializeField] private float sinkShare = 0.07f;
 
         [Tooltip("По каким слоям искать землю.")]
         [SerializeField] private LayerMask ground = ~0;

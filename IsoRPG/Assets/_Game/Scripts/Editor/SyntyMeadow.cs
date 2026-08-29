@@ -245,6 +245,14 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private const float OverlapShare = 0.55f;
 
+        /// <summary>
+        /// Запас на отбраковку. Разрежение выкидывает часть посева, и без
+        /// запаса луг лысеет: 1628 растений превратились в 1130, и пустые
+        /// пятна между кустами стало видно. Сеем с избытком, чтобы ПОСЛЕ
+        /// отбраковки осталось столько же, сколько было.
+        /// </summary>
+        private const float SowExtra = 1.6f;
+
         private const float PlantTilt = 0f;   // ноль: наклонённый пучок задирает нижнюю кромку
 
         /// <summary>Камню и дереву наклона почти не нужно: ствол растёт вверх.</summary>
@@ -390,7 +398,7 @@ namespace IsoRPG.EditorTools
                     continue;
                 }
 
-                int count = Mathf.RoundToInt(k.Per100 * hundreds);
+                int count = Mathf.RoundToInt(k.Per100 * hundreds * SowExtra);
                 int placed = 0;
                 int skipped = 0;
 
@@ -475,7 +483,10 @@ namespace IsoRPG.EditorTools
                             if (baseWidth > 0.01f)
                             {
                                 float fits = (ConformLimit / tan) / baseWidth;
-                                wanted = Mathf.Clamp(Mathf.Min(wanted, fits), k.MinScale * 0.35f, wanted);
+                                // Нижняя граница строгая: при 0.35 от авторского минимума кусты
+                                // выродились в торчащие из земли кончики. Подгонка под
+                                // склон не должна превращать траву в щетину.
+                                wanted = Mathf.Clamp(Mathf.Min(wanted, fits), k.MinScale * 0.8f, wanted);
                             }
                         }
                     }

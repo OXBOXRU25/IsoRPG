@@ -776,6 +776,13 @@ namespace IsoRPG.EditorTools
                     NavBake.Rebake();
                     break;
 
+                case "nav-bake":
+                    // Только перепечь сетку. Нужна отдельно, чтобы дойти до
+                    // приставленной сцены автора: без неё щелчок туда не
+                    // работает — агент ходит по сетке, а не по земле.
+                    NavBake.Rebake();
+                    break;
+
                 case "relief-flat":
                     TerrainRelief.Flatten();
                     NavBake.Rebake();
@@ -1608,9 +1615,220 @@ namespace IsoRPG.EditorTools
                     GrassShot.Giants();
                     break;
 
+                case "enchanted-demo":
+                    GrassShot.EnchantedDemo();
+                    break;
+
+                case "meadow-demo":
+                    GrassShot.MeadowDemo();
+                    break;
+
+                case "big-trees":
+                    BigTrees.Plant();
+                    NavBake.Rebake();
+                    break;
+
+                case "trees-shot":
+                    BigTrees.Shots();
+                    break;
+
+                case "tree-norm":
+                    TreeNorm.Measure();
+                    break;
+
+                case "grass-norm":
+                    GrassNorm.Measure();
+                    break;
+
+                case "veg-reimport":
+                {
+                    // Пересобрать шейдер растительности начисто.
+                    //
+                    // Наша правка меняет постоянный буфер материала, а
+                    // скомпилированные варианты Unity держит в кеше. Старый
+                    // вариант со старой раскладкой поверх новых данных даёт
+                    // ровно то, что мы видели: плоские кислотные цвета,
+                    // разные от прогона к прогону.
+                    const string veg = "Assets/PolygonNatureBiomes/PNB_Core/" +
+                                       "Shaders/SyntyStudios_VegitationShader.shader";
+
+                    AssetDatabase.ImportAsset(veg, ImportAssetOptions.ForceUpdate |
+                                                   ImportAssetOptions.ForceSynchronousImport);
+
+                    Debug.Log("[IsoRPG] Шейдер растительности переимпортирован.");
+                    break;
+                }
+
                 case "grass-shot":
                     GrassShot.Shoot();
                     break;
+
+                case "author-scene":
+                {
+                    // Демо-сцена автора целиком — на границе нашей карты.
+                    //
+                    // Нужна как живой эталон под боком: любую нашу правку
+                    // можно сверить, дойдя до неё пешком, вместо спора по
+                    // памяти. Свою землю она приносит с собой, поэтому
+                    // ставим её ЗА нашим террейном (наш 600 м от −300 до
+                    // +300), чтобы две земли не спорили за одно место.
+                    const string demo =
+                        "Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Scene/Demo.unity";
+
+                    // Отступ считаем ОТ КРАЯ нашего террейна, а не на глаз.
+                    //
+                    // Первый заход я поставил 420 м «с запасом» — и сцена
+                    // легла прямо на нашу: у его земли своя точка отсчёта, и
+                    // 420 от нуля это не 420 от края. Считаем честно: правый
+                    // край нашего террейна плюс сотня метров чистого поля.
+                    if (!System.IO.File.Exists(demo))
+                    {
+                        Debug.LogError("[IsoRPG] Демо-сцены нет: " + demo);
+                        break;
+                    }
+
+                    var arena = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
+
+                    var old = UnityEngine.Object.FindObjectsByType<GameObject>(
+                                  FindObjectsInactive.Include)
+                              .Where(g => g.name == "СЦЕНА АВТОРА").ToArray();
+
+                    foreach (var o in old) UnityEngine.Object.DestroyImmediate(o);
+
+                    // Край НАШЕЙ земли меряем ПОСЛЕ сноса прошлой копии.
+                    //
+                    // Меряя до, я получил край 2870 м — это был террейн
+                    // автора, оставшийся от предыдущего прогона. Задание
+                    // прилежно отставило новую копию ещё на триста метров
+                    // дальше, и так каждый раз. Порядок здесь не украшение:
+                    // «наш» террейн становится нашим только после уборки.
+                    float ourEdge = 300f;
+
+                    var ourTerr = UnityEngine.Object.FindObjectsByType<Terrain>(
+                        FindObjectsInactive.Exclude, FindObjectsSortMode.None).FirstOrDefault();
+
+                    if (ourTerr != null)
+                        ourEdge = ourTerr.transform.position.x + ourTerr.terrainData.size.x;
+
+                    var extra = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                        demo, UnityEditor.SceneManagement.OpenSceneMode.Additive);
+
+                    var holder = new GameObject("СЦЕНА АВТОРА");
+                    int moved = 0;
+
+                    // Равняем по ЕГО ТЕРРЕЙНУ, а не по габаритам сцены.
+                    //
+                    // По габаритам я уже промахнулся: сцена оказалась 4.5 км
+                    // в поперечнике — в ней лежит огромная декорация-задник
+                    // для горизонта. Равняясь по ней, я увёз игровую землю за
+                    // два с половиной километра, куда пешком не дойти. Земля —
+                    // вот что должно встать рядом с нашей.
+                    float demoMinX = float.MaxValue, demoMaxX = float.MinValue;
+
+                    foreach (var root in extra.GetRootGameObjects())
+                        foreach (var t in root.GetComponentsInChildren<Terrain>(true))
+                        {
+                            demoMinX = Mathf.Min(demoMinX, t.transform.position.x);
+                            demoMaxX = Mathf.Max(demoMaxX,
+                                       t.transform.position.x + t.terrainData.size.x);
+                        }
+
+                    if (demoMinX == float.MaxValue) { demoMinX = 0f; demoMaxX = 400f; }
+
+                    // Сдвиг такой, чтобы его западный край встал в ста метрах
+                    // восточнее нашего восточного.
+                    float shift = (ourEdge + 100f) - demoMinX;
+
+                    foreach (var root in extra.GetRootGameObjects())
+                    {
+                        root.transform.position += new Vector3(shift, 0f, 0f);
+                        root.transform.SetParent(holder.transform, true);
+                        moved++;
+                    }
+
+                    Debug.Log("[IsoRPG] Наш край по X: " + ourEdge.ToString("0") +
+                              " м. Сцена автора была от " + demoMinX.ToString("0") +
+                              " до " + demoMaxX.ToString("0") +
+                              " м, сдвиг " + shift.ToString("0") +
+                              " м, станет от " + (demoMinX + shift).ToString("0") +
+                              " до " + (demoMaxX + shift).ToString("0") + " м.");
+
+                    UnityEditor.SceneManagement.EditorSceneManager.CloseScene(extra, true);
+
+                    // Задник горизонта выбрасываем.
+                    //
+                    // Сцена автора 4.5 км в поперечнике при игровой земле в
+                    // 400 м: остальное — огромная декорация, нарисованная,
+                    // чтобы закрыть горизонт вокруг демонстрации. Тащить её
+                    // в игру значит расширять наш мир до пяти километров ради
+                    // картинки, которую всё равно закроет наше небо.
+                    int backdrops = 0;
+
+                    foreach (var r in holder.GetComponentsInChildren<Renderer>(true))
+                    {
+                        if (r == null) continue;
+
+                        var size = r.bounds.size;
+
+                        if (size.x > 1200f || size.z > 1200f)
+                        {
+                            UnityEngine.Object.DestroyImmediate(r.gameObject);
+                            backdrops++;
+                        }
+                    }
+
+                    // Своё солнце, свою камеру и своего слушателя звука
+                    // выбрасываем: в нашей сцене они уже есть, и два
+                    // источника света складываются в пересвет.
+                    int stripped = backdrops;
+
+                    foreach (var cam in holder.GetComponentsInChildren<Camera>(true))
+                    { UnityEngine.Object.DestroyImmediate(cam.gameObject); stripped++; }
+
+                    foreach (var lit in holder.GetComponentsInChildren<Light>(true))
+                    { UnityEngine.Object.DestroyImmediate(lit.gameObject); stripped++; }
+
+                    foreach (var ear in holder.GetComponentsInChildren<AudioListener>(true))
+                    { UnityEngine.Object.DestroyImmediate(ear); stripped++; }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(arena);
+
+                    Debug.Log("[IsoRPG] Сцена автора поставлена: корней " + moved +
+                              ", выброшено своих камер и светильников " + stripped + ".");
+                    break;
+                }
+
+                case "conform-off":
+                {
+                    // ВЫКЛЮЧИТЬ изгиб травы по рельефу.
+                    //
+                    // Изгиб — наше изобретение, у автора набора его нет вовсе:
+                    // он кладёт куст на склон наклоном по нормали, и этого
+                    // достаточно. Наклон мы теперь тоже делаем, а изгиб
+                    // остался — и это он поднимает траву полосой над гребнем
+                    // склона. Заказчик видит «трава висит в небе» второй день
+                    // подряд, и каждый раз я чинил соседнее.
+                    int off = 0;
+
+                    foreach (var guid in AssetDatabase.FindAssets("t:Material Grass",
+                             new[] { "Assets/PolygonNatureBiomes" }))
+                    {
+                        var path = AssetDatabase.GUIDToAssetPath(guid);
+                        var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+                        if (mat == null || !mat.HasProperty("_ConformStrength")) continue;
+
+                        mat.SetFloat("_ConformStrength", 0f);
+                        EditorUtility.SetDirty(mat);
+                        off++;
+                    }
+
+                    AssetDatabase.SaveAssets();
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Изгиб по рельефу ВЫКЛЮЧЕН у " + off + " материалов травы.");
+                    break;
+                }
 
                 case "conform":
                 {

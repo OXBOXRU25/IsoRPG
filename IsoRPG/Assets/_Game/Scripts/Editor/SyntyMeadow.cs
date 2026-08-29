@@ -56,24 +56,24 @@ namespace IsoRPG.EditorTools
             new Kind("SM_Env_Flowers_01",           0.40f, 0.45f, 0.75f, 0.06f),   // люпины: были по колено, стали по щиколотку
 
 
-            new Kind("SM_Env_Grass_Tall_Clump_04",  1.21f, 0.60f, 2.92f, 0.58f),
-            new Kind("SM_Env_Grass_Tall_Clump_05",  1.10f, 0.63f, 1.47f, 1.27f),
-            new Kind("SM_Env_Grass_Med_Clump_02",   0.74f, 0.61f, 1.32f, 0.22f),
-            new Kind("SM_Env_Grass_Med_Clump_03",   0.73f, 0.60f, 1.34f, 0.25f),
-            new Kind("SM_Env_Grass_Short_Clump_03", 0.65f, 0.76f, 1.28f, 0.27f),
-            new Kind("SM_Env_Grass_Tall_Clump_03",  0.33f, 0.61f, 3.16f, 0.41f),
-            new Kind("SM_Env_Grass_Tall_Clump_02",  0.25f, 0.72f, 2.24f, 0.39f),
-            new Kind("SM_Env_Wildflowers_03",       0.22f, 0.58f, 1.30f, 0.10f),
-            new Kind("SM_Env_Wildflowers_02",       0.19f, 0.61f, 1.28f, 0.11f),
-            new Kind("SM_Env_Tree_Fruit_01",        0.24f, 0.65f, 2.22f, 0.96f),
-            new Kind("SM_Env_Tree_Fruit_02",        0.14f, 0.70f, 1.41f, 1.00f),
-            new Kind("SM_Env_Tree_Fruit_03",        0.13f, 0.67f, 1.61f, 0.68f),
-            new Kind("SM_Env_Sunflower_01",         0.09f, 0.61f, 1.26f, 0.06f),
-            new Kind("SM_Env_Wildflowers_01",       0.08f, 0.70f, 1.05f, 0.12f),
-            new Kind("SM_Env_Grass_Bush_01",        0.08f, 0.80f, 1.70f, 0.58f),
-            new Kind("SM_Env_Rock_02",              0.07f, 0.15f, 1.22f, 0.89f),
-            new Kind("SM_Env_Rock_01",              0.06f, 0.15f, 1.59f, 0.71f),
-            new Kind("SM_Env_Rock_03",              0.06f, 0.10f, 1.28f, 1.02f),
+            new Kind("SM_Env_Grass_Tall_Clump_04",  1.21f, 0.76f, 1.16f, 0.58f),
+            new Kind("SM_Env_Grass_Tall_Clump_05",  1.10f, 0.77f, 1.15f, 1.27f),
+            new Kind("SM_Env_Grass_Med_Clump_02",   0.74f, 0.82f, 0.99f, 0.22f),
+            new Kind("SM_Env_Grass_Med_Clump_03",   0.73f, 0.81f, 0.99f, 0.25f),
+            new Kind("SM_Env_Grass_Short_Clump_03", 0.65f, 0.82f, 0.99f, 0.27f),
+            new Kind("SM_Env_Grass_Tall_Clump_03",  0.33f, 0.91f, 1.47f, 0.41f),
+            new Kind("SM_Env_Grass_Tall_Clump_02",  0.25f, 0.92f, 1.44f, 0.39f),
+            new Kind("SM_Env_Wildflowers_03",       0.22f, 0.69f, 1.18f, 0.10f),
+            new Kind("SM_Env_Wildflowers_02",       0.19f, 0.71f, 1.14f, 0.11f),
+            new Kind("SM_Env_Tree_Fruit_01",        0.24f, 0.83f, 1.93f, 0.96f),
+            new Kind("SM_Env_Tree_Fruit_02",        0.14f, 0.78f, 1.24f, 1.00f),
+            new Kind("SM_Env_Tree_Fruit_03",        0.13f, 0.75f, 1.25f, 0.68f),
+            new Kind("SM_Env_Sunflower_01",         0.09f, 0.72f, 1.18f, 0.06f),
+            new Kind("SM_Env_Wildflowers_01",       0.08f, 0.74f, 1.01f, 0.12f),
+            new Kind("SM_Env_Grass_Bush_01",        0.08f, 0.82f, 1.00f, 0.58f),
+            new Kind("SM_Env_Rock_02",              0.07f, 0.23f, 0.97f, 0.89f),
+            new Kind("SM_Env_Rock_01",              0.06f, 0.25f, 1.00f, 0.71f),
+            new Kind("SM_Env_Rock_03",              0.06f, 0.16f, 1.05f, 1.02f),
             // SM_Env_Flowers_Flat_01 убран из посева: без стеблей на траве
             // читается кувшинками, а не цветами — так и увидел заказчик.
             // У автора они приподняты НАД землёй (утоплены на -0.36), что
@@ -234,8 +234,14 @@ namespace IsoRPG.EditorTools
         /// повисает нижним краем — раньше это лечили утоплением, и лечение
         /// упиралось в собственный предел.
         /// </summary>
-        /// <summary>Потолок масштаба травы: выше она перестаёт быть соизмерима с рельефом.</summary>
-        private const float GrassMaxScale = 1.3f;
+        // Потолок масштаба травы СНЯТ 30.08.2026 и больше не нужен.
+        //
+        // Он стоял на 1.3 и был заплаткой поверх чужой ошибки: границы в
+        // таблице были КРАЯМИ авторского разброса, а разыгрывались ровно,
+        // отчего средний куст выходил вдвое крупнее авторского. Потолок
+        // случайно возвращал среднее на место — и потому казался нужным.
+        // Теперь в таблице стоят десятая и девяностая доли автора, среднее
+        // сходится само, а обрезать сверху больше нечего.
 
         /// <summary>
         /// Предел изгиба в шейдере, метры. Держать в согласии с шейдером:
@@ -252,17 +258,32 @@ namespace IsoRPG.EditorTools
         /// Их листья прошивают друг друга и на склоне читаются как трава,
         /// торчащая из воздуха.
         /// </summary>
-        private const float OverlapShare = 0.55f;
+        /// ПЕРЕСМОТРЕНО 30.08.2026 по замеру авторских сцен (щуп «grass-norm»).
+        /// У автора набора пересечений 3.08 пары НА КУСТ, глубже 70% — 201
+        /// пара, есть и совпадающие полностью. То есть 6727 наших пар были
+        /// не поломкой, а нормой жанра: густой луг только из пересечений и
+        /// состоит. Разрежение при этом съедало треть посева — вот откуда
+        /// «луг редковат». Оставляем защиту только от точных дублей.
+        private const float OverlapShare = 0.85f;
 
         /// <summary>
-        /// Запас на отбраковку. Разрежение выкидывает часть посева, и без
-        /// запаса луг лысеет: 1628 растений превратились в 1130, и пустые
-        /// пятна между кустами стало видно. Сеем с избытком, чтобы ПОСЛЕ
-        /// отбраковки осталось столько же, сколько было.
+        /// Запас на отбраковку. Был 1.6 при жёстком разрежении; теперь
+        /// отбраковки почти нет, и запас превратился бы в перебор.
         /// </summary>
-        private const float SowExtra = 1.6f;
+        private const float SowExtra = 1.0f;
 
-        private const float PlantTilt = 0f;   // ноль: наклонённый пучок задирает нижнюю кромку
+        /// <summary>
+        /// Наклон куста по склону, доля нормали земли.
+        ///
+        /// Был ноль — «наклонённый пучок задирает нижнюю кромку». Замер
+        /// авторских сцен показал обратное: у него средний наклон 16.7° при
+        /// средней крутизне места 17.3°, строго вертикальных всего 1%. То
+        /// есть он кладёт куст на склон ПЛАШМЯ, по нормали. Наши «висит
+        /// краем» и «торчит кончиками» — прямое следствие вертикальной
+        /// посадки на 12-градусный рельеф, и лечились они всем чем угодно,
+        /// кроме причины.
+        /// </summary>
+        private const float PlantTilt = 1f;
 
         /// <summary>Камню и дереву наклона почти не нужно: ствол растёт вверх.</summary>
         private const float SolidTilt = 0f;
@@ -395,6 +416,26 @@ namespace IsoRPG.EditorTools
 
             var placedSpots = new List<(Vector2 p, float w)>();
 
+            // Клумбами, а не ровным ковром.
+            //
+            // Третье, что показал замер авторских сцен: он засевает не всю
+            // карту, а десятую её часть — 15 300 м² из 160 000, пятнами по
+            // 5.2 куста на 100 м². Ровный редкий ковёр и густые пятна с
+            // прогалинами между ними дают при одинаковом счёте совершенно
+            // разный вид: первое читается как «лысовато», второе как луг.
+            // Заказчик всё это время видел первое.
+            //
+            // Центры общие на все виды: иначе каждый вид соберётся в свои
+            // пятна, и вместо смешанного луга выйдут грядки по сортам.
+            var clumps = new List<Vector2>();
+
+            const int ClumpCount = 60;
+            const float ClumpRadius = 9f;
+            const float ClumpShare = 0.72f;   // остальное — одиночки между пятнами
+
+            for (int c = 0; c < ClumpCount; c++)
+                clumps.Add(new Vector2(Random.Range(-Field * 0.5f, Field * 0.5f),
+                                       Random.Range(-Field * 0.5f, Field * 0.5f)));
 
             foreach (var k in Table)
             {
@@ -421,8 +462,28 @@ namespace IsoRPG.EditorTools
 
                 for (int i = 0; i < count; i++)
                 {
-                    float x = Random.Range(-Field * 0.5f, Field * 0.5f);
-                    float z = Random.Range(-Field * 0.5f, Field * 0.5f);
+                    float x, z;
+
+                    if (Random.value < ClumpShare)
+                    {
+                        // Точка внутри пятна. Корень из случайного числа —
+                        // чтобы кусты ложились по кругу ровно, а не сбивались
+                        // комом в середину.
+                        var centre = clumps[Random.Range(0, clumps.Count)];
+
+                        float angle = Random.Range(0f, Mathf.PI * 2f);
+                        float radius = ClumpRadius * Mathf.Sqrt(Random.value);
+
+                        x = Mathf.Clamp(centre.x + Mathf.Cos(angle) * radius,
+                                        -Field * 0.5f, Field * 0.5f);
+                        z = Mathf.Clamp(centre.y + Mathf.Sin(angle) * radius,
+                                        -Field * 0.5f, Field * 0.5f);
+                    }
+                    else
+                    {
+                        x = Random.Range(-Field * 0.5f, Field * 0.5f);
+                        z = Random.Range(-Field * 0.5f, Field * 0.5f);
+                    }
 
                     // Пятачок у начала координат оставляем чистым: там стоит
                     // герой, и куст в лицо на старте — не композиция.
@@ -486,49 +547,29 @@ namespace IsoRPG.EditorTools
                     // на склон: изгиб честно повторяет землю, и края расходятся
                     // по высоте на метры, превращая траву в растянутого монстра.
                     // Ограничиваем сверху, чтобы вещь была соизмерима с миром.
+                    // Размер — из авторского распределения, без потолков.
+                    //
+                    // Границы в таблице теперь не крайние значения автора, а
+                    // его десятая доля и девятая десятая. Разница огромная:
+                    // у `Tall_Clump_04` край был 2.92, а девять десятых его
+                    // кустов не превышают 1.16, середина 0.99. Мы же брали
+                    // края и разыгрывали между ними РОВНО — предельный куст
+                    // выпадал у нас каждый второй раз, и луг вставал стеной
+                    // выше героя. Потолок 1.3, который тут стоял, случайно
+                    // возвращал среднее к авторскому и потому «работал»;
+                    // с правильными границами он не нужен.
                     float wanted = Random.Range(k.MinScale, k.MaxScale);
 
-                    if (k.Name.Contains("Grass"))
-                        wanted = Mathf.Min(wanted, GrassMaxScale);
-
-                    // Размер куста подбираем под крутизну места.
+                    // Подгонка размера под крутизну СНЯТА 30.08.2026.
                     //
-                    // Это последнее звено, и без него круг не замыкается.
-                    // Широкий куст на склоне не может выглядеть правильно НИ
-                    // ПРИ КАКОМ пределе изгиба: дашь большой — куст
-                    // растягивается по склону в монстра, дашь малый — висит
-                    // краем. Лечится не изгибом, а тем, какого размера вещь
-                    // ставится в это место.
-                    //
-                    // Перепад под кустом равен его ширине на тангенс угла.
-                    // Отсюда предельная ширина: предел изгиба, делённый на
-                    // тангенс. На ровном месте ограничения нет вовсе, на
-                    // круче трава просто мельчает — как в природе.
-                    {
-                        float steepHere = terrain.terrainData.GetSteepness(
-                            Mathf.Clamp01((x - terrain.transform.position.x) / terrain.terrainData.size.x),
-                            Mathf.Clamp01((z - terrain.transform.position.z) / terrain.terrainData.size.z));
-
-                        float tan = Mathf.Tan(steepHere * Mathf.Deg2Rad);
-
-                        if (tan > 0.01f)
-                        {
-                            // Ширина префаба в его собственном масштабе.
-                            var pb = prefab.GetComponentInChildren<MeshFilter>();
-                            float baseWidth = pb != null && pb.sharedMesh != null
-                                ? Mathf.Max(pb.sharedMesh.bounds.size.x, pb.sharedMesh.bounds.size.z)
-                                : 1f;
-
-                            if (baseWidth > 0.01f)
-                            {
-                                float fits = (ConformLimit / tan) / baseWidth;
-                                // Нижняя граница строгая: при 0.35 от авторского минимума кусты
-                                // выродились в торчащие из земли кончики. Подгонка под
-                                // склон не должна превращать траву в щетину.
-                                wanted = Mathf.Clamp(Mathf.Min(wanted, fits), k.MinScale * 0.8f, wanted);
-                            }
-                        }
-                    }
+                    // Она мельчила траву на склонах, потому что вертикально
+                    // поставленный широкий куст на склоне и правда не живёт.
+                    // Но автор ставит там кусты полного размера — просто
+                    // наклоняет их по нормали (замер: наклон 16.7° при
+                    // крутизне 17.3°, 57% его травы стоит круче 15°). С
+                    // наклоном подгонка стала лишним ограничением: она
+                    // отбирала у склонов ровно ту траву, которой им не
+                    // хватало. Код остался в истории git.
 
                     go.transform.localScale = Vector3.one * wanted;
 
@@ -579,6 +620,27 @@ namespace IsoRPG.EditorTools
             }
 
             int objects = holder.GetComponentsInChildren<Transform>(true).Length;
+
+            // Пересечения считаем и печатаем, чтобы сравнивать с автором, а
+            // не с ощущением. У него 3.08 пары на куст — это и есть мерка
+            // «густо». Меньше вдвое — луг снова редкий, больше вчетверо —
+            // каша из листьев.
+            {
+                int pairs = 0;
+
+                for (int a = 0; a < placedSpots.Count; a++)
+                for (int b = a + 1; b < placedSpots.Count; b++)
+                {
+                    float need = (placedSpots[a].w + placedSpots[b].w) * 0.5f;
+
+                    if (need > 0.01f &&
+                        Vector2.Distance(placedSpots[a].p, placedSpots[b].p) < need) pairs++;
+                }
+
+                Debug.Log("[IsoRPG] Пересечений: " + pairs + " пар на " + placedSpots.Count +
+                          " кустов (" + (pairs * 1f / Mathf.Max(placedSpots.Count, 1)).ToString("0.00") +
+                          " на куст; у автора набора 3.08).");
+            }
 
             Debug.Log("[IsoRPG] Луг Synty посеян: видов " + kinds +
                       ", растений " + total +

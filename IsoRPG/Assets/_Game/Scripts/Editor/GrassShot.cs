@@ -21,6 +21,77 @@ namespace IsoRPG.EditorTools
         private const int W = 1000, H = 700;
 
         /// <summary>
+        /// Снять демо-сцену набора его же камерой.
+        ///
+        /// Нужен как ЭТАЛОН. Когда наш щуп выдаёт кислотные цвета, по одному
+        /// кадру не понять, сломали мы что-то у себя или набор так нарисован.
+        /// Демо-сцена — авторская: свет, камера и материалы там те, что задумал
+        /// художник. Совпало — цвета набора; не совпало — виноват наш щуп.
+        /// </summary>
+        /// <summary>Демо-сцена лугового биома — та, с которой сняты все числа.</summary>
+        [MenuItem("Tools/IsoRPG/Щуп: демо-сцена луга", priority = 52)]
+        public static void MeadowDemo()
+        {
+            Demo("Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Scene/Demo.unity",
+                 "D:/GAME Ai/shots/meadow-demo.png");
+        }
+
+        [MenuItem("Tools/IsoRPG/Щуп: демо-сцена Зачарованного леса", priority = 52)]
+        public static void EnchantedDemo()
+        {
+            Demo("Assets/PolygonNatureBiomes/PNB_Enchanted_Forest/Scene/Demo_URP.unity",
+                 "D:/GAME Ai/shots/enchanted-demo.png");
+        }
+
+        private static void Demo(string scene, string outPath)
+        {
+
+            if (!File.Exists(scene))
+            {
+                Debug.LogError("[IsoRPG] Демо-сцены нет: " + scene);
+                return;
+            }
+
+            UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                scene, UnityEditor.SceneManagement.OpenSceneMode.Single);
+
+            var cam = Object.FindFirstObjectByType<Camera>();
+
+            if (cam == null)
+            {
+                Debug.LogError("[IsoRPG] В демо-сцене нет камеры — снимать нечем.");
+                return;
+            }
+
+            const int dw = 1600, dh = 900;
+
+            var rt = new RenderTexture(dw, dh, 24, RenderTextureFormat.ARGB32) { antiAliasing = 8 };
+            var prevTarget = cam.targetTexture;
+
+            cam.targetTexture = rt;
+            cam.Render();
+
+            var prev = RenderTexture.active;
+            RenderTexture.active = rt;
+
+            var shot = new Texture2D(dw, dh, TextureFormat.RGB24, false);
+            shot.ReadPixels(new Rect(0, 0, dw, dh), 0, 0);
+            shot.Apply();
+
+            RenderTexture.active = prev;
+            cam.targetTexture = prevTarget;
+
+            Directory.CreateDirectory(Path.GetDirectoryName(outPath));
+            File.WriteAllBytes(outPath, shot.EncodeToPNG());
+
+            Debug.Log("[IsoRPG] Демо-сцена набора снята камерой «" + cam.name +
+                      "». Кадр: " + outPath);
+
+            Object.DestroyImmediate(rt);
+            Object.DestroyImmediate(shot);
+        }
+
+        /// <summary>
         /// Померить пачку префабов, прежде чем сеять.
         ///
         /// Дважды за вечер я добавлял виды, не измерив их: плоские коврики
@@ -37,11 +108,20 @@ namespace IsoRPG.EditorTools
         [MenuItem("Tools/IsoRPG/Щуп: великаны в ряд", priority = 51)]
         public static void Giants()
         {
+            // Биом и имя: великаны живут в Зачарованном лесу, а два луговых
+            // дерева стоят в ряду КОНТРОЛЬНЫМ образцом. Луговые материалы у
+            // нас заведомо рисуются верно, поэтому один кадр отвечает сразу
+            // на два вопроса: как выглядят великаны и не сломан ли сам щуп.
             string[] names =
             {
-                "SM_Env_Tree_Giant_01", "SM_Env_Tree_Giant_02",
-                "SM_Env_Tree_Portal_01", "SM_Env_Tree_Large_01",
-                "SM_Env_Tree_Large_02", "SM_Env_Tree_House_01",
+                "PNB_Enchanted_Forest/SM_Env_Tree_Giant_01",
+                "PNB_Enchanted_Forest/SM_Env_Tree_Giant_02",
+                "PNB_Enchanted_Forest/SM_Env_Tree_Portal_01",
+                "PNB_Enchanted_Forest/SM_Env_Tree_Large_01",
+                "PNB_Enchanted_Forest/SM_Env_Tree_Large_02",
+                "PNB_Enchanted_Forest/SM_Env_Tree_House_01",
+                "PNB_Meadow_Forest/SM_Env_Tree_Meadow_01",
+                "PNB_Meadow_Forest/SM_Env_Tree_Birch_01",
             };
 
             var root = new GameObject("ЩУП_ВЕЛИКАНЫ");
@@ -54,12 +134,20 @@ namespace IsoRPG.EditorTools
 
             float x = 0f, tallest = 0f;
 
-            foreach (var name in names)
+            foreach (var entry in names)
             {
-                var guids = AssetDatabase.FindAssets(name + " t:Prefab",
-                            new[] { "Assets/PolygonNatureBiomes/PNB_Enchanted_Forest" });
+                int slash = entry.IndexOf('/');
+                string biome = entry.Substring(0, slash);
+                string name = entry.Substring(slash + 1);
 
-                if (guids.Length == 0) continue;
+                var guids = AssetDatabase.FindAssets(name + " t:Prefab",
+                            new[] { "Assets/PolygonNatureBiomes/" + biome });
+
+                if (guids.Length == 0)
+                {
+                    Debug.LogWarning("[IsoRPG] Не найден префаб " + entry);
+                    continue;
+                }
 
                 var asset = AssetDatabase.LoadAssetAtPath<GameObject>(
                             AssetDatabase.GUIDToAssetPath(guids[0]));
@@ -147,31 +235,56 @@ namespace IsoRPG.EditorTools
             root.transform.position = new Vector3(Away, 0f, Away);
 
             var rt = new RenderTexture(gw, gh, 24, RenderTextureFormat.ARGB32) { antiAliasing = 8 };
+
+            // Два кадра одного ряда: как есть и с выключенным пакетированием
+            // материалов (SRP Batcher). Цвет менялся от прогона к прогону у
+            // одних и тех же деревьев — так ведёт себя мусор в постоянном
+            // буфере материала, а не рисунок художника. Пакетирование —
+            // ровно тот механизм, который этот буфер собирает, поэтому один
+            // прогон с ним и без него называет виновного без догадок.
+            Snap(cam, rt, gw, gh, "D:/GAME Ai/shots/giants.png");
+
+            bool batching = UnityEngine.Rendering.GraphicsSettings
+                            .useScriptableRenderPipelineBatching;
+
+            UnityEngine.Rendering.GraphicsSettings
+                       .useScriptableRenderPipelineBatching = false;
+
+            Snap(cam, rt, gw, gh, "D:/GAME Ai/shots/giants-nobatch.png");
+
+            UnityEngine.Rendering.GraphicsSettings
+                       .useScriptableRenderPipelineBatching = batching;
+
+            Debug.Log("[IsoRPG] Великаны сняты, наибольшая высота " +
+                      tallest.ToString("0.0") + " м, ряд " +
+                      (x + 12f).ToString("0") + " м в длину. Два кадра: " +
+                      "giants.png и giants-nobatch.png");
+
+            Object.DestroyImmediate(root);
+            Object.DestroyImmediate(rt);
+            Object.DestroyImmediate(manMat);
+        }
+
+        /// <summary>Снять кадр камерой в файл.</summary>
+        private static void Snap(Camera cam, RenderTexture rt, int w, int h, string path)
+        {
             cam.targetTexture = rt;
             cam.Render();
 
             var prev = RenderTexture.active;
             RenderTexture.active = rt;
 
-            var shot = new Texture2D(gw, gh, TextureFormat.RGB24, false);
-            shot.ReadPixels(new Rect(0, 0, gw, gh), 0, 0);
+            var shot = new Texture2D(w, h, TextureFormat.RGB24, false);
+            shot.ReadPixels(new Rect(0, 0, w, h), 0, 0);
             shot.Apply();
 
             RenderTexture.active = prev;
             cam.targetTexture = null;
 
-            string outPath = "D:/GAME Ai/shots/giants.png";
-            Directory.CreateDirectory(Path.GetDirectoryName(outPath));
-            File.WriteAllBytes(outPath, shot.EncodeToPNG());
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllBytes(path, shot.EncodeToPNG());
 
-            Debug.Log("[IsoRPG] Великаны сняты, наибольшая высота " +
-                      tallest.ToString("0.0") + " м, ряд " +
-                      (x + 12f).ToString("0") + " м в длину. Кадр: " + outPath);
-
-            Object.DestroyImmediate(root);
-            Object.DestroyImmediate(rt);
             Object.DestroyImmediate(shot);
-            Object.DestroyImmediate(manMat);
         }
 
         [MenuItem("Tools/IsoRPG/Щуп: размеры хвойных", priority = 50)]

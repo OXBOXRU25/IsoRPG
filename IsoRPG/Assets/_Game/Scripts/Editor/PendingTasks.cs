@@ -302,6 +302,59 @@ namespace IsoRPG.EditorTools
                     }
                     break;
 
+                case "pond-probe":
+                    {
+                        var terr = UnityEngine.Object.FindObjectsByType<Terrain>(
+                            FindObjectsInactive.Exclude, FindObjectsSortMode.None)[0];
+                        var c = SyntyWater.Centre;
+                        float hc = terr.SampleHeight(new Vector3(c.x, 0f, c.y)) + terr.transform.position.y;
+                        float ho = terr.SampleHeight(new Vector3(c.x + 30f, 0f, c.y)) + terr.transform.position.y;
+                        Debug.Log("[IsoRPG] ЩУП ПРУДА: высота в центре " + hc.ToString("0.00") +
+                                  " м, в 30 м рядом " + ho.ToString("0.00") + " м, разница " +
+                                  (ho - hc).ToString("0.00") + " м (чаша должна быть глубже).");
+                        var holder = GameObject.Find("Пруд Synty");
+                        if (holder == null) { Debug.LogError("[IsoRPG] Держателя пруда в сцене НЕТ."); break; }
+                        Debug.Log("[IsoRPG] Пруд: детей " + holder.transform.childCount);
+                        foreach (Transform ch in holder.transform)
+                        {
+                            var rr = ch.GetComponentInChildren<Renderer>();
+                            Debug.Log("[IsoRPG]   «" + ch.name + "» поз " + ch.position +
+                                      " масштаб " + ch.lossyScale +
+                                      (rr == null ? " БЕЗ РЕНДЕРЕРА"
+                                       : " материал " + (rr.sharedMaterial == null ? "нет" : rr.sharedMaterial.name +
+                                         " / " + rr.sharedMaterial.shader.name) +
+                                         " размер " + rr.bounds.size.ToString("0.0")));
+                        }
+                    }
+                    break;
+
+                case "shaders-keep":
+                    {
+                        string[] keep = { "SyntyStudios/WaterShader", "SyntyStudios/WaterScrolling",
+                                          "SyntyStudios/SkyboxUnlit", "SyntyStudios/VegitationShader" };
+                        var gs = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset")[0];
+                        var so = new SerializedObject(gs);
+                        var list = so.FindProperty("m_AlwaysIncludedShaders");
+                        int added = 0;
+                        foreach (var name in keep)
+                        {
+                            var sh = Shader.Find(name);
+                            if (sh == null) { Debug.LogWarning("[IsoRPG] Шейдера нет: " + name); continue; }
+                            bool has = false;
+                            for (int i = 0; i < list.arraySize; i++)
+                                if (list.GetArrayElementAtIndex(i).objectReferenceValue == sh) has = true;
+                            if (has) continue;
+                            list.InsertArrayElementAtIndex(list.arraySize);
+                            list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = sh;
+                            added++;
+                            Debug.Log("[IsoRPG] В обязательные добавлен шейдер: " + name);
+                        }
+                        so.ApplyModifiedProperties();
+                        AssetDatabase.SaveAssets();
+                        Debug.Log("[IsoRPG] Обязательных шейдеров теперь " + list.arraySize + ", добавлено " + added + ".");
+                    }
+                    break;
+
                 case "pond-shot":
                     SceneEye.Shot("pond", new Vector3(38f, 6f, -30f), 34f, 18f, 35f);
                     SceneEye.Shot("pond-near", new Vector3(38f, 5f, -30f), 18f, 12f, 120f);

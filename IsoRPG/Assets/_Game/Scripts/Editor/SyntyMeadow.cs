@@ -216,6 +216,27 @@ namespace IsoRPG.EditorTools
         }
 
         /// <summary>Извилистые тропы в координатах карты текстур.</summary>
+        /// <summary>
+        /// Доля наклона по склону: 0 — строго вертикально, 1 — перпендикулярно земле.
+        ///
+        /// Растения тянутся к небу, а не растут поперёк склона, поэтому долю
+        /// берём неполную: куст, повторяющий склон целиком, выглядит
+        /// приклеенным к горе. Но и строго вертикальный куст на склоне
+        /// повисает нижним краем — раньше это лечили утоплением, и лечение
+        /// упиралось в собственный предел.
+        /// </summary>
+        private const float PlantTilt = 0.55f;
+
+        /// <summary>Камню и дереву наклона почти не нужно: ствол растёт вверх.</summary>
+        private const float SolidTilt = 0.2f;
+
+        /// <summary>Предел СУММАРНОГО утопления, доля высоты: трава и твёрдое.</summary>
+        private const float PlantLimit = 0.45f, SolidLimit = 0.25f;
+
+        /// <summary>Сводка последней посадки — печатается числами, а не «готово».</summary>
+        private static int seatCount, seatTilted;
+        private static float seatMaxTilt, seatSinkSum;
+
         private static List<Vector2[]> Paths(Terrain terrain)
         {
             var data = terrain.terrainData;
@@ -397,6 +418,11 @@ namespace IsoRPG.EditorTools
                       ", объектов в сцене " + objects +
                       " (у префабов свои LOD-узлы).");
 
+            Debug.Log("[IsoRPG] Посадка: наклонено " + seatTilted + " из " + seatCount +
+                      ", наибольший наклон " + seatMaxTilt.ToString("0.0") +
+                      "°, среднее утопление " +
+                      (seatCount > 0 ? seatSinkSum / seatCount : 0f).ToString("0.00") + " м.");
+
             EditorSceneManager.MarkAllScenesDirty();
         }
 
@@ -422,19 +448,6 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static void Seat(GameObject go, float ground, float sink, Terrain terrain)
         {
-            var rs = go.GetComponentsInChildren<Renderer>(true);
-            if (rs.Length == 0) return;
-
-            var box = rs[0].bounds;
-            foreach (var r in rs) box.Encapsulate(r.bounds);
-
-            // Поправка на склон.
-            //
-            // Нижняя грань коробки горизонтальна, а земля под ней наклонена.
-            // Посади объект по высоте в его ЦЕНТРЕ — и половина, смотрящая
-            // вниз по склону, повиснет в воздухе. Чем шире объект и круче
-            // место, тем больше зазор: он равен половине ширины на тангенс
-            // угла. Утапливаем ровно на эту величину.
             var p = go.transform.position;
             var data = terrain.terrainData;
 
@@ -442,38 +455,72 @@ namespace IsoRPG.EditorTools
             float v = (p.z - terrain.transform.position.z) / data.size.z;
 
             float steep = data.GetSteepness(Mathf.Clamp01(u), Mathf.Clamp01(v));
-            float radius = Mathf.Max(box.size.x, box.size.z) * 0.5f;
-            float slopeSink = radius * Mathf.Tan(steep * Mathf.Deg2Rad);
 
-            // Предел поправки — РАЗНЫЙ для камня и для травы.
-            //
-            // Одна цифра на всех не годится, и это стоило двух поломок
-            // подряд. Щедрый предел закопал камни: они шире, чем выше, и
-            // над землёй оставался мшистый верх — «это камень?». Строгий
-            // предел в четверть высоты подвесил траву на крутых склонах:
-            // ей нужно уходить глубже, потому что куст широкий и лёгкий.
-            //
-            // Камню и дереву хватает малого: у них есть ствол, который сам
-            // входит в грунт. Траве даём уйти хоть наполовину — снизу её
-            // всё равно не видно.
+            // Камню и дереву своё обращение: у них есть ствол, который сам
+            // входит в грунт, и наклонять их вслед за склоном нельзя —
+            // дерево растёт вверх, а не поперёк горы.
             string kind = go.name.ToLowerInvariant();
             bool solid = kind.Contains("rock") || kind.Contains("tree");
 
-            slopeSink = Mathf.Min(slopeSink, box.size.y * (solid ? 0.15f : 0.55f));
+            float share = solid ? SolidTilt : PlantTilt;
+
+            // ШАГ ПЕРВЫЙ: наклон. Обязательно ДО замера габаритов.
+            //
+            // Куст, поставленный строго вертикально, повисает на склоне
+            // нижним краем: его основание горизонтально, а земля под ним
+            // нет. Прежнее лечение — утопить поглубже — упиралось в предел
+            // поправки, и на крутых местах трава висела всё равно. Наклон
+            // убирает саму причину: основание ложится на склон.
+            //
+            // Габариты читаем ПОСЛЕ поворота. Прочитанные до, они приходят
+            // от прежнего состояния объекта, и посадка выходит неверной —
+            // на этом уже сгорел заход с висящими камнями.
+            if (steep > 1f)
+            {
+                var normal = data.GetInterpolatedNormal(Mathf.Clamp01(u), Mathf.Clamp01(v));
+                var aim = Vector3.Slerp(Vector3.up, normal, share);
+
+                // Умножаем слева: собственное рыскание объекта вокруг
+                // вертикали задано раньше и должно сохраниться.
+                go.transform.rotation = Quaternion.FromToRotation(Vector3.up, aim) *
+                                        go.transform.rotation;
+
+                seatTilted++;
+
+                float got = Vector3.Angle(Vector3.up, aim);
+                if (got > seatMaxTilt) seatMaxTilt = got;
+            }
+
+            var rs = go.GetComponentsInChildren<Renderer>(true);
+            if (rs.Length == 0) return;
+
+            var box = rs[0].bounds;
+            foreach (var r in rs) box.Encapsulate(r.bounds);
+
+            // ШАГ ВТОРОЙ: остаточный зазор. Наклон закрыл ту его долю, на
+            // которую мы повернули объект, — топить надо только остаток.
+            float radius = Mathf.Max(box.size.x, box.size.z) * 0.5f;
+            float slopeSink = radius * Mathf.Tan(steep * Mathf.Deg2Rad) * (1f - share);
 
             // Утопление ПРОПОРЦИОНАЛЬНО размеру, а не в абсолютных метрах.
-            //
-            // Авторские числа сняты с его экземпляров, у которых свой
-            // масштаб. Применённые как есть, они хоронят мелкие: у высокой
-            // травы утопление 1.27 м, а куст масштаба 0.63 сам ростом с
-            // метр — от него остаются торчащие из земли кончики. Заказчик
-            // это и увидел: «трава провалилась».
-            //
-            // Считаем долю от высоты объекта и ограничиваем половиной:
-            // глубже половины уходить нечему.
-            float ownSink = Mathf.Min(sink * (box.size.y / 2.4f), box.size.y * 0.5f);
+            // Авторские числа сняты с его экземпляров: у высокой травы
+            // утопление 1.27 м, а наш куст масштаба 0.63 сам ростом с метр —
+            // от него остались бы торчащие из земли кончики.
+            float ownSink = sink * (box.size.y / 2.4f);
 
-            go.transform.position += new Vector3(0f, ground - box.min.y - ownSink - slopeSink, 0f);
+            // ШАГ ТРЕТИЙ: предел на СУММУ, а не на слагаемые порознь.
+            //
+            // Раньше пределы стояли врозь — половина высоты собственному
+            // утоплению и 55% поправке на склон. В сумме 105%: куст мог
+            // уйти под землю целиком. Два симптома, «трава тонет» и «трава
+            // висит», росли из одной этой формулы, поэтому и чинятся вместе.
+            float total = Mathf.Min(ownSink + slopeSink,
+                                    box.size.y * (solid ? SolidLimit : PlantLimit));
+
+            seatCount++;
+            seatSinkSum += total;
+
+            go.transform.position += new Vector3(0f, ground - box.min.y - total, 0f);
         }
 
         /// <summary>

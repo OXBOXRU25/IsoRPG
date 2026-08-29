@@ -1263,6 +1263,54 @@ namespace IsoRPG.EditorTools
                     break;
                 }
 
+                case "mipcover":
+                {
+                    // Сохранение покрытия альфы в мип-уровнях.
+                    //
+                    // У растительности с отсечением по альфе тонкие лепестки
+                    // и стебли живут на грани порога. Мип-уровни усредняют
+                    // альфу, и одна и та же деталь на разных расстояниях то
+                    // проходит порог, то нет — цветок исчезает, когда к нему
+                    // подходишь. Галочка пересчитывает уровни так, чтобы доля
+                    // пикселей выше порога сохранялась.
+                    //
+                    // Правим ОДНУ текстуру, а не все разом: правило, выведенное
+                    // на одном материале и применённое ко всему набору, даёт
+                    // не одну проверку, а тысячу поломок.
+                    string[] mipTextures =
+                    {
+                        "Assets/TriForge Assets/Fantasy Forest Environment/Textures/T_FFE_Grassset01.tga",
+                    };
+
+                    foreach (var texPath in mipTextures)
+                    {
+                        var imp = AssetImporter.GetAtPath(texPath) as TextureImporter;
+
+                        if (imp == null)
+                        {
+                            Debug.LogError("[IsoRPG] Текстуры нет: " + texPath);
+                            continue;
+                        }
+
+                        Debug.Log("[IsoRPG] " + System.IO.Path.GetFileName(texPath) +
+                                  " было: мипы " + imp.mipmapEnabled +
+                                  ", покрытие " + imp.mipMapsPreserveCoverage +
+                                  ", порог " + imp.alphaTestReferenceValue.ToString("0.00"));
+
+                        imp.mipMapsPreserveCoverage = true;
+                        imp.alphaTestReferenceValue = 0.5f;
+                        imp.SaveAndReimport();
+
+                        var check = AssetImporter.GetAtPath(texPath) as TextureImporter;
+
+                        Debug.Log("[IsoRPG] " + System.IO.Path.GetFileName(texPath) +
+                                  " стало: покрытие " + check.mipMapsPreserveCoverage +
+                                  ", порог " + check.alphaTestReferenceValue.ToString("0.00"));
+                    }
+
+                    break;
+                }
+
                 case "nav-hole":
                     NavHoleProbe.Run();
                     break;

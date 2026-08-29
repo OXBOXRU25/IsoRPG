@@ -353,17 +353,11 @@ namespace IsoRPG.EditorTools
                     if (SyntyWater.Inside(new Vector2(x, z), 2f)) { i--; continue; }
 
                     // Дорогу обходим: на утоптанной тропе трава не растёт.
-                    // Запас от тропы РАЗНЫЙ для крупного и для мелкого.
-                    //
-                    // Одно число на всех даёт либо куст посреди дороги, либо
-                    // лысую полосу метров в восемь: заказчик увидел сначала
-                    // первое, потом второе. У живой тропы трава подходит к
-                    // камням вплотную, а кусты и деревья держатся поодаль.
-                    bool big = k.Name.Contains("Bush") || k.Name.Contains("Tree")
-                               || k.Name.Contains("Rock") || k.Name.Contains("Tall");
-
-                    if (OnPath(terrain, new Vector2(x, z), big ? 2.5f : 0.4f))
-                    { i--; continue; }
+                    // Запас 3 м от ОСИ тропы, а не от её края. Тропа шириной
+                    // 2.5 м плюс мягкий край в 0.9 — куст, отодвинутый на
+                    // метр, всё равно стоит на камнях. Заказчик увидел
+                    // именно это: куст посреди дороги.
+                    if (OnPath(terrain, new Vector2(x, z), 3f)) { i--; continue; }
 
                     var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, holder.transform);
 
@@ -469,18 +463,7 @@ namespace IsoRPG.EditorTools
             // глубже половины уходить нечему.
             float ownSink = Mathf.Min(sink * (box.size.y / 2.4f), box.size.y * 0.5f);
 
-            // ОБЩИЙ предел на сумму, а не на каждое слагаемое отдельно.
-            //
-            // Своё утопление и поправка на склон по отдельности были в
-            // рамках, а вместе перекрывали высоту куста: трава уходила в
-            // землю целиком, наружу торчали кончики. Заказчик увидел это
-            // дважды — сначала как «провалилась», потом как «провалилась
-            // совсем». Складывать ограниченные величины и не ограничивать
-            // сумму — та же ошибка, что складывать два отступа в погоне.
-            float total = Mathf.Min(ownSink + slopeSink,
-                                    box.size.y * (solid ? 0.25f : 0.45f));
-
-            go.transform.position += new Vector3(0f, ground - box.min.y - total, 0f);
+            go.transform.position += new Vector3(0f, ground - box.min.y - ownSink - slopeSink, 0f);
         }
 
         /// <summary>

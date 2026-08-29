@@ -170,3 +170,6 @@ IsoRPG/unity-batch.log
 # Внутри лежат вложенные пакеты под URP — URP_ExtractMe/Unity_2022.unitypackage.
 IsoRPG/Assets/PolygonNatureBiomes/
 IsoRPG/Assets/PolygonNatureBiomes.meta
+
+# Логи пакетных прогонов Unity: их десятки, в истории не нужны.
+unity-*.log

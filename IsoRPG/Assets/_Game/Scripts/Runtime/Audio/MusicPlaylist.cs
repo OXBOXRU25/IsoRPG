@@ -105,6 +105,10 @@ namespace IsoRPG.Audio
             source.Play();
 
             silentUntil = Time.unscaledTime + source.clip.length + Gap;
+
+            Debug.Log("[IsoRPG] Играет «" + source.clip.name + "», длина " +
+                      source.clip.length.ToString("0") + " с, громкость канала " +
+                      Volume.ToString("0.00") + ".");
         }
 
         /// <summary>
@@ -136,7 +140,7 @@ namespace IsoRPG.Audio
         /// <summary>Громкость музыкального канала, 0..1. Ведёт её окно настроек.</summary>
         public static float Volume
         {
-            get => Mathf.Clamp01(PlayerPrefs.GetFloat("isorpg.volume.music", 0.22f));
+            get => Mathf.Clamp01(PlayerPrefs.GetFloat("isorpg.volume.music", 0.5f));
         }
     }
 }

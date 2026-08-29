@@ -85,7 +85,7 @@ namespace IsoRPG.UI
             others = list.ToArray();
 
             if (AudioSetup.Instance != null)
-                AudioSetup.Instance.MusicVolume = PlayerPrefs.GetFloat(MusicKey, 0.22f);
+                AudioSetup.Instance.MusicVolume = PlayerPrefs.GetFloat(MusicKey, 0.5f);
 
             RefreshValues();
         }
@@ -272,7 +272,7 @@ namespace IsoRPG.UI
 
             MakeGap(4f);
 
-            musicValue = MakeSlider("Музыка", PlayerPrefs.GetFloat(MusicKey, 0.22f), value =>
+            musicValue = MakeSlider("Музыка", PlayerPrefs.GetFloat(MusicKey, 0.5f), value =>
             {
                 if (AudioSetup.Instance != null) AudioSetup.Instance.MusicVolume = value;
                 PlayerPrefs.SetFloat(MusicKey, value);

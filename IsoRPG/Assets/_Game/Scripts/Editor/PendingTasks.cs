@@ -371,9 +371,37 @@ namespace IsoRPG.EditorTools
                     }
                     break;
 
+                case "hud":
+                    {
+                        var pl = GameObject.Find("Player");
+                        if (pl == null) { Debug.LogError("[IsoRPG] Героя нет."); break; }
+
+                        // Чего не хватает арене из того, что вешал строитель
+                        // песочницы. Ставим только отсутствующее: повторный
+                        // компонент Unity молча не добавит, а лишний вызов
+                        // Setup затёр бы настроенное.
+                        int added = 0;
+                        if (pl.GetComponent<IsoRPG.UI.SettingsWindow>() == null)
+                        { pl.AddComponent<IsoRPG.UI.SettingsWindow>(); added++;
+                          Debug.Log("[IsoRPG] Добавлено окно настроек."); }
+                        if (pl.GetComponent<IsoRPG.UI.HudBar>() == null)
+                        { pl.AddComponent<IsoRPG.UI.HudBar>(); added++;
+                          Debug.Log("[IsoRPG] Добавлена панель кнопок (иконка настроек в ней)."); }
+                        if (pl.GetComponent<IsoRPG.UI.Tooltip>() == null)
+                        { pl.AddComponent<IsoRPG.UI.Tooltip>(); added++;
+                          Debug.Log("[IsoRPG] Добавлены подсказки."); }
+                        if (pl.GetComponent<IsoRPG.UI.QuestJournal>() == null)
+                        { pl.AddComponent<IsoRPG.UI.QuestJournal>(); added++;
+                          Debug.Log("[IsoRPG] Добавлен журнал заданий."); }
+
+                        Debug.Log("[IsoRPG] Интерфейс героя: добавлено компонентов " + added + ".");
+                        if (added > 0) UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+                    }
+                    break;
+
                 case "pond-shot":
-                    SceneEye.Shot("pond", new Vector3(38f, 6f, -30f), 34f, 18f, 35f);
-                    SceneEye.Shot("pond-near", new Vector3(38f, 5f, -30f), 18f, 12f, 120f);
+                    SceneEye.Shot("pond", new Vector3(-46f, 2f, 34f), 70f, 22f, 35f);
+                    SceneEye.Shot("pond-near", new Vector3(20f, 5f, -16f), 40f, 20f, 120f);
                     break;
 
                 case "pond":

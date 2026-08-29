@@ -26,17 +26,51 @@ namespace IsoRPG.EditorTools
         private const string Holder = "Пруд Synty";
         private const string Biome = "Assets/PolygonNatureBiomes/PNB_Meadow_Forest";
 
-        /// <summary>Центр пруда в мировых координатах.</summary>
-        public static readonly Vector2 Centre = new Vector2(20f, -16f);
+        /// <summary>Один водоём: где, какой гладью, какой чашей и глубиной.</summary>
+        public readonly struct Pond
+        {
+            public readonly Vector2 Centre;
+            public readonly float Radius;   // водная гладь
+            public readonly float Bowl;     // чаша вместе с берегом
+            public readonly float Depth;
 
-        /// <summary>Радиус водной глади, метров.</summary>
-        public static readonly float Radius = 13f;
+            public Pond(float x, float z, float radius, float bowl, float depth)
+            {
+                Centre = new Vector2(x, z); Radius = radius; Bowl = bowl; Depth = depth;
+            }
+        }
 
-        /// <summary>Радиус чаши вместе с берегом, метров.</summary>
-        private const float Bowl = 22f;
+        /// <summary>
+        /// Водоёмы мира. Большой сделан впятеро по площади от малого —
+        /// радиус растёт как корень, поэтому 13 -> 29, а не 13 -> 65.
+        /// </summary>
+        public static readonly Pond[] Ponds =
+        {
+            new Pond( 20f, -16f, 13f, 22f, 2.6f),
+            new Pond(-46f,  34f, 29f, 46f, 4.2f),
+        };
 
-        /// <summary>Глубина чаши в центре, метров.</summary>
-        private const float Depth = 2.6f;
+        /// <summary>Совместимость со старым кодом: первый пруд.</summary>
+        public static Vector2 Centre => Ponds[0].Centre;
+        public static float Radius => Ponds[0].Radius;
+
+        /// <summary>Попадает ли точка в любой водоём (с запасом).</summary>
+        public static bool Inside(Vector2 world, float margin)
+        {
+            foreach (var p in Ponds)
+                if (Vector2.Distance(world, p.Centre) < p.Radius + margin) return true;
+
+            return false;
+        }
+
+        /// <summary>Насколько точка внутри чаши любого водоёма, 0..1.</summary>
+        public static bool InBowl(Vector2 world, float margin)
+        {
+            foreach (var p in Ponds)
+                if (Vector2.Distance(world, p.Centre) < p.Bowl + margin) return true;
+
+            return false;
+        }
 
         /// <summary>Насколько уровень воды ниже кромки берега, метров.</summary>
         private const float Below = 1.1f;
@@ -54,18 +88,20 @@ namespace IsoRPG.EditorTools
 
             Clear();
 
-            float rim = Carve(terrain);
-            float level = rim - Below;
-
             var holder = new GameObject(Holder);
-            holder.transform.position = new Vector3(Centre.x, level, Centre.y);
 
-            Surface(holder.transform, level);
-            Lilies(holder.transform, level);
+            foreach (var pond in Ponds)
+            {
+                float rim = Carve(terrain, pond);
+                float level = rim - Below;
 
-            Debug.Log("[IsoRPG] Пруд готов: центр (" + Centre.x + ", " + Centre.y +
-                      "), гладь радиусом " + Radius + " м, уровень " +
-                      level.ToString("0.00") + " м, чаша глубиной " + Depth + " м.");
+                Surface(holder.transform, pond, level);
+                Lilies(holder.transform, terrain, pond, level);
+
+                Debug.Log("[IsoRPG] Водоём: центр (" + pond.Centre.x + ", " + pond.Centre.y +
+                          "), гладь " + pond.Radius + " м, чаша " + pond.Bowl +
+                          " м, глубина " + pond.Depth + " м, уровень " + level.ToString("0.00") + ".");
+            }
 
             EditorSceneManager.MarkAllScenesDirty();
         }
@@ -84,7 +120,7 @@ namespace IsoRPG.EditorTools
         // ------------------------------------------------------------------
 
         /// <summary>Выкопать чашу. Возвращает высоту кромки берега.</summary>
-        private static float Carve(Terrain terrain)
+        private static float Carve(Terrain terrain, Pond pond)
         {
             var data = terrain.terrainData;
             int res = data.heightmapResolution;
@@ -92,10 +128,10 @@ namespace IsoRPG.EditorTools
             float[,] h = data.GetHeights(0, 0, res, res);
 
             // Высота кромки — та, что была в центре до копания.
-            float rim = terrain.SampleHeight(new Vector3(Centre.x, 0f, Centre.y)) +
+            float rim = terrain.SampleHeight(new Vector3(pond.Centre.x, 0f, pond.Centre.y)) +
                         terrain.transform.position.y;
 
-            float depthNorm = Depth / data.size.y;
+            float depthNorm = pond.Depth / data.size.y;
 
             for (int y = 0; y < res; y++)
             {
@@ -105,12 +141,12 @@ namespace IsoRPG.EditorTools
                 {
                     float wx = terrain.transform.position.x + (float)x / (res - 1) * data.size.x;
 
-                    float d = Vector2.Distance(new Vector2(wx, wz), Centre);
-                    if (d > Bowl) continue;
+                    float d = Vector2.Distance(new Vector2(wx, wz), pond.Centre);
+                    if (d > pond.Bowl) continue;
 
                     // Профиль берега: пологий к краю, плоское дно в середине.
                     // Резкий край дал бы стакан с водой, а не пруд.
-                    float k = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(d / Bowl));
+                    float k = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(d / pond.Bowl));
 
                     h[y, x] = Mathf.Max(0f, h[y, x] - depthNorm * k * k);
                 }
@@ -119,14 +155,14 @@ namespace IsoRPG.EditorTools
             data.SetHeights(0, 0, h);
             EditorUtility.SetDirty(data);
 
-            Debug.Log("[IsoRPG] Чаша выкопана: радиус " + Bowl + " м, глубина " +
-                      Depth + " м, кромка на " + rim.ToString("0.00") + " м.");
+            Debug.Log("[IsoRPG] Чаша выкопана: радиус " + pond.Bowl + " м, глубина " +
+                      pond.Depth + " м, кромка на " + rim.ToString("0.00") + " м.");
 
             return rim;
         }
 
         /// <summary>Водная гладь — плоскость с материалом озера.</summary>
-        private static void Surface(Transform parent, float level)
+        private static void Surface(Transform parent, Pond pond, float level)
         {
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>(
                 Biome + "/Prefabs/SM_Env_Water_Plane_01.prefab");
@@ -153,7 +189,7 @@ namespace IsoRPG.EditorTools
             }
 
             water.name = "Гладь";
-            water.transform.position = new Vector3(Centre.x, level, Centre.y);
+            water.transform.position = new Vector3(pond.Centre.x, level, pond.Centre.y);
 
             // Подгоняем под нужный радиус по фактическому размеру модели.
             var rs = water.GetComponentsInChildren<Renderer>(true);
@@ -165,7 +201,7 @@ namespace IsoRPG.EditorTools
 
                 float own = Mathf.Max(box.size.x, box.size.z);
                 if (own > 0.01f)
-                    water.transform.localScale *= (Radius * 2f) / own;
+                    water.transform.localScale *= (pond.Radius * 2f) / own;
             }
 
             var mat = AssetDatabase.LoadAssetAtPath<Material>(
@@ -181,7 +217,7 @@ namespace IsoRPG.EditorTools
         }
 
         /// <summary>Кувшинки по глади — те самые плоские цветы.</summary>
-        private static void Lilies(Transform parent, float level)
+        private static void Lilies(Transform parent, Terrain terrain, Pond pond, float level)
         {
             var names = new[] { "SM_Env_Flowers_Flat_01", "SM_Env_Flowers_Flat_02",
                                 "SM_Env_Flowers_Flat_03" };
@@ -202,20 +238,26 @@ namespace IsoRPG.EditorTools
 
             // Не сплошным ковром: кувшинки жмутся к берегу, середина пруда
             // остаётся открытой водой. Сплошь покрытый пруд читается болотом.
-            int count = 26;
+            int count = Mathf.RoundToInt(26f * (pond.Radius / 13f));
 
             for (int i = 0; i < count; i++)
             {
                 float a = Random.Range(0f, Mathf.PI * 2f);
-                float r = Mathf.Lerp(Radius * 0.45f, Radius * 0.92f, Random.value);
+                float r = Mathf.Lerp(pond.Radius * 0.35f, pond.Radius * 0.88f, Random.value);
+
+                var at = new Vector3(pond.Centre.x + Mathf.Cos(a) * r, 0f,
+                                     pond.Centre.y + Mathf.Sin(a) * r);
+
+                // Кладём ТОЛЬКО туда, где под кувшинкой действительно вода.
+                // Иначе они ложатся на берег и висят в воздухе — так и было
+                // на первом пруду, заказчик увидел сразу.
+                float bed = terrain.SampleHeight(at) + terrain.transform.position.y;
+                if (bed > level - 0.15f) { i--; continue; }
 
                 var go = (GameObject)PrefabUtility.InstantiatePrefab(
                     prefabs[Random.Range(0, prefabs.Length)], parent);
 
-                go.transform.position = new Vector3(
-                    Centre.x + Mathf.Cos(a) * r,
-                    level + 0.04f,          // чуть выше глади, иначе мерцает
-                    Centre.y + Mathf.Sin(a) * r);
+                go.transform.position = new Vector3(at.x, level + 0.04f, at.z);
 
                 go.transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
                 go.transform.localScale = Vector3.one * Random.Range(0.7f, 1.5f);
@@ -224,7 +266,7 @@ namespace IsoRPG.EditorTools
                     Object.DestroyImmediate(c);
             }
 
-            Debug.Log("[IsoRPG] Кувшинок положено: " + count + ", по кольцу у берега.");
+            Debug.Log("[IsoRPG] Кувшинок на пруду радиусом " + pond.Radius + " м: " + count + ".");
         }
     }
 }

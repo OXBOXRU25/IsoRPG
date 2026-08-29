@@ -1,0 +1,603 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.5/staging' branch; Version is '6000.5.9f1 (b57deb96f08d) revision 11894251'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Channel LicenseClient-OXBOX doesn't exist
+OS: 'Windows 10  (10.0.19045) 64bit Professional' Language: 'ru' Physical Memory: 32633 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-08-29T00:29:18Z
+[Licensing::Module] Successfully launched the LicensingClient (PId: 3900)
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Unity.exe
+-batchmode
+-quit
+-projectPath
+D:/GAME Ai/IsoRPG
+-executeMethod
+IsoRPG.EditorTools.BatchRunner.Run
+-logFile
+D:/GAME Ai/unity-g3.log
+Successfully changed project path to: D:/GAME Ai/IsoRPG
+D:/GAME Ai/IsoRPG
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-remapper-allocator-initial-capacity=32768"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-main-allocator-mimalloc-enabled=0"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+Logging is directed to a specific file, skipping project log.Player connection [10704]  Target information:
+
+Player connection [10704]  * "[IP] 192.168.50.79 [Port] 55504 [Flags] 2 [Guid] 3271343045 [EditorId] 3271343045 [Version] 1048832 [Id] WindowsEditor(7,HOME-PC) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [10704] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [10704] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+Starting IPC server.
+Waiting for clients to connect on \\.\pipe\Unity-LicenseClient-OXBOX, press Ctrl-C to exit.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-OXBOX" at "2026-08-29T00:29:18.5049912Z"
+[Package Manager] Connected to IPC stream "Upm-16832" after 0.3 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 3900, path: "C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              bcc7cb9b49644a2e8a0509d0c9eaacf7
+  Correlation Id:          5c1e73cdb98a0c6e33afd439f1c99813
+  External correlation Id: 5993467530220564010
+  Machine Id:              19RmDKYJv1/zK4N+lW1e75F5Dx4=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-OXBOX" (connect: 0.37s, validation: 0.04s, handshake: 0.05s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-OXBOX-notifications" at "2026-08-29T00:29:18.6011653Z"
+[Licensing::Module] Connected to LicensingClient (PId: 3900, launch time: 0.00, total connection time: 0.47s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 18968486056853-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 0.51s
+[Licensing::Module] Licensing is initialized (took 0.12s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Artifact Garbage Collection - Removed 1 unused hashed content files
+Initialize engine version: 6000.5.9f1 (b57deb96f08d)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path D:/GAME Ai/IsoRPG/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+d3d12: failed to query info queue interface (0x80004002).
+Direct3D:
+    Version:         Direct3D 12 [level 12.2]
+    Renderer:        AMD Radeon RX 6800 (ID=0x73bf)
+    Vendor:          ATI
+    VRAM:            16338 MB
+    App VRAM Budget: 15570 MB
+    Driver:          32.0.21045.5002
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/BCLExtensions/runtime/netstandard2.1'
+Mono path[2] = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56832
+CodeReloadManager initialized
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.5.9f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.002452 seconds.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+Package Manager log level set to [2]
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.572 seconds
+Domain Reload Profiling: 1191ms
+	BeginReloadAssembly (167ms)
+		CreateAndSetChildDomain (15ms)
+	RebuildCommonClasses (6ms)
+	RebuildNativeTypeToScriptingClass (21ms)
+	initialDomainReloadingComplete (73ms)
+	LoadAllAssembliesAndSetupDomain (350ms)
+		LoadAssemblies (150ms)
+		AnalyzeDomain (257ms)
+			TypeCache.Refresh (255ms)
+				TypeCache.ScanAssembly (238ms)
+	FinalizeReload (574ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (3ms)
+			BeforeProcessingInitializeOnLoad (107ms)
+			ProcessInitializeOnLoadAttributes (114ms)
+			ProcessInitializeOnLoadMethodAttributes (261ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 58 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.ai.navigation@2.0.14 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.ai.navigation@134dd6a3b97b)
+    com.unity.collab-proxy@2.13.6 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.collab-proxy@4628d2ba6ea4)
+    com.unity.ide.rider@3.0.38 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.ide.rider@1f60b3138684)
+    com.unity.ide.visualstudio@2.0.26 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.ide.visualstudio@a99d56dec63f)
+    com.unity.inputsystem@1.20.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.inputsystem@7a4e1a2a8194)
+    com.unity.timeline@1.8.12 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.timeline@8cd8509afae5)
+    com.unity.visualscripting@1.9.12 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.visualscripting@4edfcc09512f)
+    com.unity.searcher@4.9.5 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.searcher@a463122f2c00)
+    com.unity.burst@1.8.30 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.burst@2f3d916873ea)
+    com.unity.nuget.mono-cecil@1.11.6 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.test-framework.performance@3.5.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.test-framework.performance@8b56083ec0f0)
+  Built-in packages:
+    com.unity.multiplayer.center@1.0.1 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.multiplayer.center@b860850997d0)
+    com.unity.render-pipelines.universal@17.5.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.render-pipelines.universal@d7774c218bdf)
+    com.unity.shadergraph@17.5.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.shadergraph@8d7376ec43ee)
+    com.unity.test-framework@1.7.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.test-framework@1405238725ab)
+    com.unity.ugui@2.5.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.ugui@1c4864518158)
+    com.unity.modules.accessibility@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.accessibility)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.physicscore2d@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.physicscore2d)
+    com.unity.modules.screencapture@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.wind@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.ext.nunit@2.1.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.ext.nunit@44f7d31723bd)
+    com.unity.render-pipelines.core@17.5.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.render-pipelines.core@a4c9a9793789)
+    com.unity.render-pipelines.universal-config@17.5.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.render-pipelines.universal-config@fdda01c80fe3)
+    com.unity.collections@6.5.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.collections@ec2c217e4cb2)
+    com.unity.mathematics@1.4.0 (location: D:\GAME Ai\IsoRPG\Library\PackageCache\com.unity.mathematics@981956d94fb6)
+  Embedded packages:
+    com.distantlands.cozy.core@file:D:\GAME Ai\IsoRPG\Packages\com.distantlands.cozy.core (location: D:\GAME Ai\IsoRPG\Packages\com.distantlands.cozy.core)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.02 seconds
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:80
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: D:\GAME Ai\IsoRPG
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping - 200 - application/grpc 31.6240ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: D:/GAME Ai/IsoRPG
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.runtime.interopservices.windowsruntime has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Runtime.InteropServices.WindowsRuntime.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\NetStandard\Extensions\2.0.0\System.Runtime.InteropServices.WindowsRuntime.dll"
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.componentmodel.composition has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\System.ComponentModel.Composition.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.5.9f1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.ComponentModel.Composition.dll"
+DisplayProgressbar: Compiling Scripts
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@2f3d916873ea\Unity.Burst.CodeGen\Unity.Burst.Cecil.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Mono.Cecil, Version=0.11.5.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors - 200 - application/grpc 122.2575ms
+ExitCode: 0 Duration: 0s356ms
+[752/957    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+*** Tundra build success (0.32 seconds), 1 items updated, 957 evaluated
+AssetDatabase: script compilation time: 0.823210s
+Begin MonoManager ReloadAssembly
+Total cache size 112306678
+Total cache size after purge 112306678, took 00:00:00.1839129
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+Refreshing native plugins compatible for Editor in 2.23 ms, found 4 plugins.
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  3.723 seconds
+Domain Reload Profiling: 4791ms
+	BeginReloadAssembly (282ms)
+		DisableScriptedObjects (33ms)
+		CreateAndSetChildDomain (44ms)
+	RebuildCommonClasses (10ms)
+	RebuildNativeTypeToScriptingClass (21ms)
+	initialDomainReloadingComplete (72ms)
+	LoadAllAssembliesAndSetupDomain (682ms)
+		LoadAssemblies (379ms)
+		AnalyzeDomain (306ms)
+			TypeCache.Refresh (221ms)
+				TypeCache.ScanAssembly (208ms)
+			BuildScriptInfoCaches (74ms)
+			ResolveRequiredComponents (10ms)
+	FinalizeReload (3724ms)
+		SetupLoadedEditorAssemblies (0ms)
+			BeforeProcessingInitializeOnLoad (105ms)
+			ProcessInitializeOnLoadAttributes (2974ms)
+			ProcessInitializeOnLoadMethodAttributes (196ms)
+			AfterProcessingInitializeOnLoad (8ms)
+		AwakeInstancesAfterBackupRestoration (32ms)
+Starting new worker id: 0 with log in D:/GAME Ai/IsoRPG/Logs/AssetImportWorkerHW0.log
+
+Asset Pipeline Refresh (id=6c31f5830b57a124c8a5d3d141a19b21): Total: 7.514 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	(Values over 0.05ms)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=5369 ms
+		Asset DB Callback time: managed=95 ms, native=17 ms
+		Scripting: domain reloads=1, domain reload time=1136 ms, compile time=825 ms, other=69 ms
+		Project Asset Count: scripts=2761, non-scripts=43637
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokePackagesCallback: 19.973ms
+	ApplyChangesToAssetFolders: 0.715ms
+	Scan: 243.607ms
+	Collect global state as custom dependencies: 19.581ms
+	CategorizeScriptCompilationAssets: 58.934ms
+	ProcessAssetsWithTransientArtifactChanges: 115.910ms
+	CategorizeAssets: 467.635ms
+	CompileScripts: 824.537ms
+	ImportOutOfDateAssets: 4300.921ms (3757.696ms without children)
+		UnloadImportedAssets: 0.861ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 9.657ms
+		ImportSchedulerStart: 532.661ms
+	PostProcessAllAssets: 95.415ms
+		MonoPostProcessAllAssets: 95.355ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 34.544ms
+			SyncVS.PostprocessSyncProject 18.468ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 3.337ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 2.880ms
+			PluginAssetPostProcessor.OnPostprocessAllAssets 2.307ms
+			EditModeScopePostprocessor.OnPostprocessAllAssets 1.052ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.829ms
+			ShaderReflectionAssetPostProcessor.OnPostprocessAllAssets 0.437ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.330ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.326ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.206ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.197ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.186ms
+	UnloadStreamsBegin: 3.747ms
+	PersistCurrentRevisions: 2.757ms
+	GenerateScriptTypeHashes: 8.627ms
+	GenerateScriptTypeSerializationHashes: 14.810ms
+	Untracked: 1347.461ms
+
+Application.AssetDatabase Initial Refresh End
+Shader 'SyntyStudios/SkyboxUnlit': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/CloudShader': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/TriplanarBasic': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/CloudShaderNoFog': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/SkyboxUnlitNoFog': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/Basic_LOD_Shader': fallback shader 'wiiu' not found
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.01 seconds
+Shader 'SyntyStudios/CloudShader': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/Basic_LOD_Shader': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/SkyboxUnlit': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/SkyboxUnlitNoFog': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/TriplanarBasic': fallback shader 'wiiu' not found
+Shader 'SyntyStudios/CloudShaderNoFog': fallback shader 'wiiu' not found
+Scanning for USB devices : 2.608ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Adventures of Zhenya
+Curl error 35: Cert verify failed. Certificate could not be verified (either omitted or unsupported). UnityTls error code: 7
+Unloading 89 Unused Serialized files (Serialized files now loaded: 0)
+Curl error 35: Cert verify failed. Certificate could not be verified (either omitted or unsupported). UnityTls error code: 7
+Unloading 7700 unused Assets / (28.3 MB). Loaded Objects now: 8750.
+Memory consumption went from 0.74 GB to 0.71 GB.
+Total: 41.406000 ms (FindLiveObjects: 1.018000 ms CreateObjectMapping: 3.625800 ms MarkObjects: 10.436300 ms  DeleteObjects: 26.323200 ms)
+
+[IsoRPG] Пакетный запуск: начинаю.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:44)
+
+(Filename: Assets/_Game/Scripts/Editor/BatchRunner.cs Line: 44)
+
+Opening scene 'Assets/_Game/Scenes/Arena.unity'
+Unloading 4 Unused Serialized files (Serialized files now loaded: 0)
+Worker ready: AssetImportWorkerHW0 0
+Loaded scene 'Assets/_Game/Scenes/Arena.unity'
+	Deserialize:            106.193 ms
+	Integration:            651.983 ms
+	Integration of assets:  0.052 ms
+	Thread Wait Time:       0.020 ms
+	Total Operation Time:   758.248 ms
+Unloading 2 unused Assets / (2.0 KB). Loaded Objects now: 40294.
+Memory consumption went from 0.86 GB to 0.86 GB.
+Total: 17.370400 ms (FindLiveObjects: 3.589200 ms CreateObjectMapping: 3.275600 ms MarkObjects: 10.435300 ms  DeleteObjects: 0.069600 ms)
+
+[IsoRPG] Открыта сцена Assets/_Game/Scenes/Arena.unity
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:49)
+
+(Filename: Assets/_Game/Scripts/Editor/BatchRunner.cs Line: 49)
+
+
+Asset Pipeline Refresh (id=2f17d2e694c292f42b80f73251b3c0c3): Total: 0.795 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+	(Values over 0.05ms)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=794 ms
+		Asset DB Callback time: managed=0 ms, native=0 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=2761, non-scripts=43637
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	ApplyChangesToAssetFolders: 0.163ms
+	Scan: 6.174ms
+	Collect global state as custom dependencies: 0.451ms
+	ProcessAssetsWithTransientArtifactChanges: 0.216ms
+	CategorizeAssets: 340.714ms
+	ImportOutOfDateAssets: 392.818ms (22.243ms without children)
+		ReloadNativeAssets: 0.058ms
+		UnloadImportedAssets: 0.090ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 11.054ms
+		ImportSchedulerStart: 359.366ms
+	GatherAllCurrentPrimaryImportResultRevisions: 3.265ms
+	UnloadStreamsBegin: 1.903ms
+	PersistCurrentRevisions: 2.282ms
+	Untracked: 38.125ms
+
+[IsoRPG] Выполняю задание: meadow-ground
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:146)
+IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
+IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
+
+(Filename: Assets/_Game/Scripts/Editor/PendingTasks.cs Line: 146)
+
+[IsoRPG] Земля лугового биома: слоёв 6, плитка 2–4 м, троп 3. Доли по автору: трава 80%, листва 6.5%, остальное акцентами.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+IsoRPG.EditorTools.SyntyMeadow:Ground () (at Assets/_Game/Scripts/Editor/SyntyMeadow.cs:188)
+IsoRPG.EditorTools.PendingTasks:Execute (string) (at Assets/_Game/Scripts/Editor/PendingTasks.cs:442)
+IsoRPG.EditorTools.PendingTasks:Run () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:125)
+IsoRPG.EditorTools.PendingTasks:RunNow () (at Assets/_Game/Scripts/Editor/PendingTasks.cs:72)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:56)
+
+(Filename: Assets/_Game/Scripts/Editor/SyntyMeadow.cs Line: 188)
+
+Importing 'GUID: 00000000000000004000000000000000 - Path: ProjectSettings/ProjectSettings.asset' with importer (LibraryAssetImporter)
+Imported 'GUID: 00000000000000004000000000000000' -> (Import Result ID: '702a474f2f7fe9e1744228f7ca14a83e') in 0.005 seconds [static dependencies only]. Details - ImportResultOutputID=276a810dac73e1f29404d5e5f692e214 DependenciesID=e9590249c6f9f8d265009e082151b49d StaticDependenciesID=61f55734f348b8337d9323239d2d26f5 
+Importing 'GUID: 224d63e1442241943b8cafe00b71bdbd - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Dirt_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: 224d63e1442241943b8cafe00b71bdbd' -> (Import Result ID: '443830d777be86c95020c2344c2fe31f') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=2b1d43f1454139531655ad568703e7cf DependenciesID=58bccbfc067a1f04d07e9c2ffd7e759a StaticDependenciesID=dab7553da7b7c4223d74660eb614f321 
+Importing 'GUID: 927c01133fc01cf449019fb21429322d - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Footpath_Tile_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: 927c01133fc01cf449019fb21429322d' -> (Import Result ID: 'ea078efbacb8030a80384a9cc85f8c12') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=8713b51cc22fcd718dc0e9c98323f7cf DependenciesID=9c2efb7cea20f171a8d0bc4c8ba520b8 StaticDependenciesID=105292a2fb1f2b3c5c22bf1c824621ff 
+Importing 'GUID: 18206772b2c5a7a4b9682aa8188d3de0 - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Dirt_Cracked_Pebbles_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: 18206772b2c5a7a4b9682aa8188d3de0' -> (Import Result ID: 'c3837446c6f9ce4a7aeec06844b978c6') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=d7af519ea43b007314968f714f5c2ab9 DependenciesID=b3e3870619047d98ddb766c416eefcc2 StaticDependenciesID=cdac734754e1ac88c13856de297af07c 
+Importing 'GUID: e8a19b753c680d24c98f0aee4c3f6f1a - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Grass_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: e8a19b753c680d24c98f0aee4c3f6f1a' -> (Import Result ID: 'a43a9f2bc7198903338fbdd3ba332250') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=61807fdf5aa5f2ef3ee66c89a29bf15a DependenciesID=39549710f042087f2af55747ae469410 StaticDependenciesID=ef87d208d0563e5bebc1f0d5321086b9 
+Importing 'GUID: cbd19f98974e48444a516ccf4c843381 - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Dirt_Cracked_Leaves_Heavy_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: cbd19f98974e48444a516ccf4c843381' -> (Import Result ID: '7ca2e4e5870e3b93d6a0c432cb13ccfa') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=c6aaa8883e3ef17e8849524aa5d17989 DependenciesID=3afc97f2dcf34929f48e64d7bf3997f2 StaticDependenciesID=350b93c280f13b7728ef9ac13a6820ea 
+Importing 'GUID: 9f5c36e3546010746940a515bbf0494b - Path: Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Terrain/Terrain_Meadow_Grass_Leaves_01.terrainlayer' with importer (NativeFormatImporter)
+Imported 'GUID: 9f5c36e3546010746940a515bbf0494b' -> (Import Result ID: '6895b99ca8b6d62e2544a96fbd3cf42f') in 0.001 seconds [static dependencies only]. Details - ImportResultOutputID=2620016723843e448fd61adcd7a616e1 DependenciesID=1cafec4ef2a5001cbf30a64e7bc88a0a StaticDependenciesID=7f08e287efc9fc967c4a1dfb6e2e092c 
+Importing 'GUID: 036682092434c264889e3dec5e2060aa - Path: Assets/_Game/Art/Materials/ArenaTerrain.asset' with importer (NativeFormatImporter)
+Imported 'GUID: 036682092434c264889e3dec5e2060aa' -> (Import Result ID: '66e89251d7d6f38b7e2ddd873188d0c9') in 0.003 seconds [static dependencies only]. Details - ImportResultOutputID=682dce64306c00b514a573a13b1cd285 DependenciesID=999497f808b43c7a2e69659673521a81 StaticDependenciesID=fbd9a065ade0cfa25aa0f09262747898 
+
+Asset Pipeline Refresh (id=5b8ae5cde4033a049b08075c29d3db9d): Total: 1.128 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	(Values over 0.05ms)
+	Summary:
+		Imports: total=8 (actual=8, local cache=0, cache server=0)
+		Asset DB Process Time: managed=2 ms, native=522 ms
+		Asset DB Callback time: managed=595 ms, native=6 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=2761, non-scripts=43637
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Scan Filter Count: 15
+	ApplyChangesToAssetFolders: 0.092ms
+	Scan: 10.360ms
+	Collect global state as custom dependencies: 0.221ms
+	OnSourceAssetsModified: 0.736ms
+	ProcessAssetsWithTransientArtifactChanges: 0.080ms
+	CategorizeAssets: 64.108ms
+	ImportOutOfDateAssets: 424.949ms (20.697ms without children)
+		ImportManagerImport: 34.518ms (19.555ms without children)
+			UpdateCategorizedAssets: 0.099ms
+		ReloadNativeAssets: 0.063ms
+		UnloadImportedAssets: 0.194ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 9.325ms
+		ImportSchedulerStart: 360.143ms
+	PostProcessAllAssets: 597.896ms
+		XRBuildSystem.XRAssetImported 2.117ms
+		MonoPostProcessAllAssets: 595.098ms
+			AssetPostprocessor.OnPostprocessAllAssets 534.651ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 41.102ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 6.270ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.782ms
+			AssetChangedListener.OnPostprocessAllAssets 1.634ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.302ms
+			SyncVS.PostprocessSyncProject 0.971ms
+			MaterialPostprocessor.OnPostprocessAllAssets 0.785ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.584ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.436ms
+			SampleDependencyImporterPostProcessor.OnPostprocessAllAssets 0.405ms
+			CozyShaderPostProcessor.OnPostprocessAllAssets 0.392ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.381ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.379ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.349ms
+			PostProcessor.OnPostprocessAllAssets 0.297ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.270ms
+			AssetEvents.OnPostprocessAllAssets 0.268ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.180ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.159ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.157ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.148ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.140ms
+			AssetReloadNotifier.OnPostprocessAllAssets 0.126ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.084ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.082ms
+	PostAssetChangesProfiler: 4.085ms
+	GatherAllCurrentPrimaryImportResultRevisions: 2.329ms
+	PersistCurrentRevisions: 2.715ms
+	UnloadStreamsEnd: 0.053ms
+	Untracked: 19.997ms
+
+Importing 'GUID: 1db5328198c19b0498cd0b8070257b84 - Path: Assets/_Game/Scenes/Arena.unity' with importer (DefaultImporter)
+Imported 'GUID: 1db5328198c19b0498cd0b8070257b84' -> (Import Result ID: 'd09c89e5ffcb089fc01b122324c44082') in 0.003 seconds [static dependencies only]. Details - ImportResultOutputID=e4fba7802ff6df5867da0246ee067480 DependenciesID=017f9fa874352f2850364565035169a0 StaticDependenciesID=a58311c0980afa1721f2c67cea80a7f6 
+
+Asset Pipeline Refresh (id=5d31dba385ceefb4f9cc891c4024c1ee): Total: 0.425 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	(Values over 0.05ms)
+	Summary:
+		Imports: total=1 (actual=1, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=418 ms
+		Asset DB Callback time: managed=3 ms, native=3 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=2761, non-scripts=43637
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 4
+	ApplyChangesToAssetFolders: 0.100ms
+	Scan: 7.640ms
+	Collect global state as custom dependencies: 0.216ms
+	ProcessAssetsWithTransientArtifactChanges: 0.084ms
+	CategorizeAssets: 22.354ms
+	ImportOutOfDateAssets: 361.810ms (19.875ms without children)
+		ImportManagerImport: 6.754ms (3.829ms without children)
+		ReloadNativeAssets: 0.064ms
+		UnloadImportedAssets: 0.197ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 8.084ms
+		ImportSchedulerStart: 326.826ms
+	PostProcessAllAssets: 3.989ms
+		XRBuildSystem.XRAssetImported 0.345ms
+		MonoPostProcessAllAssets: 3.551ms
+			AssetPostprocessor.OnPostprocessAllAssets 2.319ms
+			SyncVS.PostprocessSyncProject 0.836ms
+	PostAssetChangesProfiler: 2.564ms
+	GatherAllCurrentPrimaryImportResultRevisions: 3.112ms
+	UnloadStreamsBegin: 0.097ms
+	PersistCurrentRevisions: 2.543ms
+	Untracked: 20.562ms
+
+[IsoRPG] Сцена и ассеты сохранены.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:65)
+
+(Filename: Assets/_Game/Scripts/Editor/BatchRunner.cs Line: 65)
+
+[IsoRPG] Пакетный запуск: готово.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+IsoRPG.EditorTools.BatchRunner:Run () (at Assets/_Game/Scripts/Editor/BatchRunner.cs:72)
+
+(Filename: Assets/_Game/Scripts/Editor/BatchRunner.cs Line: 72)
+
+Batchmode quit successfully invoked - shutting down!
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input Polling Thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-OXBOX-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-OXBOX channel disconnected successfully.
+Shut down.
+Lingering sessions upon destruction of worker manager
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+CodeReloadManager destroyed
+abort_threads: Failed aborting id: 0000000000001738, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000001738, mono_thread_manage will ignore it
+
+debugger-agent: Unable to listen on 3564
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0

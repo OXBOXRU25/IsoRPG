@@ -218,7 +218,8 @@ namespace IsoRPG.EditorTools
         /// <summary>Извилистые тропы в координатах карты текстур.</summary>
         private static List<Vector2[]> Paths(Terrain terrain)
         {
-            int res = terrain.terrainData.alphamapResolution;
+            var data = terrain.terrainData;
+            int res = data.alphamapResolution;
             var list = new List<Vector2[]>();
 
             // Три тропы: две через всю площадку и одна поперечная. Столько же
@@ -245,7 +246,28 @@ namespace IsoRPG.EditorTools
                     // кустов и по низинам.
                     float wob = (Mathf.PerlinNoise(t * 4f + s.ax * 17f, s.ay * 13f) - 0.5f) * s.wob;
 
-                    pts[i] = new Vector2((x + wob) * res, (y - wob) * res);
+                    // Тропа огибает водоёмы: дорога, ныряющая в пруд, —
+                    // это не брод, а недосмотр. Точку, попавшую в воду,
+                    // выталкиваем наружу по радиусу от центра водоёма.
+                    var world = new Vector2(
+                        terrain.transform.position.x + (x + wob) * data.size.x,
+                        terrain.transform.position.z + (y - wob) * data.size.z);
+
+                    foreach (var pond in SyntyWater.Ponds)
+                    {
+                        float need = pond.Radius + 4f;
+                        var away = world - pond.Centre;
+
+                        if (away.magnitude >= need) continue;
+
+                        if (away.sqrMagnitude < 0.01f) away = Vector2.right;
+                        world = pond.Centre + away.normalized * need;
+                    }
+
+                    float ux = (world.x - terrain.transform.position.x) / data.size.x;
+                    float uy = (world.y - terrain.transform.position.z) / data.size.z;
+
+                    pts[i] = new Vector2(ux * res, uy * res);
                 }
 
                 list.Add(pts);
@@ -326,10 +348,9 @@ namespace IsoRPG.EditorTools
                     // герой, и куст в лицо на старте — не композиция.
                     if (new Vector2(x, z).magnitude < 6f) { i--; continue; }
 
-                    // Пруд обходим: трава посреди воды — верный признак,
-                    // что сеятель не знает про водоём.
-                    if (Vector2.Distance(new Vector2(x, z), SyntyWater.Centre)
-                        < SyntyWater.Radius + 2f) { i--; continue; }
+                    // Водоёмы обходим: трава посреди воды и деревья в пруду —
+                    // верный признак, что сеятель про воду не знает.
+                    if (SyntyWater.Inside(new Vector2(x, z), 2f)) { i--; continue; }
 
                     // Дорогу обходим: на утоптанной тропе трава не растёт.
                     if (OnPath(terrain, new Vector2(x, z), 0.8f)) { i--; continue; }

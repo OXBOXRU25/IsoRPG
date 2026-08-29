@@ -144,11 +144,21 @@ namespace IsoRPG.EditorTools
                     float d = Vector2.Distance(new Vector2(wx, wz), pond.Centre);
                     if (d > pond.Bowl) continue;
 
-                    // Профиль берега: пологий к краю, плоское дно в середине.
-                    // Резкий край дал бы стакан с водой, а не пруд.
-                    float k = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(d / pond.Bowl));
+                    // Полную глубину копаем ЗАВЕДОМО ШИРЕ водной глади, и
+                    // только потом выводим берег наверх.
+                    //
+                    // Иначе дальние выступы неровной модели воды выходят за
+                    // выкопанное, а земля там своя, естественная, и местами
+                    // ниже уровня — угол глади вылезает из-под травы.
+                    // Заказчик поймал это на кадре: «кусок водной
+                    // поверхности углом вылез из-под земли».
+                    float inner = pond.Radius * 1.5f;
 
-                    h[y, x] = Mathf.Max(0f, h[y, x] - depthNorm * k * k);
+                    float k = d <= inner ? 1f
+                        : 1f - Mathf.SmoothStep(0f, 1f,
+                            Mathf.Clamp01((d - inner) / Mathf.Max(0.01f, pond.Bowl - inner)));
+
+                    h[y, x] = Mathf.Max(0f, h[y, x] - depthNorm * k);
                 }
             }
 

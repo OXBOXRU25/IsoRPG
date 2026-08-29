@@ -199,9 +199,18 @@ namespace IsoRPG.EditorTools
                 var box = rs[0].bounds;
                 foreach (var r in rs) box.Encapsulate(r.bounds);
 
-                float own = Mathf.Max(box.size.x, box.size.z);
-                if (own > 0.01f)
-                    water.transform.localScale *= (pond.Radius * 2f) / own;
+                // Тянем по КАЖДОЙ оси отдельно.
+                //
+                // Модель воды у Synty прямоугольная: 13 на 26 метров. При
+                // равномерном масштабе гладь остаётся вдвое длиннее, чем
+                // шире, и кувшинки, разложенные по кругу, вылезают на
+                // траву с узких боков — заказчик это и увидел.
+                var s = water.transform.localScale;
+
+                if (box.size.x > 0.01f) s.x *= (pond.Radius * 2f) / box.size.x;
+                if (box.size.z > 0.01f) s.z *= (pond.Radius * 2f) / box.size.z;
+
+                water.transform.localScale = s;
             }
 
             var mat = AssetDatabase.LoadAssetAtPath<Material>(
@@ -243,7 +252,10 @@ namespace IsoRPG.EditorTools
             for (int i = 0; i < count; i++)
             {
                 float a = Random.Range(0f, Mathf.PI * 2f);
-                float r = Mathf.Lerp(pond.Radius * 0.35f, pond.Radius * 0.88f, Random.value);
+                // 0.80 вместо 0.88: у самой кромки вода в палец глубиной,
+                // и кувшинка там читается лежащей на берегу даже когда
+                // формально стоит в воде.
+                float r = Mathf.Lerp(pond.Radius * 0.30f, pond.Radius * 0.80f, Random.value);
 
                 var at = new Vector3(pond.Centre.x + Mathf.Cos(a) * r, 0f,
                                      pond.Centre.y + Mathf.Sin(a) * r);
@@ -252,7 +264,7 @@ namespace IsoRPG.EditorTools
                 // Иначе они ложатся на берег и висят в воздухе — так и было
                 // на первом пруду, заказчик увидел сразу.
                 float bed = terrain.SampleHeight(at) + terrain.transform.position.y;
-                if (bed > level - 0.15f) { i--; continue; }
+                if (bed > level - 0.35f) { i--; continue; }
 
                 var go = (GameObject)PrefabUtility.InstantiatePrefab(
                     prefabs[Random.Range(0, prefabs.Length)], parent);

@@ -399,6 +399,59 @@ namespace IsoRPG.EditorTools
                     }
                     break;
 
+                case "audio":
+                    {
+                        int added = 0;
+
+                        // Звуковой узел: банк звуков и фон места. Без него
+                        // Sfx не получает банк и игра беззвучна целиком.
+                        var node = GameObject.Find("Audio");
+                        if (node == null)
+                        {
+                            node = new GameObject("Audio");
+                            var setup = node.AddComponent<IsoRPG.Audio.AudioSetup>();
+                            var bank = SoundBankBuilder.Load();
+                            if (bank == null)
+                                Debug.LogError("[IsoRPG] Банк звуков не собран — прогони «Собрать банк звуков».");
+                            setup.Setup(bank, null);
+                            EditorUtility.SetDirty(setup);
+
+                            var amb = new GameObject("Ambience");
+                            amb.transform.SetParent(node.transform, false);
+                            amb.AddComponent<IsoRPG.Audio.AmbienceLoop>();
+
+                            added++;
+                            Debug.Log("[IsoRPG] Звуковой узел собран: банк " +
+                                      (bank == null ? "НЕ найден" : "на месте") + ", фон места добавлен.");
+                        }
+                        else Debug.Log("[IsoRPG] Звуковой узел уже в сцене.");
+
+                        var pl = GameObject.Find("Player");
+                        if (pl != null)
+                        {
+                            if (pl.GetComponent<IsoRPG.Audio.FootstepPlayer>() == null)
+                            { pl.AddComponent<IsoRPG.Audio.FootstepPlayer>(); added++;
+                              Debug.Log("[IsoRPG] Шаги героя добавлены."); }
+
+                            // Слушатель на герое, а не на камере: в изометрии
+                            // камера в двадцати метрах, и всё рядом с героем
+                            // доходило бы с громкостью в десятую долю.
+                            if (pl.GetComponent<AudioListener>() == null)
+                            {
+                                foreach (var old in UnityEngine.Object.FindObjectsByType<AudioListener>(
+                                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                                    UnityEngine.Object.DestroyImmediate(old);
+
+                                pl.AddComponent<AudioListener>(); added++;
+                                Debug.Log("[IsoRPG] Слушатель звука переставлен на героя.");
+                            }
+                        }
+
+                        Debug.Log("[IsoRPG] Звук: добавлено " + added + " составляющих.");
+                        if (added > 0) UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+                    }
+                    break;
+
                 case "pond-shot":
                     SceneEye.Shot("pond", new Vector3(-46f, 2f, 34f), 70f, 22f, 35f);
                     SceneEye.Shot("pond-near", new Vector3(20f, 5f, -16f), 40f, 20f, 120f);

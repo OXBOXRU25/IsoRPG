@@ -1450,6 +1450,122 @@ namespace IsoRPG.EditorTools
                     break;
                 }
 
+                case "grass-gap":
+                {
+                    // Где траве не хватает изгиба.
+                    //
+                    // Изгиб ограничен сверху, иначе ошибка расчёта разбрасывает
+                    // кусты по небу. Значит куст, под которым перепад земли
+                    // больше предела, отработает не полностью и краем повиснет.
+                    // Считаем перепад под габаритами каждого куста и печатаем
+                    // худшие места по координатам — вместо «поищи сам глазами».
+                    var gapHolder = GameObject.Find("Луг Synty");
+                    var gapTerr = UnityEngine.Object.FindObjectsByType<Terrain>(
+                        FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+                    if (gapHolder == null || gapTerr.Length == 0)
+                    {
+                        Debug.LogError("[IsoRPG] Нет луга или террейна.");
+                        break;
+                    }
+
+                    var gapT = gapTerr[0];
+                    const float limit = 8f;
+
+                    int over = 0;
+                    float worstDrop = 0f;
+                    var worstAt = Vector3.zero;
+                    var tops = new System.Collections.Generic.List<(float drop, Vector3 at, string name)>();
+
+                    foreach (Transform pl in gapHolder.transform)
+                    {
+                        var rr = pl.GetComponentsInChildren<Renderer>(true);
+                        if (rr.Length == 0) continue;
+
+                        var bb = rr[0].bounds;
+                        foreach (var r in rr) bb.Encapsulate(r.bounds);
+
+                        // Перепад земли под пятном куста: разница между самой
+                        // высокой и самой низкой точкой по его углам и центру.
+                        float hi = float.MinValue, lo = float.MaxValue;
+
+                        for (int sx = -1; sx <= 1; sx++)
+                        {
+                            for (int sz = -1; sz <= 1; sz++)
+                            {
+                                var p2 = new Vector3(
+                                    bb.center.x + sx * bb.extents.x,
+                                    0f,
+                                    bb.center.z + sz * bb.extents.z);
+
+                                float hh = gapT.SampleHeight(p2) + gapT.transform.position.y;
+
+                                if (hh > hi) hi = hh;
+                                if (hh < lo) lo = hh;
+                            }
+                        }
+
+                        float drop = hi - lo;
+
+                        tops.Add((drop, pl.position, pl.name));
+
+                        if (drop > limit) over++;
+
+                        if (drop > worstDrop) { worstDrop = drop; worstAt = pl.position; }
+                    }
+
+                    tops.Sort((x, y2) => y2.drop.CompareTo(x.drop));
+
+                    Debug.Log("[IsoRPG] Перепад под кустами: всего " + tops.Count +
+                              ", больше предела " + limit + " м — " + over +
+                              ", наибольший " + worstDrop.ToString("0.0") + " м в точке (" +
+                              worstAt.x.ToString("0") + ", " + worstAt.z.ToString("0") + ").");
+
+                    for (int i = 0; i < Mathf.Min(6, tops.Count); i++)
+                        Debug.Log("[IsoRPG]   перепад " + tops[i].drop.ToString("0.0") +
+                                  " м у «" + tops[i].name + "» в (" +
+                                  tops[i].at.x.ToString("0") + ", " + tops[i].at.z.ToString("0") + ")");
+
+                    break;
+                }
+
+                case "grass-here":
+                {
+                    // Что растёт в конкретной точке и включён ли у него изгиб.
+                    //
+                    // «Где-то стало хорошо, а тут нет» почти всегда значит, что
+                    // правка досталась не всем: у растений разных наборов свои
+                    // материалы и свои шейдеры.
+                    var here = new Vector2(17f, 4f);
+                    const float radius = 12f;
+
+                    int found = 0;
+
+                    foreach (var mr in UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+                             FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                    {
+                        var p3 = mr.transform.position;
+
+                        if (Vector2.Distance(new Vector2(p3.x, p3.z), here) > radius) continue;
+                        if (mr.sharedMaterial == null) continue;
+
+                        var mat = mr.sharedMaterial;
+
+                        bool has = mat.HasProperty("_ConformStrength");
+                        float val = has ? mat.GetFloat("_ConformStrength") : -1f;
+
+                        Debug.Log("[IsoRPG] В точке: «" + mr.name + "» на (" +
+                                  p3.x.ToString("0") + ", " + p3.z.ToString("0") +
+                                  "), материал «" + mat.name + "», шейдер «" + mat.shader.name +
+                                  "», изгиб " + (has ? val.ToString("0.0") : "СВОЙСТВА НЕТ"));
+
+                        if (++found >= 10) break;
+                    }
+
+                    if (found == 0) Debug.Log("[IsoRPG] В точке ничего не нашлось.");
+                    break;
+                }
+
                 case "nav-hole":
                     NavHoleProbe.Run();
                     break;

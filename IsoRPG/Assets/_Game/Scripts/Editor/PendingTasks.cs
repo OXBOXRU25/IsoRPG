@@ -268,7 +268,21 @@ namespace IsoRPG.EditorTools
                         var mf3 = mr.GetComponent<MeshFilter>();
 
                         if (mf3 == null || mf3.sharedMesh == null) continue;
-                        if (!mf3.sharedMesh.name.ToLowerInvariant().Contains("water")) continue;
+                        string meshName = mf3.sharedMesh.name.ToLowerInvariant();
+
+                        if (!meshName.Contains("water")) continue;
+
+                        // «Water» в имени меша — ещё не гладь.
+                        //
+                        // Мельничное колесо называется WaterWheel, и первый
+                        // заход выкрасил его материалом воды: прозрачное
+                        // бирюзовое колесо посреди реки. Отбор по одному
+                        // слову ловит всё, что рядом с водой стоит, а не
+                        // саму воду.
+                        if (meshName.Contains("wheel") || meshName.Contains("mill") ||
+                            meshName.Contains("well") || meshName.Contains("bucket") ||
+                            meshName.Contains("barrel") || meshName.Contains("pump"))
+                            continue;
 
                         mr.sharedMaterial = wet;
                         fixedCount++;
@@ -1662,6 +1676,41 @@ namespace IsoRPG.EditorTools
                 case "grass-shot":
                     GrassShot.Shoot();
                     break;
+
+                case "author-mats":
+                    AuthorMats.Report();
+                    break;
+
+                case "author-repair":
+                    AuthorRepair.Fix();
+                    break;
+
+                case "sky-dome-off":
+                {
+                    // Снять купол неба, оставив настоящий скайбокс.
+                    //
+                    // Купол — наш обход того, что шейдер неба Synty не встаёт
+                    // в RenderSettings.skybox. Он следует за камерой только
+                    // по горизонтали, а по высоте стоит там, где его
+                    // поставили. На земле автора это дало тёмный круг с
+                    // облаками посреди неба — заказчик увидел его первым
+                    // кадром. Здесь купол не нужен вовсе: скайбокс лугового
+                    // биома в настройках сцены уже стоит и рисуется.
+                    var domes = UnityEngine.Object.FindObjectsByType<GameObject>(
+                                    FindObjectsInactive.Include)
+                                .Where(g => g.name == "Небо Synty").ToArray();
+
+                    foreach (var d in domes) UnityEngine.Object.DestroyImmediate(d);
+
+                    string sky = RenderSettings.skybox != null
+                        ? RenderSettings.skybox.name : "НЕТ";
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Купол снят: " + domes.Length +
+                              ". Небо теперь скайбоксом: " + sky + ".");
+                    break;
+                }
 
                 case "arena-open-author":
                 {

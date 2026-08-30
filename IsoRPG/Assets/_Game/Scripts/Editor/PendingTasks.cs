@@ -1791,6 +1791,75 @@ namespace IsoRPG.EditorTools
                     break;
                 }
 
+                case "sw2-mat":
+                {
+                    // Первая проверка Stylized Water 2 1.7.0: материал
+                    // набора на ОДИН пруд (малый, у (20, −16)), не на всю
+                    // воду сцены. Цель — узнать, доживёт ли шейдер до
+                    // СОБРАННОЙ игры, а не подменить всё сразу и потом
+                    // разбираться, что из этого не работало никогда.
+                    var preset = AssetDatabase.LoadAssetAtPath<Material>(
+                        "Assets/StylizedWater2/Materials/StylizedWater2_Smooth.mat");
+
+                    if (preset == null)
+                    {
+                        Debug.LogError("[IsoRPG] Эталонного материала SW2 нет по пути.");
+                        break;
+                    }
+
+                    if (preset.shader == null || !preset.shader.isSupported)
+                    {
+                        Debug.LogError("[IsoRPG] Шейдер SW2 не поддерживается конвейером — " +
+                                       "прогони «water-shader-build» перед этим заданием.");
+                        break;
+                    }
+
+                    var mine = new Material(preset) { name = "Water_Pond_SW2" };
+
+                    string matPath = "Assets/_Game/Art/Materials/Water_Pond_SW2.mat";
+                    var existing = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                    if (existing != null) AssetDatabase.DeleteAsset(matPath);
+
+                    AssetDatabase.CreateAsset(mine, matPath);
+                    AssetDatabase.SaveAssets();
+
+                    Vector3 target = new Vector3(20f, 0f, -16f);
+                    MeshRenderer picked = null;
+                    float bestDist = float.MaxValue;
+
+                    foreach (var mr in UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        var mf = mr.GetComponent<MeshFilter>();
+                        if (mf == null || mf.sharedMesh == null) continue;
+
+                        string meshName = mf.sharedMesh.name.ToLowerInvariant();
+                        if (!meshName.Contains("water")) continue;
+                        if (meshName.Contains("wheel") || meshName.Contains("mill") ||
+                            meshName.Contains("well") || meshName.Contains("bucket") ||
+                            meshName.Contains("barrel") || meshName.Contains("pump"))
+                            continue;
+
+                        var p = mr.transform.position;
+                        float d = new Vector2(p.x - target.x, p.z - target.z).sqrMagnitude;
+                        if (d < bestDist) { bestDist = d; picked = mr; }
+                    }
+
+                    if (picked == null)
+                    {
+                        Debug.LogError("[IsoRPG] Пруда у (20, −16) не нашлось — воды в сцене нет вовсе.");
+                        break;
+                    }
+
+                    picked.sharedMaterial = mine;
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] SW2 поставлен на «" + picked.gameObject.name + "» на " +
+                              picked.transform.position.ToString("0.0") + " (расстояние до цели " +
+                              Mathf.Sqrt(bestDist).ToString("0.0") + " м). Остальная вода не тронута.");
+                    break;
+                }
+
                 case "water-find":
                 {
                     // Найти ВСЮ воду сцены и сказать, чем она покрашена.

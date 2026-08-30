@@ -93,30 +93,13 @@ namespace IsoRPG.EditorTools
                         touched = true;
                         wet++;
                     }
-                    else if (shader == "SyntyStudios/SkyboxUnlit" && unlit != null)
-                    {
-                        // Купол неба автора. Его шейдер в URP не рисуется —
-                        // и купол читается синим диском над головой. Свет
-                        // ему не нужен: небо само себе источник, поэтому
-                        // Unlit с его же текстурой.
-                        var domeMat = new Material(unlit) { name = m.name + "_URP" };
-
-                        foreach (var key in new[] { "_MainTex", "_BaseMap", "_Texture" })
-                            if (m.HasProperty(key) && m.GetTexture(key) != null)
-                            {
-                                domeMat.SetTexture("_BaseMap", m.GetTexture(key));
-                                break;
-                            }
-
-                        // Купол смотрят ИЗНУТРИ, поэтому лицевые грани у
-                        // него вывернуты: без отключения отсечения виден
-                        // только затылок, то есть пустота.
-                        domeMat.SetFloat("_Cull", 0f);
-
-                        mats[i] = domeMat;
-                        touched = true;
-                        domes++;
-                    }
+                    // Небо НЕ ТРОГАЕМ.
+                    //
+                    // Купол автора рисовался в URP исправно; я перевёл его
+                    // «за компанию» с облаками и потерял текстуру — небо
+                    // стало плоским тёмно-синим силуэтом. Починка сломала
+                    // исправное, и это худший род правки. Купол чинится
+                    // только одним способом: не чинить.
                     else if (shader == "Synty/Clouds" && unlit != null)
                     {
                         // Облака переводим на прозрачный Unlit: свет им не

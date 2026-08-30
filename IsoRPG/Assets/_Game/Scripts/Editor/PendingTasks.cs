@@ -1685,6 +1685,254 @@ namespace IsoRPG.EditorTools
                     AuthorRepair.Fix();
                     break;
 
+                case "sky-reimport":
+                {
+                    // Взять небо автора заново из его сцены.
+                    //
+                    // Своё я испортил переводом материалов, и чинить починку
+                    // — тот самый круг, за который меня уже отругали. Проще и
+                    // честнее: снести испорченную группу и перенести её из
+                    // демо-сцены заново, ничего по дороге не «улучшая».
+                    const string demo =
+                        "Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Scene/Demo.unity";
+
+                    var spoiled = UnityEngine.Object.FindObjectsByType<GameObject>(
+                                      FindObjectsInactive.Include)
+                                  .Where(g => g.name == "Background_Sky").ToArray();
+
+                    foreach (var s in spoiled) UnityEngine.Object.DestroyImmediate(s);
+
+                    var host = UnityEngine.Object.FindObjectsByType<GameObject>(
+                                   FindObjectsInactive.Include)
+                               .FirstOrDefault(g => g.name == "МИР АВТОРА");
+
+                    if (host == null)
+                    {
+                        Debug.LogError("[IsoRPG] В сцене нет «МИР АВТОРА» — некуда ставить небо.");
+                        break;
+                    }
+
+                    var src = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                        demo, UnityEditor.SceneManagement.OpenSceneMode.Additive);
+
+                    GameObject fresh = null;
+
+                    foreach (var root in src.GetRootGameObjects())
+                    {
+                        if (root.name == "Background_Sky") { fresh = root; break; }
+
+                        var found = root.GetComponentsInChildren<Transform>(true)
+                                        .FirstOrDefault(t => t.name == "Background_Sky");
+
+                        if (found != null) { fresh = found.gameObject; break; }
+                    }
+
+                    if (fresh == null)
+                    {
+                        Debug.LogError("[IsoRPG] В демо-сцене нет Background_Sky.");
+                        UnityEditor.SceneManagement.EditorSceneManager.CloseScene(src, true);
+                        break;
+                    }
+
+                    // Копия, а не перенос: исходную сцену набора трогать нельзя.
+                    var copy = UnityEngine.Object.Instantiate(fresh);
+                    copy.name = "Background_Sky";
+                    copy.transform.SetParent(host.transform, true);
+                    copy.transform.position = fresh.transform.position;
+
+                    int parts = copy.GetComponentsInChildren<Renderer>(true).Length;
+
+                    UnityEditor.SceneManagement.EditorSceneManager.CloseScene(src, true);
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Небо автора перенесено заново: снесено испорченных " +
+                              spoiled.Length + ", частей в новом " + parts +
+                              ". Материалы НЕ трогались.");
+                    break;
+                }
+
+                case "sky-upper-off":
+                {
+                    // Выключить ВЕРХНИЙ купол неба.
+                    //
+                    // У автора небо собрано из двух вложенных куполов: нижний
+                    // 639 м высотой даёт розово-белый градиент и в URP
+                    // рисуется верно, верхний 1760 м — тёмно-синюю заливку
+                    // вместо градиента. Его шейдер `SyntyStudios/SkyboxUnlit`
+                    // в URP считает высоту иначе, и купол читается синим
+                    // диском над головой. Материалы НЕ трогаем: одно
+                    // выключение обратимо, а правка шейдера — нет.
+                    int off = 0;
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<Renderer>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (r.gameObject.name.IndexOf("Skydome",
+                                System.StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+                        // Верхний — тот, что выше. Отличаем по габаритам, а
+                        // не по имени: имена у них одинаковые.
+                        if (r.bounds.size.y < 1000f) continue;
+
+                        r.gameObject.SetActive(false);
+                        off++;
+
+                        Debug.Log("[IsoRPG] Выключен верхний купол «" + r.gameObject.name +
+                                  "», высота " + r.bounds.size.y.ToString("0") + " м.");
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Верхних куполов выключено: " + off + ".");
+                    break;
+                }
+
+                case "sky-report":
+                {
+                    // Перепись ВСЕГО, что относится к небу автора.
+                    //
+                    // «Купол» на кадре имеет форму горы с плоской вершиной —
+                    // а купол круглый. Значит под одним словом могут прятаться
+                    // разные объекты, и гадать, какой из них синий, нельзя.
+                    // Печатаем группу целиком: имя, размер, шейдер, материал,
+                    // включён ли объект.
+                    var group = UnityEngine.Object.FindObjectsByType<GameObject>(
+                                    FindObjectsInactive.Include)
+                                .FirstOrDefault(g => g.name == "Background_Sky");
+
+                    if (group == null)
+                    {
+                        Debug.LogError("[IsoRPG] Группы Background_Sky в сцене нет.");
+                        break;
+                    }
+
+                    Debug.Log("[IsoRPG] === ЧТО ЛЕЖИТ В BACKGROUND_SKY ===");
+
+                    foreach (var r in group.GetComponentsInChildren<Renderer>(true))
+                    {
+                        var m = r.sharedMaterial;
+                        var b = r.bounds;
+
+                        Debug.Log("[IsoRPG] «" + r.gameObject.name + "»: " +
+                                  (r.gameObject.activeInHierarchy ? "включён" : "ВЫКЛЮЧЕН") +
+                                  ", размер " + b.size.x.ToString("0") + " x " +
+                                  b.size.y.ToString("0") + " x " + b.size.z.ToString("0") +
+                                  " м, в точке " + r.transform.position +
+                                  ", материал " + (m != null ? m.name : "НЕТ") +
+                                  ", шейдер " + (m != null && m.shader != null
+                                      ? m.shader.name : "НЕТ") +
+                                  ", очередь " + (m != null ? m.renderQueue.ToString() : "—"));
+                    }
+
+                    Debug.Log("[IsoRPG] Небо в настройках сцены: " +
+                              (RenderSettings.skybox != null
+                                  ? RenderSettings.skybox.name : "НЕТ") +
+                              ", дальняя граница камеры даст обрез, если купол за ней.");
+                    break;
+                }
+
+                case "sky-dome-restore":
+                {
+                    // Вернуть куполу его РОДНОЙ материал.
+                    //
+                    // Купол автора работал в URP как есть. Синим диском были
+                    // облачные кольца — их я перевёл верно, а купол трогать
+                    // было незачем: «за компанию» он потерял текстуру и стал
+                    // плоским тёмно-синим силуэтом. Это ровно тот случай,
+                    // когда починка ломает исправное.
+                    var mat = AssetDatabase.LoadAssetAtPath<Material>(
+                        "Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Materials/" +
+                        "Skybox_Meadows_Mat_01.mat");
+
+                    if (mat == null)
+                    {
+                        Debug.LogError("[IsoRPG] Родного материала неба нет — " +
+                                       "искать в PNB_Meadow_Forest/Materials.");
+                        break;
+                    }
+
+                    int back = 0;
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<Renderer>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (r.gameObject.name.IndexOf("Skydome",
+                                System.StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+                        r.sharedMaterial = mat;
+                        back++;
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Куполу возвращён родной материал «" + mat.name +
+                              "» на " + back + " объектах.");
+                    break;
+                }
+
+                case "sky-dome-purge":
+                {
+                    // Снести ВСЕ куполы неба, кроме авторских.
+                    //
+                    // Прошлое задание удаляло по имени «Небо Synty» и сняло
+                    // один объект из двух: второй наш купол лежит под другим
+                    // именем, и заказчик видит его третий заход подряд.
+                    // Поэтому здесь ищем по сути — по шейдеру неба и по имени
+                    // меша — и печатаем ПУТЬ каждого, чтобы было видно, чей он.
+                    var suspects = UnityEngine.Object.FindObjectsByType<Renderer>(
+                                       FindObjectsInactive.Include, FindObjectsSortMode.None)
+                                   .Where(r =>
+                                   {
+                                       var m = r.sharedMaterial;
+                                       bool skyShader = m != null && m.shader != null &&
+                                                        m.shader.name.Contains("Skybox");
+                                       bool skyName = r.gameObject.name.IndexOf(
+                                           "Skydome", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+                                       return skyShader || skyName;
+                                   })
+                                   .ToArray();
+
+                    int removed = 0;
+
+                    foreach (var r in suspects)
+                    {
+                        if (r == null) continue;
+
+                        // Полный путь: по нему сразу видно, из чьей сцены объект.
+                        var path = r.gameObject.name;
+                        var walk = r.transform.parent;
+                        bool authors = false;
+
+                        while (walk != null)
+                        {
+                            path = walk.name + "/" + path;
+                            if (walk.name == "МИР АВТОРА") authors = true;
+                            walk = walk.parent;
+                        }
+
+                        Debug.Log("[IsoRPG] Купол: " + path +
+                                  (authors ? "  — авторский, оставляю"
+                                           : "  — НАШ, сношу"));
+
+                        if (!authors)
+                        {
+                            UnityEngine.Object.DestroyImmediate(r.gameObject);
+                            removed++;
+                        }
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Куполов найдено " + suspects.Length +
+                              ", снесено наших " + removed + ".");
+                    break;
+                }
+
+                case "flower-probe":
+                    FlowerProbe.Measure();
+                    break;
+
                 case "sky-dome-off":
                 {
                     // Снять купол неба, оставив настоящий скайбокс.

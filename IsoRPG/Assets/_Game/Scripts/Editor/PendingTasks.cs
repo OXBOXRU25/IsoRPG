@@ -1751,6 +1751,72 @@ namespace IsoRPG.EditorTools
                     break;
                 }
 
+                case "backdrop-off":
+                {
+                    // Убрать дальний план — «бесконечные поля» вокруг локации.
+                    //
+                    // Автор закрывает горизонт обманкой: за игровой землёй в
+                    // 400 м лежат огромные плоскости с полями, уходящие на
+                    // километры. Их место займут горы, поэтому пока просто
+                    // гасим. ВЫКЛЮЧАЕМ, а не удаляем: вернуть или заменить
+                    // надо будет одним движением, а удаление необратимо.
+                    //
+                    // Небо не трогаем: купола и облачные кольца тоже стоят
+                    // далеко и огромны, но без них будет дыра вместо неба.
+                    // Отличаем по принадлежности к Background_Sky.
+                    const float Edge = 210f;   // граница земли автора плюс запас
+
+                    int off = 0;
+                    float farthest = 0f;
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<Renderer>(
+                                 FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                    {
+                        if (r == null || !r.gameObject.activeInHierarchy) continue;
+
+                        // Небо и облака пропускаем.
+                        bool sky = false;
+                        var walk = r.transform;
+
+                        while (walk != null)
+                        {
+                            if (walk.name == "Background_Sky") { sky = true; break; }
+                            walk = walk.parent;
+                        }
+
+                        if (sky) continue;
+
+                        var b = r.bounds;
+
+                        // Дальний план: либо стоит за краем земли, либо сам
+                        // размером с несколько её карт.
+                        bool beyond = Mathf.Abs(b.center.x) > Edge ||
+                                      Mathf.Abs(b.center.z) > Edge;
+
+                        bool huge = b.size.x > 600f || b.size.z > 600f;
+
+                        if (!beyond && !huge) continue;
+
+                        float away = Mathf.Max(Mathf.Abs(b.center.x), Mathf.Abs(b.center.z));
+                        if (away > farthest) farthest = away;
+
+                        Debug.Log("[IsoRPG] Гашу дальний план: «" + r.gameObject.name +
+                                  "», размер " + b.size.x.ToString("0") + " x " +
+                                  b.size.z.ToString("0") + " м, в точке " +
+                                  b.center.x.ToString("0") + ", " + b.center.z.ToString("0"));
+
+                        r.gameObject.SetActive(false);
+                        off++;
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Дальний план погашен: объектов " + off +
+                              ", самый дальний стоял в " + farthest.ToString("0") +
+                              " м от середины. Небо не тронуто.");
+                    break;
+                }
+
                 case "sky-upper-off":
                 {
                     // Выключить ВЕРХНИЙ купол неба.

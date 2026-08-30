@@ -1663,6 +1663,248 @@ namespace IsoRPG.EditorTools
                     GrassShot.Shoot();
                     break;
 
+                case "arena-open-author":
+                {
+                    // Открыть копию арены, чтобы следующие задания работали
+                    // в ней.
+                    //
+                    // Пакетный запуск всегда открывает НАШУ арену — задание,
+                    // отработавшее не в той сцене, выглядит успешным и не
+                    // меняет ничего. Поэтому переключение сцены сделано
+                    // явным заданием, а не спрятано внутри других.
+                    const string path = "Assets/_Game/Scenes/ArenaAuthor.unity";
+
+                    if (!System.IO.File.Exists(path))
+                    {
+                        Debug.LogError("[IsoRPG] Нет копии арены: " + path);
+                        break;
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                        path, UnityEditor.SceneManagement.OpenSceneMode.Single);
+
+                    Debug.Log("[IsoRPG] Открыта копия арены: " + path);
+                    break;
+                }
+
+                case "arena-clone":
+                {
+                    // Клон арены файлом, а не пересборкой.
+                    //
+                    // Копия файла — самый честный клон: в ней ровно то же
+                    // самое, включая настройки объектов, которые ни один
+                    // строитель не воспроизведёт один в один. И старая арена
+                    // остаётся нетронутой — это и есть возможность вернуться.
+                    const string from = "Assets/_Game/Scenes/Arena.unity";
+                    const string to = "Assets/_Game/Scenes/ArenaAuthor.unity";
+
+                    if (System.IO.File.Exists(to)) AssetDatabase.DeleteAsset(to);
+
+                    if (!AssetDatabase.CopyAsset(from, to))
+                    {
+                        Debug.LogError("[IsoRPG] Не удалось скопировать арену в " + to);
+                        break;
+                    }
+
+                    AssetDatabase.Refresh();
+                    Debug.Log("[IsoRPG] Арена склонирована: " + to);
+                    break;
+                }
+
+                case "author-world":
+                {
+                    // На копии арены: снести НАШУ землю и небо, оставить всё
+                    // живое, развернуть мир автора.
+                    //
+                    // Остаются герой, волки и правила их стояния на
+                    // поверхности (GroundHug у человека, GroundAlign у
+                    // зверя) — они висят на самих существах и переезжают
+                    // вместе с ними. Уходит только окружение.
+                    const string arenaAuthor = "Assets/_Game/Scenes/ArenaAuthor.unity";
+                    const string demo =
+                        "Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Scene/Demo.unity";
+
+                    if (!System.IO.File.Exists(arenaAuthor))
+                    {
+                        Debug.LogError("[IsoRPG] Нет копии арены — сперва «arena-clone».");
+                        break;
+                    }
+
+                    var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                        arenaAuthor, UnityEditor.SceneManagement.OpenSceneMode.Single);
+
+                    // 1. Снос нашего окружения. Список имён, а не угадывание:
+                    //    что не названо — остаётся жить.
+                    string[] ourWorld =
+                    {
+                        "Луг Synty", "Деревья", "Пруд Synty", "Небо Synty", "СЦЕНА АВТОРА",
+                    };
+
+                    int killed = 0;
+
+                    foreach (var go in UnityEngine.Object.FindObjectsByType<GameObject>(
+                                 FindObjectsInactive.Include))
+                    {
+                        if (go == null) continue;
+                        if (!ourWorld.Contains(go.name)) continue;
+
+                        UnityEngine.Object.DestroyImmediate(go);
+                        killed++;
+                    }
+
+                    foreach (var t in UnityEngine.Object.FindObjectsByType<Terrain>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (t == null) continue;
+                        UnityEngine.Object.DestroyImmediate(t.gameObject);
+                        killed++;
+                    }
+
+                    Debug.Log("[IsoRPG] Наше окружение снесено: " + killed + " узлов.");
+
+                    // 2. Мир автора — на место нашего, без сдвига: его земля
+                    //    лежит от −200 до 200, а герой стоит в нуле, то есть
+                    //    ровно в середине его карты.
+                    var extra = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                        demo, UnityEditor.SceneManagement.OpenSceneMode.Additive);
+
+                    var holder = new GameObject("МИР АВТОРА");
+                    int roots = 0;
+
+                    foreach (var root in extra.GetRootGameObjects())
+                    {
+                        root.transform.SetParent(holder.transform, true);
+                        roots++;
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.CloseScene(extra, true);
+
+                    // Его камеру и слушателя звука выбрасываем — у нас свои,
+                    // иначе картинка пойдёт через чужую камеру. Свет тоже:
+                    // два солнца складываются в пересвет, наше настроено.
+                    int stripped = 0;
+
+                    foreach (var cam in holder.GetComponentsInChildren<Camera>(true))
+                    { UnityEngine.Object.DestroyImmediate(cam.gameObject); stripped++; }
+
+                    foreach (var lit in holder.GetComponentsInChildren<Light>(true))
+                    { UnityEngine.Object.DestroyImmediate(lit.gameObject); stripped++; }
+
+                    foreach (var ear in holder.GetComponentsInChildren<AudioListener>(true))
+                    { UnityEngine.Object.DestroyImmediate(ear); stripped++; }
+
+                    // 3. Героя и волков поставить на ЕГО землю: наша ушла, и
+                    //    без этого они падают в пустоту с прежней высоты.
+                    var newGround = UnityEngine.Object.FindObjectsByType<Terrain>(
+                        FindObjectsInactive.Exclude, FindObjectsSortMode.None).FirstOrDefault();
+
+                    int lifted = 0;
+
+                    if (newGround != null)
+                    {
+                        foreach (var agent in UnityEngine.Object
+                                     .FindObjectsByType<UnityEngine.AI.NavMeshAgent>(
+                                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+                        {
+                            var p = agent.transform.position;
+                            float h = newGround.SampleHeight(p) + newGround.transform.position.y;
+
+                            agent.transform.position = new Vector3(p.x, h, p.z);
+                            lifted++;
+                        }
+                    }
+
+                    NavBake.Rebake();
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
+                    UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
+
+                    Debug.Log("[IsoRPG] Мир автора развёрнут на копии арены: корней " + roots +
+                              ", выброшено чужих камер и светильников " + stripped +
+                              ", поставлено на грунт существ " + lifted +
+                              ", земля автора " +
+                              (newGround != null ? newGround.terrainData.size.x.ToString("0") + " м"
+                                                 : "НЕ НАЙДЕНА") + ".");
+                    break;
+                }
+
+                case "arena-use-author":
+                case "arena-use-ours":
+                {
+                    // Переключить, в какую арену ведёт кнопка «Начать игру».
+                    //
+                    // Меню грузит сцену ПО ИМЕНИ из своего поля, а в сборку
+                    // попадает то, что перечислено в настройках сборки.
+                    // Поэтому правим оба места: иначе кнопка позовёт сцену,
+                    // которой в билде нет, и игра встанет на чёрном экране.
+                    bool wantAuthor = lowered == "arena-use-author";
+
+                    string arenaPath = wantAuthor
+                        ? "Assets/_Game/Scenes/ArenaAuthor.unity"
+                        : "Assets/_Game/Scenes/Arena.unity";
+
+                    string arenaName = wantAuthor ? "ArenaAuthor" : "Arena";
+
+                    if (!System.IO.File.Exists(arenaPath))
+                    {
+                        Debug.LogError("[IsoRPG] Нет сцены " + arenaPath);
+                        break;
+                    }
+
+                    const string menuPath = "Assets/_Game/Scenes/MainMenu.unity";
+
+                    var menuScene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                        menuPath, UnityEditor.SceneManagement.OpenSceneMode.Single);
+
+                    int fixedMenus = 0;
+
+                    foreach (var menu in UnityEngine.Object
+                                 .FindObjectsByType<IsoRPG.UI.MainMenu>(
+                                     FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        menu.SetGameScene(arenaName);
+                        EditorUtility.SetDirty(menu);
+                        fixedMenus++;
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(menuScene);
+                    UnityEditor.SceneManagement.EditorSceneManager.SaveScene(menuScene);
+
+                    EditorBuildSettings.scenes = new[]
+                    {
+                        new EditorBuildSettingsScene(menuPath, true),
+                        new EditorBuildSettingsScene(arenaPath, true),
+                    };
+
+                    Debug.Log("[IsoRPG] Кнопка «Начать игру» ведёт в «" + arenaName +
+                              "». Меню поправлено у " + fixedMenus +
+                              " объектов, в сборке две сцены: меню и " + arenaName + ".");
+                    break;
+                }
+
+                case "author-clear":
+                {
+                    // Снять приставленную сцену автора с нашей арены.
+                    //
+                    // Она ставилась эталоном «дойти и сверить», но живёт в
+                    // том же файле сцены и тащит за собой второй террейн,
+                    // навигацию на километр и лишний вес сборки. Убираем
+                    // подчистую; вернуть её — одно задание «author-scene».
+                    var gone = UnityEngine.Object.FindObjectsByType<GameObject>(
+                                   FindObjectsInactive.Include)
+                               .Where(g => g.name == "СЦЕНА АВТОРА").ToArray();
+
+                    int inside = gone.Sum(g => g.GetComponentsInChildren<Transform>(true).Length);
+
+                    foreach (var g in gone) UnityEngine.Object.DestroyImmediate(g);
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Сцена автора снята с арены: корней " + gone.Length +
+                              ", объектов внутри " + inside + ".");
+                    break;
+                }
+
                 case "author-scene":
                 {
                     // Демо-сцена автора целиком — на границе нашей карты.

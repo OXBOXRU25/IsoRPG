@@ -1164,7 +1164,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8dfed193e782e9c47a2ca4dc9d768909, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IsoRPG.UI.MainMenu
-  gameScene: Arena
+  gameScene: ArenaAuthor
 --- !u!114 &1297307862
 MonoBehaviour:
   m_ObjectHideFlags: 0

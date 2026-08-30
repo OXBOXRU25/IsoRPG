@@ -1751,6 +1751,14 @@ namespace IsoRPG.EditorTools
                     break;
                 }
 
+                case "author-light":
+                    AuthorLight.Report();
+                    break;
+
+                case "author-light-use":
+                    AuthorLight.Adopt();
+                    break;
+
                 case "backdrop-off":
                 {
                     // Убрать дальний план — «бесконечные поля» вокруг локации.

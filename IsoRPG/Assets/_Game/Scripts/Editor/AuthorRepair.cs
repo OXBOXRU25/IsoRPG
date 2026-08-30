@@ -115,7 +115,25 @@ namespace IsoRPG.EditorTools
                         if (m.HasProperty("_MainTex") && m.GetTexture("_MainTex") != null)
                             cloud.SetTexture("_BaseMap", m.GetTexture("_MainTex"));
 
-                        cloud.SetColor("_BaseColor", new Color(1f, 1f, 1f, 0.85f));
+                        // Цвет берём У АВТОРА, а не подставляем свой.
+                        //
+                        // В прошлый раз я поставил здесь белый с прозрачностью
+                        // 0.85 «на глаз», и облака вышли кремово-жёлтыми —
+                        // мой оттенок, а не его. Перевод шейдера обязан
+                        // перенести свойства, а не заменить их.
+                        var cloudTint = new Color(1f, 1f, 1f, 0.85f);
+
+                        foreach (var key in new[] { "_Color", "_TintColor", "_BaseColor" })
+                            if (m.HasProperty(key))
+                            {
+                                cloudTint = m.GetColor(key);
+                                break;
+                            }
+
+                        cloud.SetColor("_BaseColor", cloudTint);
+
+                        Debug.Log("[IsoRPG] Облака: взят авторский цвет #" +
+                                  ColorUtility.ToHtmlStringRGBA(cloudTint));
 
                         mats[i] = cloud;
                         touched = true;

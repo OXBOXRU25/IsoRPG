@@ -100,7 +100,11 @@ namespace IsoRPG.EditorTools
             IsoRPG.UI.VersionLabel.Attach(
                 root, Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
             BuildButtons(root, menu);
-            BuildCredits(root);
+            // Строка авторов СНЯТА 30.08.2026 по решению Павлона: звуки
+            // Kenney и музыка Kevin MacLeod из игры убраны, всё содержимое
+            // теперь платное и в указании авторства не нуждается. Сам
+            // BuildCredits оставлен: понадобится — вернуть один вызов.
+            // BuildCredits(root);
 
             // Камера нужна даже при экранном интерфейсе: без неё Unity ругается
             // и в сборке экран уходит в чёрное.

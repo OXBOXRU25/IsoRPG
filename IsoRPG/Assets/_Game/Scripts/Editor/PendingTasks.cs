@@ -1751,6 +1751,285 @@ namespace IsoRPG.EditorTools
                     break;
                 }
 
+                case "water-shader-build":
+                {
+                    // Собрать шейдер воды из шаблона набора.
+                    //
+                    // Главный шейдер лежит файлом `.watershader` — это не
+                    // шейдер, а ЗАГОТОВКА с подстановками вида %shader_name%.
+                    // Настоящий шейдер из неё делает импортёр набора при
+                    // импорте файла. Когда набор ставился, проект не
+                    // компилировался — импортёра не существовало, и шейдер
+                    // не собрался вовсе. Отсюда розовая вода: материал
+                    // ссылался на то, чего нет.
+                    const string tpl = "Assets/StylizedWater2/Shaders/" +
+                                       "StylizedWater2_Standard.watershader";
+
+                    if (!System.IO.File.Exists(tpl))
+                    {
+                        Debug.LogError("[IsoRPG] Заготовки шейдера нет: " + tpl);
+                        break;
+                    }
+
+                    AssetDatabase.ImportAsset(tpl, ImportAssetOptions.ForceUpdate |
+                                                   ImportAssetOptions.ForceSynchronousImport);
+                    AssetDatabase.Refresh();
+
+                    // Проверяем РЕЗУЛЬТАТ, а не факт вызова: импортёр может
+                    // отработать вхолостую и промолчать.
+                    var made = AssetDatabase.LoadAssetAtPath<Shader>(tpl);
+
+                    if (made == null)
+                    {
+                        Debug.LogError("[IsoRPG] Импортёр отработал, но шейдера не появилось. " +
+                                       "Значит заготовка ему не по зубам на этой версии движка.");
+                        break;
+                    }
+
+                    Debug.Log("[IsoRPG] Шейдер воды собран: «" + made.name +
+                              "», поддерживается движком: " + made.isSupported);
+                    break;
+                }
+
+                case "water-find":
+                {
+                    // Найти ВСЮ воду сцены и сказать, чем она покрашена.
+                    //
+                    // Замена нашла 21 объект из 22, и оставшийся рисуется
+                    // розовым — значит его не узнали ни по материалу, ни по
+                    // мешу. Вместо того чтобы гадать, печатаем всё, что
+                    // похоже на воду, с именем меша и состоянием шейдера.
+                    int shown = 0;
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<Renderer>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        var mf = r.GetComponent<MeshFilter>();
+                        string mesh = mf != null && mf.sharedMesh != null ? mf.sharedMesh.name : "нет меша";
+                        var m = r.sharedMaterial;
+
+                        bool looksWater =
+                            mesh.IndexOf("water", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            mesh.IndexOf("lake", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            mesh.IndexOf("pond", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            r.gameObject.name.IndexOf("lake", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            r.gameObject.name.IndexOf("water", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            r.gameObject.name.IndexOf("pond", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            (m != null && m.name.IndexOf("water", System.StringComparison.OrdinalIgnoreCase) >= 0);
+
+                        // Плюс всё, что вовсе не рисуется: розовое пятно
+                        // именно так и выглядит изнутри.
+                        bool broken = m == null || m.shader == null || !m.shader.isSupported;
+
+                        if (!looksWater && !broken) continue;
+
+                        Debug.Log("[IsoRPG] ВОДА? «" + r.gameObject.name + "», меш «" + mesh +
+                                  "», материал «" + (m != null ? m.name : "НЕТ") +
+                                  "», шейдер «" + (m != null && m.shader != null ? m.shader.name : "НЕТ") +
+                                  "», рисуется: " + (m != null && m.shader != null && m.shader.isSupported) +
+                                  ", размер " + r.bounds.size.x.ToString("0") + " x " +
+                                  r.bounds.size.z.ToString("0") + " м");
+                        shown++;
+                    }
+
+                    Debug.Log("[IsoRPG] Всего подозрительных на воду объектов: " + shown);
+                    break;
+                }
+
+
+                case "renderer-clean":
+                {
+                    // Вычистить БИТЫЕ узлы из конвейера отрисовки.
+                    //
+                    // Я добавил в отрисовщик узел подводного вида от набора,
+                    // потом набор удалил — и ссылка осталась висеть пустой.
+                    // Из-за неё конвейер URP не создаётся вовсе: в журнале
+                    // игры NullReferenceException в его конструкторе, картинка
+                    // не рисуется, и поверх чёрного экрана виден только
+                    // интерфейс. Снаружи это выглядит как «игра не
+                    // запустилась», хотя звук идёт и мир живёт.
+                    var pipeline = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline as UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset;
+
+                    if (pipeline == null)
+                    {
+                        Debug.LogError("[IsoRPG] Конвейер URP не найден.");
+                        break;
+                    }
+
+                    var pso = new SerializedObject(pipeline);
+                    var datas = pso.FindProperty("m_RendererDataList");
+
+                    int removed = 0;
+
+                    for (int i = 0; datas != null && i < datas.arraySize; i++)
+                    {
+                        var data = datas.GetArrayElementAtIndex(i).objectReferenceValue
+                                   as UnityEngine.Rendering.Universal.ScriptableRendererData;
+
+                        if (data == null) continue;
+
+                        var dso = new SerializedObject(data);
+                        var feats = dso.FindProperty("m_RendererFeatures");
+                        var map = dso.FindProperty("m_RendererFeatureMap");
+
+                        for (int k = feats.arraySize - 1; k >= 0; k--)
+                        {
+                            if (feats.GetArrayElementAtIndex(k).objectReferenceValue != null) continue;
+
+                            feats.DeleteArrayElementAtIndex(k);
+                            if (map != null && k < map.arraySize) map.DeleteArrayElementAtIndex(k);
+
+                            removed++;
+                            Debug.Log("[IsoRPG] Убран битый узел из «" + data.name + "».");
+                        }
+
+                        dso.ApplyModifiedProperties();
+                        EditorUtility.SetDirty(data);
+                    }
+
+                    AssetDatabase.SaveAssets();
+
+                    Debug.Log("[IsoRPG] Конвейер вычищен: битых узлов убрано " + removed + ".");
+                    break;
+                }
+
+                case "water-back":
+                {
+                    // Вернуть нашу воду: набор Stylized Water 2 версии 1.6.9
+                    // в Unity 6.5 не работает вовсе — не собираются ни его
+                    // проходы отрисовки, ни сам шейдер. Пруд пропал, а на
+                    // миникарте вода стала розовой: так выглядит материал,
+                    // чей шейдер не поддерживается конвейером.
+                    var ours = AssetDatabase.LoadAssetAtPath<Material>(
+                        "Assets/_Game/Art/Materials/Water_Lake_URP.mat");
+
+                    if (ours == null)
+                    {
+                        Debug.LogError("[IsoRPG] Нашего материала воды нет — вернуть нечем.");
+                        break;
+                    }
+
+                    int back = 0;
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<Renderer>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        var mats = r.sharedMaterials;
+                        bool touched = false;
+
+                        for (int i = 0; i < mats.Length; i++)
+                        {
+                            if (mats[i] == null) continue;
+                            // Отбор тот же, что у замены: по материалу, мешу
+                            // и имени объекта, с исключением колеса мельницы.
+                            // Иначе откат находит меньше, чем испортила
+                            // замена, — и часть воды остаётся розовой.
+                            var mfb = r.GetComponent<MeshFilter>();
+                            string meshB = mfb != null && mfb.sharedMesh != null
+                                ? mfb.sharedMesh.name.ToLowerInvariant() : string.Empty;
+                            string nameB = r.gameObject.name.ToLowerInvariant();
+
+                            bool notWaterB = nameB.Contains("wheel") || nameB.Contains("mill") ||
+                                             nameB.Contains("well") || nameB.Contains("prop");
+
+                            bool isWaterB =
+                                mats[i].name.Contains("Water_Pond_SW2") ||
+                                mats[i].name.Contains("Stylized") ||
+                                (!notWaterB && (meshB.Contains("water") || nameB.Contains("lake") ||
+                                                nameB.Contains("pond") || nameB.Contains("water")));
+
+                            if (!isWaterB) continue;
+
+                            mats[i] = ours;
+                            touched = true;
+                        }
+
+                        if (!touched) continue;
+
+                        r.sharedMaterials = mats;
+                        back++;
+                    }
+
+                    int camsOn = 0;
+
+                    foreach (var uw in UnityEngine.Object
+                                 .FindObjectsByType<IsoRPG.Cameras.Underwater>(
+                                     FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        uw.enabled = true;
+                        camsOn++;
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Вода возвращена на наш материал: объектов " + back +
+                              ", подводный туман включён на " + camsOn + " камерах.");
+                    break;
+                }
+
+
+
+                case "underwater":
+                {
+                    // Вода: двусторонняя гладь и подводный вид.
+                    //
+                    // Гладь — плоскость гранями вверх, снизу она не рисуется
+                    // вовсе, и пруд исчезает целиком. Снимаем отсечение
+                    // граней у материала и вешаем на камеру подводный туман.
+                    int faces = 0;
+
+                    foreach (var guid in AssetDatabase.FindAssets("t:Material Water"))
+                    {
+                        var path = AssetDatabase.GUIDToAssetPath(guid);
+                        var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+                        if (mat == null || !mat.HasProperty("_Cull")) continue;
+                        if (!mat.name.Contains("Water_Lake")) continue;
+
+                        mat.SetFloat("_Cull", 0f);          // Off: видно с обеих сторон
+                        mat.doubleSidedGI = true;
+                        EditorUtility.SetDirty(mat);
+                        faces++;
+
+                        Debug.Log("[IsoRPG] Гладь стала двусторонней: " + mat.name);
+                    }
+
+                    AssetDatabase.SaveAssets();
+
+                    // Компонент на камеру. Ищем ту, что снимает мир, а не
+                    // камеру интерфейса: у последней нет подводного вида.
+                    var cam = UnityEngine.Object.FindObjectsByType<Camera>(
+                                  FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+                              .OrderByDescending(c => c.depth == 0 ? 1 : 0)
+                              .FirstOrDefault(c => c.cullingMask != 0);
+
+                    if (cam == null)
+                    {
+                        Debug.LogError("[IsoRPG] Камеры в сцене нет — вешать подводный вид некуда.");
+                        break;
+                    }
+
+                    var uw = cam.GetComponent<IsoRPG.Cameras.Underwater>();
+
+                    if (uw == null) uw = cam.gameObject.AddComponent<IsoRPG.Cameras.Underwater>();
+
+                    // Плотность задаём ПРИНУДИТЕЛЬНО.
+                    //
+                    // 0.055 при квадратичном законе давало на пяти метрах
+                    // всего 7% тумана, а весь подводный кадр — это дно в
+                    // пяти-десяти шагах. Мгла честно включалась и была не
+                    // видна. 0.16 даёт на пяти метрах около половины, а
+                    // дальше десяти всё уходит в цвет воды.
+                    uw.SetLook(new Color(0.10f, 0.42f, 0.44f), 0.16f);
+                    EditorUtility.SetDirty(uw);
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Вода: материалов сделано двусторонними " + faces +
+                              ", подводный вид повешен на камеру «" + cam.name + "».");
+                    break;
+                }
+
                 case "author-light":
                     AuthorLight.Report();
                     break;

@@ -123,6 +123,70 @@ namespace IsoRPG.EditorTools
         // ------------------------------------------------------------------
 
         /// <summary>
+        /// Кадр карты строго сверху — ортографической камерой, а не
+        /// перспективной. Перспектива с большой высоты тянет край кадра
+        /// сильнее центра, и расстояния на снимке врут; ортография держит
+        /// масштаб одинаковым по всему полю.
+        /// </summary>
+        public static void TopDown(string name, Vector3 center, float halfSize, float altitude = 700f)
+        {
+            var rig = new GameObject("SceneEyeTop") { hideFlags = HideFlags.HideAndDontSave };
+
+            var cameraGo = new GameObject("Camera", typeof(Camera));
+            cameraGo.transform.SetParent(rig.transform, false);
+
+            var camera = cameraGo.GetComponent<Camera>();
+            camera.enabled = false;
+            camera.orthographic = true;
+            camera.orthographicSize = halfSize;
+            camera.nearClipPlane = 1f;
+            camera.farClipPlane = altitude + 100f;
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(0.08f, 0.08f, 0.09f);
+
+            // Небо снимаем из кадра явно, не только цветом фона: купол —
+            // настоящая гигантская геометрия (639 м высотой), и сверху вниз
+            // ортографическая камера режет его стенки кольцом на весь кадр.
+            int sky = LayerMask.NameToLayer("Sky");
+            camera.cullingMask = sky >= 0 ? ~(1 << sky) : ~0;
+
+            camera.transform.position = new Vector3(center.x, center.y + altitude, center.z);
+            camera.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+            const int size = 2000;
+            var texture = RenderTexture.GetTemporary(size, size, 24, RenderTextureFormat.ARGB32);
+            var previous = RenderTexture.active;
+
+            camera.targetTexture = texture;
+            camera.Render();
+
+            RenderTexture.active = texture;
+
+            var shot = new Texture2D(size, size, TextureFormat.RGB24, false);
+            shot.ReadPixels(new Rect(0, 0, size, size), 0, 0);
+            shot.Apply();
+
+            RenderTexture.active = previous;
+            camera.targetTexture = null;
+            RenderTexture.ReleaseTemporary(texture);
+
+            Directory.CreateDirectory(Folder);
+
+            string file = Path.Combine(Folder, name + ".png");
+            File.WriteAllBytes(file, shot.EncodeToPNG());
+
+            Object.DestroyImmediate(shot);
+            Object.DestroyImmediate(rig);
+
+            Debug.Log("[IsoRPG] Кадр сверху: " + file);
+        }
+
+        [MenuItem("Tools/IsoRPG/Глаз: карта сверху", priority = 75)]
+        public static void TopDownHere() => TopDown("topdown", Vector3.zero, 215f);
+
+        // ------------------------------------------------------------------
+
+        /// <summary>
         /// Разбирает композицию открытой сцены на числа.
         ///
         /// Ярусы делим по высоте объекта, а не по имени: имена у наборов

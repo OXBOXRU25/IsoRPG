@@ -30,6 +30,7 @@ MonoBehaviour:
     \u0447\u0442\u043E \u043E\u0431\u0435\u0449\u0430\u043D\u043E. \u041E\u043D \u0442\u0432\u043E\u0439."
   requiredItem: {fileID: 11400000, guid: 760f625cf04002e4faf6cc79050b2066, type: 2}
   requiredCount: 5
+  rewardChoices: []
   rewardItem: {fileID: 11400000, guid: 60113850293c0d64eaa3b9f468ec08c0, type: 2}
   rewardCount: 1
   rewardExperience: 320

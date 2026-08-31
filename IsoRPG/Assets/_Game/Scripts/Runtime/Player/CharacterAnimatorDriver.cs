@@ -3,6 +3,19 @@ using UnityEngine.AI;
 
 namespace IsoRPG.Player
 {
+    /// <summary>Каким жестом играется способность.</summary>
+    public enum CastKind
+    {
+        /// <summary>Направленный удар по одной цели.</summary>
+        Attack,
+
+        /// <summary>Удар по площади.</summary>
+        Area,
+
+        /// <summary>Усиление себя.</summary>
+        Buff,
+    }
+
     /// <summary>
     /// Связывает навигацию с анимацией: передаёт в контроллер текущую скорость,
     /// по которой дерево смешивания выбирает стойку, шаг или бег.
@@ -23,11 +36,29 @@ namespace IsoRPG.Player
         private static readonly int EatingHash = Animator.StringToHash("Eating");
         private static readonly int JumpHash = Animator.StringToHash("Jump");
 
+        // Оживление боя: номер удара в серии, вздрагивание, уклонение и
+        // жесты способностей. Параметров может не быть у старых контроллеров
+        // (у зверей их нет вовсе) — поэтому всё через проверку Has ниже.
+        private static readonly int AttackVariantHash = Animator.StringToHash("AttackVariant");
+        private static readonly int HitHash = Animator.StringToHash("Hit");
+        private static readonly int DodgeHash = Animator.StringToHash("Dodge");
+        private static readonly int CastAttackHash = Animator.StringToHash("CastAttack");
+        private static readonly int CastAOEHash = Animator.StringToHash("CastAOE");
+        private static readonly int CastBuffHash = Animator.StringToHash("CastBuff");
+        private static readonly int SneakingHash = Animator.StringToHash("Sneaking");
+        private static readonly int AirborneHash = Animator.StringToHash("InAir");
+
         [Tooltip("Аниматор персонажа. Обычно на дочерней модели.")]
         [SerializeField] private Animator animator;
 
         [Tooltip("Сглаживание разгона. Без него при старте ноги дёргаются, потому что агент меняет скорость рывком.")]
         [SerializeField] private float speedSmooth = 8f;
+
+        /// <summary>Здоровье владельца — источник вздрагиваний.</summary>
+        private IsoRPG.Combat.Health health;
+
+        /// <summary>Скрытность владельца — меняет походку.</summary>
+        private IsoRPG.Combat.StealthState stealth;
 
         [Tooltip("Сглаживание остановки — намеренно резче разгона. Пока сглаженная скорость сползает вниз, аниматор считает персонажа бегущим и не даёт начаться удару.")]
         [SerializeField] private float stopSmooth = 22f;
@@ -43,6 +74,44 @@ namespace IsoRPG.Player
         {
             agent = GetComponent<NavMeshAgent>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
+
+            health = GetComponent<IsoRPG.Combat.Health>();
+        }
+
+        /// <summary>
+        /// Вздрагивание вешаем здесь, а не в бою.
+        ///
+        /// Бьющих много — ближний бой, стрелы, ловушки, яд, — и подписывать
+        /// каждого значит однажды забыть одного. Здоровье же знает про урон
+        /// в единственном месте, откуда бы он ни пришёл.
+        /// </summary>
+        private void OnEnable()
+        {
+            if (health != null) health.Damaged += OnDamaged;
+
+            // Скрытность меняет саму походку, поэтому слушаем её здесь же.
+            if (stealth == null) stealth = GetComponent<IsoRPG.Combat.StealthState>();
+
+            if (stealth != null)
+            {
+                stealth.StealthChanged += SetSneaking;
+                SetSneaking(stealth.IsStealthed);
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (health != null) health.Damaged -= OnDamaged;
+            if (stealth != null) stealth.StealthChanged -= SetSneaking;
+        }
+
+        private void OnDamaged(int amount, GameObject source)
+        {
+            // Мёртвые не вздрагивают: поверх падения это выглядит как
+            // судорога, а не как удар.
+            if (health != null && !health.IsAlive) return;
+
+            PlayHit();
         }
 
         private void Update()
@@ -95,6 +164,92 @@ namespace IsoRPG.Player
         }
 
         /// <summary>Обычная атака. Вызывается боевой системой.</summary>
+        /// <summary>
+        /// Удар номер N в серии. Ноль — «как раньше», одним состоянием.
+        ///
+        /// Номер выставляем ДО триггера: переход читает оба условия в один
+        /// кадр, и при обратном порядке первый удар всегда уходил бы в
+        /// вариант из прошлого замаха.
+        /// </summary>
+        public void PlayAttack(int variant)
+        {
+            if (animator == null) return;
+
+            if (variant > 0 && Has(AttackVariantHash, AnimatorControllerParameterType.Int))
+                animator.SetInteger(AttackVariantHash, variant);
+
+            animator.SetTrigger(AttackHash);
+        }
+
+        /// <summary>
+        /// В воздухе или нет. Держит фазу зависания, пока герой летит.
+        ///
+        /// Без флага зависание кончалось по длине клипа, а не по длине
+        /// прыжка — и герой в воздухе начинал перебирать ногами.
+        /// </summary>
+        public void SetAirborne(bool airborne)
+        {
+            if (animator != null && Has(AirborneHash, AnimatorControllerParameterType.Bool))
+                animator.SetBool(AirborneHash, airborne);
+        }
+
+        /// <summary>Крадётся или нет. Скрытность — состояние, а не действие.</summary>
+        public void SetSneaking(bool sneaking)
+        {
+            if (animator != null && Has(SneakingHash, AnimatorControllerParameterType.Bool))
+                animator.SetBool(SneakingHash, sneaking);
+        }
+
+        /// <summary>Вздрогнуть от попадания.</summary>
+        public void PlayHit()
+        {
+            if (animator != null && Has(HitHash, AnimatorControllerParameterType.Trigger))
+                animator.SetTrigger(HitHash);
+        }
+
+        /// <summary>Уклониться.</summary>
+        public void PlayDodge()
+        {
+            if (animator != null && Has(DodgeHash, AnimatorControllerParameterType.Trigger))
+                animator.SetTrigger(DodgeHash);
+        }
+
+        /// <summary>
+        /// Жест способности. Разные по смыслу: направленный удар, площадь,
+        /// усиление. Игрок должен видеть, что нажал разные кнопки.
+        /// </summary>
+        public void PlayCast(CastKind kind)
+        {
+            if (animator == null) return;
+
+            int hash = kind switch
+            {
+                CastKind.Area => CastAOEHash,
+                CastKind.Buff => CastBuffHash,
+                _ => CastAttackHash,
+            };
+
+            if (Has(hash, AnimatorControllerParameterType.Trigger)) animator.SetTrigger(hash);
+        }
+
+        /// <summary>
+        /// Есть ли такой параметр у контроллера.
+        ///
+        /// Проверка обязательна: этот же компонент висит на волках, кабанах и
+        /// лошади, а у их контроллеров боевых параметров нет. Unity на
+        /// отсутствующий параметр ругается в консоль каждый кадр — и лог
+        /// становится нечитаемым ровно тогда, когда он нужнее всего.
+        /// </summary>
+        private bool Has(int hash, AnimatorControllerParameterType type)
+        {
+            if (animator.runtimeAnimatorController == null) return false;
+
+            foreach (var parameter in animator.parameters)
+                if (parameter.nameHash == hash && parameter.type == type) return true;
+
+            return false;
+        }
+
         public void PlayAttack()
         {
             if (animator != null) animator.SetTrigger(AttackHash);

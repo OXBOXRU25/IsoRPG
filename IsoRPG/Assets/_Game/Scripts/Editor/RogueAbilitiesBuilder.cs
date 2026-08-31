@@ -178,6 +178,39 @@ namespace IsoRPG.EditorTools
                 ability.impactDelay = 0f;
             });
 
+            // Спринт. Числа заданы Павлоном 01.09.2026.
+            Create("A_Sprint", ability =>
+            {
+                ability.displayName = "Спринт";
+                ability.description =
+                    "Мгновенное действие. Скорость передвижения выше на 70% в течение 15 секунд. " +
+                    "Не нарушает незаметности. Требуется 5-й уровень.";
+
+                ability.hotkeyLabel = "4";
+                ability.iconColor = new Color32(0x6A, 0x9A, 0xC8, 0xFF);
+
+                ability.energyCost = 0;
+                ability.cooldown = 120f;      // две минуты
+                ability.requiredLevel = 5;
+
+                ability.comboRole = ComboRole.None;
+                ability.dealsDamage = false;
+
+                // Ни цели, ни удара: приём про себя, а не про противника.
+                ability.requiresTarget = false;
+
+                // Из тени НЕ выводит — так и записано в описании приёма.
+                ability.breaksStealth = false;
+
+                ability.moveSpeedBonus = 0.7f;
+                ability.buffDuration = 15f;
+
+                // Жест усиления, а не замах: игрок должен видеть, что нажал
+                // не атаку.
+                ability.animationTrigger = "CastBuff";
+                ability.impactDelay = 0f;
+            });
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("[IsoRPG] Способности разбойника созданы в " + Folder);
@@ -189,6 +222,7 @@ namespace IsoRPG.EditorTools
             "A_SinisterStrike",   // 1
             "A_KidneyShot",       // 2
             "A_Eviscerate",       // 3
+            "A_Sprint",           // 4
             "A_Stealth",          // 0
         };
 

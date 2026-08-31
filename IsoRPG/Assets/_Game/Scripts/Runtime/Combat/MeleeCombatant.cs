@@ -56,9 +56,15 @@ namespace IsoRPG.Combat
         private TargetSelector targets;
         private NavMeshAgent agent;
         private ClickToMoveController movement;
+        private IsoRPG.Player.KeyboardMove keys;
         private CharacterAnimatorDriver animDriver;
         private Targetable self;
         private WeaponStats weapon;
+
+        /// <summary>Сколько ударов в серии. Столько же состояний в контроллере героя.</summary>
+        private const int AttackVariants = 6;
+
+        private int attackVariant;
 
         private float nextAttackTime;
         private float pendingImpactTime = -1f;
@@ -89,6 +95,10 @@ namespace IsoRPG.Combat
             animDriver = GetComponent<CharacterAnimatorDriver>();
             self = GetComponent<Targetable>();
             weapon = GetComponent<WeaponStats>();
+
+            // Клавиши игрока. У монстров их нет — там останется null, и
+            // проверка ниже просто не сработает.
+            keys = GetComponent<IsoRPG.Player.KeyboardMove>();
         }
 
         private void OnEnable()
@@ -149,6 +159,21 @@ namespace IsoRPG.Combat
 
             if (distance > attackDistance + chaseTolerance)
             {
+                // Игрок идёт на клавишах — бой в управление не лезет вовсе.
+                //
+                // Иначе выходит «магнит»: человек жмёт W, а мы этим же кадром
+                // отдаём агенту приказ идти к цели, и персонаж не может
+                // отойти от монстра — его тянет обратно, пока не выберешь
+                // другую цель. Прежняя защита (manualMoveOverride) на клавишах
+                // не срабатывала: она считает приказ выполненным, как только
+                // агент остановился, а при ходьбе на WASD путь агенту вообще
+                // не ставится — значит «остановился» там верно всегда.
+                if (keys != null && keys.IsSteering)
+                {
+                    StopMoving();
+                    return;
+                }
+
                 // Пока игрок ведёт персонажа сам — не вмешиваемся. Приказ
                 // считается выполненным, когда персонаж остановился.
                 if (manualMoveOverride)
@@ -248,7 +273,15 @@ namespace IsoRPG.Combat
         {
             nextAttackTime = Time.time + CurrentInterval;
 
-            if (animDriver != null) animDriver.PlayAttack();
+            // Следующий удар в серии. Клипы чередуются по кругу: один и тот
+            // же замах кадр в кадр превращает драку в метроном, и это первое,
+            // что бросается в глаза со стороны.
+            //
+            // У кого серии нет (звери), номер уходит в пустоту: их контроллер
+            // просто не знает такого параметра, и удар играется как раньше.
+            attackVariant = attackVariant % AttackVariants + 1;
+
+            if (animDriver != null) animDriver.PlayAttack(attackVariant);
 
             // Звук замаха — сразу, вместе с анимацией. Попадание прозвучит
             // отдельно и позже: между ними и живёт ощущение удара.

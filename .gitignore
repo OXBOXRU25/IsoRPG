@@ -173,3 +173,10 @@ IsoRPG/Assets/PolygonNatureBiomes.meta
 
 # Логи пакетных прогонов Unity: их десятки, в истории не нужны.
 unity-*.log
+
+# Наборы лошадей и живности — 600+ МБ, восстанавливаются из H:/2/Лошадь
+/IsoRPG/Assets/Malbers Animations/
+/IsoRPG/Assets/POLYGONHorse/
+
+# Листы иконок от генератора — исходники, в игру идут нарезанные
+/Icons/

@@ -1,36 +1,41 @@
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace IsoRPG.Cameras
 {
     /// <summary>
     /// Подводный вид: когда камера опускается ниже глади.
     ///
-    /// Без этого вода просто исчезает. Гладь — плоскость, у которой грани
-    /// смотрят вверх; из-под воды видна её изнанка, а изнанка не рисуется.
-    /// Заказчик увидел ровно это: опустил камеру к воде — пруд пропал, и
-    /// осталось сухое дно, посреди которого стоит герой по пояс.
+    /// Гладь — плоскость, у которой грани смотрят вверх; из-под воды видна
+    /// её изнанка, а изнанка не рисуется. Двусторонний материал возвращает
+    /// поверхность в кадр, но у плоскости всё равно нет толщины: камера у
+    /// самой кромки смотрит на неё РЕБРОМ и видит тонкую полоску там, где
+    /// должна быть толща воды, а весь остальной кадр — суша и небо —
+    /// остаётся нетронутым. Тумана сцены (`RenderSettings.fog`) для показа
+    /// глубины тоже мало: у воды на пруду он либо неразличим на близких
+    /// дистанциях, либо успевает мигнуть и погаснуть за то же мгновение,
+    /// что и порог погружения.
     ///
-    /// Двусторонняя гладь (снятое отсечение граней у материала) возвращает
-    /// поверхность в кадр, но одной её мало: под водой должен меняться сам
-    /// воздух. В WoW это плотная зеленоватая мгла с падением видимости —
-    /// по ней и видно, что ты под водой, а не в мутной комнате.
-    ///
-    /// Туман здесь общий, сценический: он и есть самый дешёвый способ дать
-    /// объём. Прежние настройки запоминаются при входе и возвращаются при
-    /// выходе, иначе после первого же нырка мир останется в тумане.
+    /// Поэтому вместо тумана — плоская заливка экрана цветом воды поверх
+    /// всего, что нарисовано (кроме интерфейса): персонажа видно, но через
+    /// синеву, ровно как в WoW. Полоска от плоскости при этом просто
+    /// тонет в той же заливке и не бросается в глаза.
     /// </summary>
     [RequireComponent(typeof(Camera))]
     public sealed class Underwater : MonoBehaviour
     {
-        [Tooltip("Цвет воды изнутри.")]
-        [SerializeField] private Color fogColor = new Color(0.10f, 0.42f, 0.44f);
+        [Tooltip("Цвет воды — он же цвет заливки экрана под водой.")]
+        [SerializeField] private Color tint = new Color(0.10f, 0.42f, 0.44f);
 
-        [Tooltip("Плотность подводного тумана: чем больше, тем ближе предел видимости.")]
-        [SerializeField] private float fogDensity = 0.055f;
+        [Tooltip("Непрозрачность заливки под водой: 0 — не видно, 1 — сплошной цвет.")]
+        [SerializeField] private float alpha = 0.5f;
 
-        [Tooltip("Насколько глубже глади должна опуститься камера, чтобы счёт пошёл, метры.")]
-        [SerializeField] private float threshold = 0.05f;
+        [Tooltip("Насколько глубже глади должна опуститься камера, чтобы погружение НАЧАЛОСЬ, метры.")]
+        [SerializeField] private float diveThreshold = 0.05f;
+
+        [Tooltip("Насколько выше глади должна подняться камера, чтобы всплытие СЧИТАЛОСЬ окончательным, метры. Больше порога погружения нарочно — гасит дребезг у самой кромки: без разницы между порогами камера у границы ныряла и всплывала по многу раз в секунду.")]
+        [SerializeField] private float surfaceThreshold = 0.35f;
 
         [Tooltip("По какому куску имени материала узнаём воду.")]
         [SerializeField] private string waterMaterial = "Water_Lake";
@@ -38,20 +43,46 @@ namespace IsoRPG.Cameras
         private Renderer[] water;
         private Camera eye;
         private bool submerged;
-
-        // Что было до погружения.
-        private bool hadFog;
-        private Color hadColor;
-        private FogMode hadMode;
-        private float hadDensity, hadStart, hadEnd;
+        private Image overlay;
 
         private void Awake()
         {
             eye = GetComponent<Camera>();
             Collect();
+            BuildOverlay();
 
             Debug.Log("[IsoRPG] Подводный вид включён на камере «" + name +
                       "», водоёмов при старте " + (water != null ? water.Length : 0));
+        }
+
+        /// <summary>
+        /// Заливка экрана — своим Canvas, а не через существующий HUD:
+        /// компонент должен работать даже если HUD ещё не собран или собран
+        /// иначе. Порядок сортировки нарочно отрицательный: заливка ложится
+        /// НИЖЕ любого интерфейса (полоски здоровья, миникарты, окон) — они
+        /// начинаются от 5 и выше, — иначе синева перекрасила бы и HUD.
+        /// </summary>
+        private void BuildOverlay()
+        {
+            var canvasGo = new GameObject("Подводная заливка", typeof(Canvas));
+            canvasGo.transform.SetParent(transform, false);
+
+            var canvas = canvasGo.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = -100;
+
+            var imgGo = new GameObject("Заливка", typeof(Image));
+            imgGo.transform.SetParent(canvasGo.transform, false);
+
+            overlay = imgGo.GetComponent<Image>();
+            overlay.raycastTarget = false;
+            overlay.color = new Color(tint.r, tint.g, tint.b, 0f);
+
+            var rt = overlay.rectTransform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
         }
 
         /// <summary>
@@ -97,10 +128,20 @@ namespace IsoRPG.Cameras
 
                 var box = w.bounds;
 
-                // Внутри водоёма по горизонтали и ниже его поверхности.
+                // Внутри водоёма по горизонтали.
                 if (at.x < box.min.x || at.x > box.max.x) continue;
                 if (at.z < box.min.z || at.z > box.max.z) continue;
-                if (at.y > box.max.y - threshold) continue;
+
+                // По высоте — с разными порогами на вход и выход (гистерезис):
+                // если уже под водой, остаёмся ею, пока не поднимемся
+                // заметно выше глади; если ещё на суше, ныряем только когда
+                // опустимся заметно ниже. Одна и та же линия для обоих
+                // направлений дребезжит на кромке пруда.
+                bool underThisOne = submerged
+                    ? at.y < box.max.y + surfaceThreshold
+                    : at.y < box.max.y - diveThreshold;
+
+                if (!underThisOne) continue;
 
                 now = true;
                 break;
@@ -114,40 +155,8 @@ namespace IsoRPG.Cameras
                 ? "[IsoRPG] Камера ушла под воду на " + (eye.transform.position.y).ToString("0.00")
                 : "[IsoRPG] Камера вышла из воды");
 
-            if (submerged) Dive();
-            else Surface();
-        }
-
-        private void Dive()
-        {
-            hadFog = RenderSettings.fog;
-            hadColor = RenderSettings.fogColor;
-            hadMode = RenderSettings.fogMode;
-            hadDensity = RenderSettings.fogDensity;
-            hadStart = RenderSettings.fogStartDistance;
-            hadEnd = RenderSettings.fogEndDistance;
-
-            RenderSettings.fog = true;
-            RenderSettings.fogColor = fogColor;
-            RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogDensity = fogDensity;
-
-            // Небо под водой не нужно: сквозь толщу его не видно, а голубая
-            // полоса на горизонте выдаёт, что мы всё ещё «на воздухе».
-            eye.clearFlags = CameraClearFlags.SolidColor;
-            eye.backgroundColor = fogColor;
-        }
-
-        private void Surface()
-        {
-            RenderSettings.fog = hadFog;
-            RenderSettings.fogColor = hadColor;
-            RenderSettings.fogMode = hadMode;
-            RenderSettings.fogDensity = hadDensity;
-            RenderSettings.fogStartDistance = hadStart;
-            RenderSettings.fogEndDistance = hadEnd;
-
-            eye.clearFlags = CameraClearFlags.Skybox;
+            if (overlay != null)
+                overlay.color = new Color(tint.r, tint.g, tint.b, submerged ? alpha : 0f);
         }
 
         /// <summary>
@@ -158,10 +167,13 @@ namespace IsoRPG.Cameras
         /// в коде на него не действует — снаружи это выглядит как «поменял,
         /// а в игре то же самое». На этой ловушке мы горели дважды.
         /// </summary>
-        public void SetLook(Color color, float density)
+        public void SetLook(Color color, float overlayAlpha)
         {
-            fogColor = color;
-            fogDensity = density;
+            tint = color;
+            alpha = overlayAlpha;
+
+            if (overlay != null)
+                overlay.color = new Color(tint.r, tint.g, tint.b, submerged ? alpha : 0f);
         }
 
         /// <summary>Пересобрать список водоёмов: после пересборки мира.</summary>

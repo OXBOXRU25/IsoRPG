@@ -105,6 +105,49 @@ namespace IsoRPG.EditorTools
                 item.vendorPrice = 2;
             });
 
+            // Трофей охоты на кабанов. Падает с каждого без исключения:
+            // квест считает прогресс по сумке, и случайный дроп превратил бы
+            // «убей двенадцать» в «убей сколько-то, как повезёт» — а это
+            // разные обещания.
+            var boarTusk = CreateItem("I_BoarTusk", item =>
+            {
+                item.displayName = "Клык кабана";
+                item.description = "Жёлтый, щербатый. Доказательство охоты.";
+                item.rarity = ItemRarity.Junk;
+                item.iconColor = new Color32(0xD8, 0xC8, 0x9A, 0xFF);
+                item.slot = EquipSlot.None;
+                item.stackable = true;
+                item.maxStack = 20;
+                item.vendorPrice = 3;
+            });
+
+            // Награды за охоту Талина Кини. Игрок выбирает ОДНИ из двух:
+            // кожаные вчетверо крепче, тканевые смешные — и в этом весь
+            // выбор, он про вкус, а не про цифры.
+            var leatherBreeches = CreateItem("I_LeatherBreeches", item =>
+            {
+                item.displayName = "Кожаные бриджи холдея";
+                item.description = "Латаные, но крепкие. Держат удар.";
+                item.rarity = ItemRarity.Common;
+                item.iconColor = new Color32(0xC8, 0x8A, 0x3A, 0xFF);
+                item.slot = EquipSlot.Legs;
+                item.armor = 29;
+                item.stackable = false;
+                item.vendorPrice = 12;
+            });
+
+            var clothPantaloons = CreateItem("I_ClothPantaloons", item =>
+            {
+                item.displayName = "Тканевые панталоны бабушки Талина Кини";
+                item.description = "С кружевом и незабудками. Бабушка вязала сама.";
+                item.rarity = ItemRarity.Common;
+                item.iconColor = new Color32(0xE8, 0xDE, 0xC0, 0xFF);
+                item.slot = EquipSlot.Legs;
+                item.armor = 9;
+                item.stackable = false;
+                item.vendorPrice = 9;
+            });
+
             var buckle = CreateItem("I_Buckle", item =>
             {
                 item.displayName = "Погнутая пряжка";
@@ -315,6 +358,19 @@ namespace IsoRPG.EditorTools
                     Entry(apple, 0.8f, 2, 4),
                     Entry(signet, 0.35f, 1, 1),
                     Entry(necklace, 0.3f, 1, 1),
+                };
+            });
+
+            // Кабан. Клык гарантированно, шкура через раз, золота у зверя нет.
+            CreateLoot("LT_Boar", table =>
+            {
+                table.minGold = 0;
+                table.maxGold = 0;
+                table.goldChance = 0f;
+                table.entries = new[]
+                {
+                    Entry(boarTusk, 1f, 1, 1),
+                    Entry(pelt, 0.45f, 1, 1),
                 };
             });
 

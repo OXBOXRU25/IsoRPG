@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.AI;
 
 namespace IsoRPG.Player
 {
@@ -43,11 +44,29 @@ namespace IsoRPG.Player
         private float startTime = -99f;
         private float baseHeight;
 
+        /// <summary>Летит ли сейчас. Дублирует IsJumping, чтобы флаг в аниматор уходил один раз на смену, а не каждый кадр.</summary>
+        private bool airborne;
+
+        [Tooltip("На сколько метров вперёд переносит прыжок через преграду.")]
+        [SerializeField] private float hopDistance = 2.6f;
+
+        [Tooltip("На сколько выше себя герой готов запрыгнуть, в метрах.")]
+        [SerializeField] private float maxRise = 0.9f;
+
+        [Tooltip("На сколько ниже готов спрыгнуть.")]
+        [SerializeField] private float maxDrop = 1.6f;
+
+        private UnityEngine.AI.NavMeshAgent agent;
+        private Vector3 hopFrom;
+        private Vector3 hopTo;
+        private bool hopping;
+
         public bool IsJumping => Time.time < startTime + duration;
 
         private void Awake()
         {
             animation = GetComponent<CharacterAnimatorDriver>();
+            agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
             health = GetComponent<IsoRPG.Combat.Health>();
             food = GetComponent<IsoRPG.Items.FoodConsumer>();
 
@@ -79,6 +98,89 @@ namespace IsoRPG.Player
 
             startTime = Time.time;
             if (animation != null) animation.PlayJump();
+
+            TryHop();
+        }
+
+        /// <summary>
+        /// Перенос через низкое препятствие.
+        ///
+        /// Почему это вообще нужно объяснять: героя ведёт навигационный
+        /// агент по сетке, и всё, чего на сетке нет, для него не существует.
+        /// Каменная стенка по колено — не «низкая», её просто нет на карте
+        /// проходимости, и упереться в неё можно бесконечно. Павлон трижды
+        /// написал «не перепрыгивает» — и был прав: анимация прыжка над этим
+        /// не властна.
+        ///
+        /// Порядок здесь важнее самого прыжка:
+        /// 1) смотрим, КУДА герой смотрит или бежит;
+        /// 2) ищем на сетке площадку впереди — если её нет, прыгаем на месте;
+        /// 3) спрашиваем сетку, можно ли туда ДОЙТИ. Если можно — прыгать
+        ///    незачем, там нет преграды, и перенос выглядел бы телепортом;
+        /// 4) переносим только когда дойти нельзя, а встать есть куда.
+        ///
+        /// Пункт 3 и делает это перепрыгиванием, а не рывком сквозь стены:
+        /// проверка ровно та же, которой пользуется сам агент.
+        /// </summary>
+        private void TryHop()
+        {
+            if (agent == null || !agent.isOnNavMesh) return;
+
+            Vector3 direction = transform.forward;
+
+            // Бежит — прыгаем туда, куда бежит, а не куда смотрит модель.
+            if (agent.velocity.sqrMagnitude > 0.05f)
+                direction = agent.velocity.normalized;
+
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.001f) return;
+
+            direction.Normalize();
+
+            Vector3 from = transform.position;
+
+            // Ищем БЛИЖАЙШУЮ площадку за преградой, а не самую дальнюю.
+            //
+            // Первая версия всегда мерила 2.6 м, и герой перелетал низкий
+            // камень, чтобы приземлиться на высокий в нескольких метрах —
+            // Павлон 01.09.2026: «стою перед небольшим камнем, а прыгаю
+            // намного дальше». Шагаем от короткого прыжка к длинному и
+            // берём первое, что подошло.
+            bool found = false;
+            NavMeshHit landing = default;
+
+            for (float distance = 1.1f; distance <= hopDistance + 0.01f; distance += 0.5f)
+            {
+                Vector3 wanted = from + direction * distance;
+
+                if (!NavMesh.SamplePosition(wanted, out var candidate, 0.8f, NavMesh.AllAreas)) continue;
+
+                // Перепад высот. Без него прыжок затаскивал на валун, с
+                // которого потом не слезть: наверху сетки нет, и агент там
+                // просто не работает. По колено вверх и по пояс вниз —
+                // столько, сколько человек и правда перепрыгивает.
+                float rise = candidate.position.y - from.y;
+                if (rise > maxRise || rise < -maxDrop) continue;
+
+                // Дойти можно и без прыжка — значит преграды нет, и перенос
+                // читался бы телепортом.
+                if (!NavMesh.Raycast(from, candidate.position, out _, NavMesh.AllAreas)) continue;
+
+                landing = candidate;
+                found = true;
+                break;
+            }
+
+            if (!found) return;
+
+            hopFrom = from;
+            hopTo = landing.position;
+            hopping = true;
+
+            // Агент на время полёта выключаем: он держит героя на сетке и
+            // любое смещение за её край отменяет. Ходьба на клавишах при
+            // выключенном агенте сама останавливается — она его и спрашивает.
+            agent.enabled = false;
         }
 
         /// <summary>
@@ -88,6 +190,39 @@ namespace IsoRPG.Player
         /// </summary>
         private void Lift()
         {
+            // Фаза полёта держится флагом, а не длиной клипа: иначе зависание
+            // кончалось раньше самого прыжка, и герой перебирал ногами в
+            // воздухе. Сообщаем и когда прыжок кончился — по этому же флагу
+            // играется приземление.
+            if (animation != null && airborne != IsJumping)
+            {
+                airborne = IsJumping;
+                animation.SetAirborne(airborne);
+            }
+
+            // Перенос через преграду. Идёт по земле, а модель поверх этого
+            // поднимается своей параболой — вместе выходит дуга.
+            if (hopping)
+            {
+                float k = Mathf.Clamp01((Time.time - startTime) / duration);
+
+                transform.position = Vector3.Lerp(hopFrom, hopTo, k);
+
+                if (k >= 1f)
+                {
+                    hopping = false;
+
+                    // Возвращаем агента ровно на сетку. Warp, а не
+                    // присваивание: иначе агент считает, что он всё ещё в
+                    // точке старта, и первым же кадром дёрнет героя назад.
+                    if (agent != null)
+                    {
+                        agent.enabled = true;
+                        if (agent.isOnNavMesh) agent.Warp(hopTo);
+                    }
+                }
+            }
+
             if (model == null) return;
 
             float lift = 0f;

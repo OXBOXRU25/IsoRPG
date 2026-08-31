@@ -1,4 +1,5 @@
-﻿using System.Linq;
+using System.Collections.Generic;
+using System.Linq;
 using IsoRPG.Combat;
 using IsoRPG.Player;
 using UnityEditor;
@@ -23,10 +24,32 @@ namespace IsoRPG.EditorTools
     /// </summary>
     public static class WolfPack
     {
-        private const string Prefab = "Polygonal Wolf Brown";
         private const string GroupName = "Стая волков";
 
-        /// <summary>Где стоят волки. Мир, метры. Высоту берём с земли.</summary>
+        /// <summary>Одно место стаи: позиция, окрас (имя префаба) и масштаб.</summary>
+        private readonly struct Spot
+        {
+            public readonly Vector2 Pos;
+            public readonly string Prefab;
+            public readonly float Scale;
+
+            /// <summary>
+            /// Пропустить проверку «внутри чаши» для этой точки. Проверка
+            /// исключает ВЕСЬ круг по максимальному радиусу залива, а берег
+            /// неровный — реальная вода может не доставать. Ставить true
+            /// только когда место проверено глазами в игре, не на карте.
+            /// </summary>
+            public readonly bool TrustedDry;
+
+            public Spot(float x, float z, string prefab, float scale = 1f, bool trustedDry = false)
+            {
+                Pos = new Vector2(x, z);
+                Prefab = prefab;
+                Scale = scale;
+                TrustedDry = trustedDry;
+            }
+        }
+
         /// <summary>
         /// Где стоят волки. Мир, метры. Высоту берём с земли.
         ///
@@ -36,12 +59,29 @@ namespace IsoRPG.EditorTools
         /// девяти метрах, то есть внутри глади. Ошибка не видна глазом в
         /// коде — числа выглядят «рядом с прудом», — поэтому ниже стоит
         /// проверка, которая ловит её на прогоне.
+        ///
+        /// Вся стая переведена в зону 2 по разметке Павлона на карте сверху —
+        /// западнее малого кольцевого пруда (20, −16), по каменистому
+        /// пятнистому участку и в сторону пруда (−46, 34). Двое — белые и
+        /// крупнее обычных на 30%: редкая крупная особь, а не рядовой зверь.
         /// </summary>
-        private static readonly Vector2[] Spots =
+        private static readonly Spot[] Spots =
         {
-            new Vector2(28f,   8f),
-            new Vector2(46f, -22f),
-            new Vector2( 0f, -34f),
+            new Spot(-20f, -20f, "Polygonal Wolf Brown"),
+            new Spot(-15f, -25f, "Polygonal Wolf Black"),
+            // (-38,-47): формально внутри радиуса чаши пруда (-62,-66), но
+            // Павлон стоял там в игре и воды не увидел — берег неровный,
+            // залив «чаши» не круглый, а радиус в коде это худший случай
+            // по самому широкому языку залива, не факт воды во все стороны.
+            // Верю глазам, а не грубой проверке: ставим прямо туда.
+            new Spot(-38f, -47f, "Polygonal Wolf White", 1.3f, trustedDry: true),
+            new Spot(-115f,-20f, "Polygonal Wolf Brown"),
+            new Spot(-70f, -10f, "Polygonal Wolf Black"),
+            new Spot(-34f, -50f, "Polygonal Wolf White", 1.3f, trustedDry: true),
+            new Spot(-60f,  90f, "Polygonal Wolf Brown"),
+            new Spot(-100f,-15f, "Polygonal Wolf Black"),
+            new Spot(-10f, -15f, "Polygonal Wolf Brown"),
+            new Spot(-15f,  75f, "Polygonal Wolf Black"),
         };
 
         private const int Hp = 45;
@@ -68,15 +108,22 @@ namespace IsoRPG.EditorTools
 
             if (controller == null) return;
 
-            var guid = AssetDatabase.FindAssets(Prefab + " t:Prefab").FirstOrDefault();
+            // Префабы окрасов кэшируем по имени: пять белых стоят на том же
+            // поиске, что и первый, повторный AssetDatabase.FindAssets на
+            // каждого — лишняя работа.
+            var prefabCache = new Dictionary<string, GameObject>();
 
-            if (guid == null)
+            GameObject LoadPrefab(string prefabName)
             {
-                Debug.LogError("[IsoRPG] Не найден префаб волка «" + Prefab + "».");
-                return;
-            }
+                if (prefabCache.TryGetValue(prefabName, out var cached)) return cached;
 
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+                var g = AssetDatabase.FindAssets(prefabName + " t:Prefab").FirstOrDefault();
+                var loaded = g == null ? null
+                    : AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(g));
+
+                prefabCache[prefabName] = loaded;
+                return loaded;
+            }
 
             var terrain = Object.FindObjectsByType<Terrain>(
                 FindObjectsInactive.Exclude, FindObjectsSortMode.None).FirstOrDefault();
@@ -97,18 +144,26 @@ namespace IsoRPG.EditorTools
 
             for (int i = 0; i < Spots.Length; i++)
             {
-                var spot = Spots[i];
+                var spotInfo = Spots[i];
+                var spot = spotInfo.Pos;
+
+                var source = LoadPrefab(spotInfo.Prefab);
+
+                if (source == null)
+                {
+                    Debug.LogError("[IsoRPG] Не найден префаб волка «" + spotInfo.Prefab + "».");
+                    continue;
+                }
 
                 // Точка внутри водоёма — это утонувший волк, а не «зверь у
-                // воды». Проверка дешёвая, а поймала настоящую ошибку: в
-                // первом заходе так утонула вся стая.
-                if (SyntyWater.InBowl(spot, 2f))
+                // воды». Пропускаем только ЭТУ точку, а не всю стаю: снос
+                // всей группы на одной плохой координате однажды стоил
+                // нам всех волков разом, включая уже верно поставленных.
+                if (!spotInfo.TrustedDry && SyntyWater.InBowl(spot, 2f))
                 {
                     Debug.LogError("[IsoRPG] Точка " + spot + " внутри чаши водоёма — " +
-                                   "волк оказался бы под водой. Стая не поставлена, " +
-                                   "поправь координаты.");
-                    Object.DestroyImmediate(group);
-                    return;
+                                   "волк пропущен, поправь координаты.");
+                    continue;
                 }
 
                 float y = terrain.SampleHeight(new Vector3(spot.x, 0f, spot.y)) +
@@ -166,6 +221,7 @@ namespace IsoRPG.EditorTools
                 model.transform.SetParent(tilt.transform, false);
                 model.transform.localPosition = Vector3.zero;
                 model.transform.localRotation = Quaternion.identity;
+                model.transform.localScale = Vector3.one * spotInfo.Scale;
 
                 // Сажаем модель на землю по её же мешу.
                 //
@@ -200,7 +256,8 @@ namespace IsoRPG.EditorTools
                     // просадку наугад и оба раза промахнулся — теперь видно,
                     // что именно расходится: земля, точка на сетке или низ
                     // модели.
-                    Debug.Log("[IsoRPG] Волк " + (i + 1) + ": земля " + groundY.ToString("0.00") +
+                    Debug.Log("[IsoRPG] Волк " + (i + 1) + " (" + spotInfo.Prefab + ", ×" +
+                              spotInfo.Scale.ToString("0.0") + "): земля " + groundY.ToString("0.00") +
                               ", корень " + wolf.transform.position.y.ToString("0.00") +
                               ", низ модели " + box.min.y.ToString("0.00") +
                               ", подъём модели " + lift.ToString("0.00") + " м.");
@@ -218,9 +275,14 @@ namespace IsoRPG.EditorTools
                 var body = wolf.GetComponent<CapsuleCollider>();
                 if (body == null) body = wolf.AddComponent<CapsuleCollider>();
 
-                body.height = 1.2f;
-                body.radius = 0.45f;
-                body.center = new Vector3(0f, 0.6f, 0f);
+                // Хитбокс и агент растут вместе с моделью: у крупных белых
+                // волков коллайдер обычного размера тонул бы внутри модели
+                // на треть, и удары мимо силуэта засчитывались бы мимо.
+                // Пошире силуэта — клик по краю модели (лапы, хвост)
+                // промахивался мимо узкой капсулы.
+                body.height = 1.5f * spotInfo.Scale;
+                body.radius = 0.6f * spotInfo.Scale;
+                body.center = new Vector3(0f, 0.65f * spotInfo.Scale, 0f);
 
                 var targetable = wolf.AddComponent<Targetable>();
                 targetable.Setup("Волк", Faction.Hostile);
@@ -235,8 +297,8 @@ namespace IsoRPG.EditorTools
                 agent.speed = 3.6f;
                 agent.angularSpeed = 720f;
                 agent.acceleration = 12f;
-                agent.radius = 0.45f;
-                agent.height = 1.2f;
+                agent.radius = 0.45f * spotInfo.Scale;
+                agent.height = 1.2f * spotInfo.Scale;
 
                 // Та же малая дистанция остановки, что у прочих монстров:
                 // погоня ведёт зверя в точку перед героем, и большой отступ
@@ -258,7 +320,7 @@ namespace IsoRPG.EditorTools
 
             EditorSceneManager.MarkAllScenesDirty();
 
-            Debug.Log("[IsoRPG] Стая волков: поставлено " + placed + " у малого пруда, " +
+            Debug.Log("[IsoRPG] Стая волков: поставлено " + placed + " по карте, " +
                       "здоровье " + Hp + ", уровень " + Level + ", броня " + Armor + ".");
         }
     }

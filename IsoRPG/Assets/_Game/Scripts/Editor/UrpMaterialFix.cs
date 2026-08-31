@@ -90,6 +90,20 @@ namespace IsoRPG.EditorTools
                     continue;
                 }
 
+                // Частицы не наши: у них своё задание `fx-urp`.
+                //
+                // Перевод на Lit ломает эффекты молча — Lit не читает цвет
+                // частицы и рисует её непрозрачной, отчего пламя, искры и дым
+                // становятся одинаковыми белыми кляксами. Ни розового цвета,
+                // ни ошибки в журнале: 31.08.2026 это нашлось только глазами
+                // в игре, уже после того как костёр «поставили».
+                if (folder.Contains("ParticleFX"))
+                {
+                    Debug.Log("[IsoRPG] Пропускаю " + folder +
+                              " — эффекты чинит задание «fx-urp», Lit их ломает.");
+                    continue;
+                }
+
                 foreach (string guid in AssetDatabase.FindAssets("t:Material", new[] { folder }))
                 {
                     string path = AssetDatabase.GUIDToAssetPath(guid);

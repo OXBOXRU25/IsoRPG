@@ -71,7 +71,7 @@ for (const pkg of packages) {
     const entries = fs.readdirSync(tmp, { withFileTypes: true })
                       .filter((e) => e.isDirectory());
 
-    let files = 0, dirs = 0, skipped = 0, bytes = 0;
+    let files = 0, dirs = 0, skipped = 0, bytes = 0, skippedManifest = 0;
     const roots = new Map();
 
     for (const entry of entries) {
@@ -88,6 +88,20 @@ for (const pkg of packages) {
       // же инструмент испортил материалы: исходники лежат в пакете, и
       // достать оттуда одни .mat дешевле, чем перекладывать весь набор.
       if (only && !rel.toLowerCase().includes(only)) continue;
+
+      // Манифест пакетов НЕ трогаем никогда.
+      //
+      // 01.09.2026 переимпорт набора лошадей положил свой Packages/manifest.json
+      // поверх нашего — и проект разом лишился URP и Input System: сотни
+      // ошибок компиляции про «UnityEngine.Rendering.Universal не существует».
+      // Выглядит это как «набор сломал проект», а на самом деле список
+      // пакетов проекта заменён списком из чужого архива. Файл текстовый и
+      // возвращается из git (`git checkout -- IsoRPG/Packages/manifest.json`),
+      // но после него Unity ещё переустанавливает пакеты — это минуты.
+      if (/^Packages\/(manifest|packages-lock)\.json$/i.test(rel)) {
+        skippedManifest++;
+        continue;
+      }
 
       const top = rel.split('/').slice(0, 2).join('/');
       roots.set(top, (roots.get(top) || 0) + 1);
@@ -124,6 +138,7 @@ for (const pkg of packages) {
     } else {
       console.log('Разложено: файлов ' + files + ', папок ' + dirs +
                   (skipped ? ', пропущено ' + skipped : '') +
+                  (skippedManifest ? ', манифест пакетов не тронут' : '') +
                   ', объём ' + mb(bytes));
       console.log('Корни: ' + [...roots.keys()].join(', '));
     }

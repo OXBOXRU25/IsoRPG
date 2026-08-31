@@ -108,6 +108,17 @@ namespace IsoRPG.Combat
         [Tooltip("Включает и выключает скрытность. Это и есть способность «Скрытность».")]
         public bool togglesStealth = false;
 
+        [Header("Требования")]
+        [Tooltip("С какого уровня доступна. 1 — с самого начала.")]
+        public int requiredLevel = 1;
+
+        [Header("Ускорение")]
+        [Tooltip("Прибавка к скорости бега в долях: 0.7 — плюс 70%. Ноль — способность скорость не трогает.")]
+        public float moveSpeedBonus = 0f;
+
+        [Tooltip("Сколько секунд держится прибавка.")]
+        public float buffDuration = 0f;
+
         [Header("Анимация")]
         [Tooltip("Имя триггера в контроллере анимаций.")]
         public string animationTrigger = "Attack";

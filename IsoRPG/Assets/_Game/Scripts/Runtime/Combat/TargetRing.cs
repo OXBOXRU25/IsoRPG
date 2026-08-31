@@ -26,7 +26,12 @@ namespace IsoRPG.Combat
         public float Scale = 0.85f;
 
         [Tooltip("На сколько приподнято над землёй, чтобы не спорить с полом.")]
-        public float Lift = 0.06f;
+        //
+        // 0.02 вместо 0.06: на кадре 01.09.2026 кольцо заметно парило над
+        // травой и читалось как наклейка в воздухе, а не пятно на земле.
+        // Совсем в ноль нельзя — пятно начнёт мерцать, споря с полом за
+        // одну и ту же глубину.
+        public float Lift = 0.02f;
 
         private TargetSelector selector;
         private Transform ring;
@@ -172,8 +177,12 @@ namespace IsoRPG.Combat
             // третьим способом: яркий край очерчивает, кто выбран, а слабая
             // середина привязывает пятно к существу, не заслоняя землю.
             const float Outer = 0.48f;
-            const float Edge = 0.34f;
-            const float Soft = 0.05f;
+
+            // Ободок вдвое тоньше прежнего: было 0.14 радиуса (0.34…0.48),
+            // стало 0.07 (0.41…0.48). Диаметр пятна тот же — Павлон просил
+            // сузить именно границу, а не уменьшить круг.
+            const float Edge = 0.41f;
+            const float Soft = 0.035f;
 
             const float FillAlpha = 0.22f;
             const float EdgeAlpha = 1f;

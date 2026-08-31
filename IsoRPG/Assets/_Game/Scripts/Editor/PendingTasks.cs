@@ -442,6 +442,46 @@ namespace IsoRPG.EditorTools
                     else
                         Debug.Log(line);
 
+                    // Боевая комплектность. Заведено 31.08.2026, после того
+                    // как одну и ту же болезнь пришлось лечить дважды: сперва
+                    // у героя не оказалось компонента ввода (клик не выделял
+                    // никого), потом у мобов — обработчика смерти (убитый моб
+                    // продолжал бить). Оба раза сцена собиралась без единой
+                    // ошибки, и оба раза дефект нашёлся только в игре.
+                    //
+                    // Причина общая: список «из чего состоит боец» жил в
+                    // строителе песочницы, а новые задания (`wolves`, `boars`,
+                    // `npc`) писались отдельно и повторяли его по памяти —
+                    // каждое брало то, что нужно прямо сейчас. Проверка ниже
+                    // ловит такую недостачу в том же прогоне.
+                    int wcMobs = 0, wcNoDeath = 0;
+
+                    foreach (var t in UnityEngine.Object.FindObjectsByType<IsoRPG.Combat.Targetable>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (t.Faction == IsoRPG.Combat.Faction.Player) continue;
+                        if (t.GetComponent<IsoRPG.Combat.Health>() == null) continue;
+
+                        wcMobs++;
+                        if (t.GetComponent<IsoRPG.Combat.DeathHandler>() == null) wcNoDeath++;
+                    }
+
+                    bool wcRouter = wcPlayer != null &&
+                                    wcPlayer.GetComponent<IsoRPG.Player.PlayerInputRouter>() != null;
+
+                    bool wcDeathScreen = wcPlayer != null &&
+                                         wcPlayer.GetComponent<IsoRPG.UI.DeathScreen>() != null;
+
+                    string battle = "[IsoRPG] БОЙ: существ " + wcMobs +
+                                    ", без обработки смерти " + wcNoDeath +
+                                    ", клик по миру у героя " + (wcRouter ? "есть" : "НЕТ") +
+                                    ", экран смерти " + (wcDeathScreen ? "есть" : "НЕТ") + ".";
+
+                    if (wcNoDeath > 0 || !wcRouter || !wcDeathScreen)
+                        Debug.LogError(battle + " ПРОГОНИ «player-kit» И «mob-kit».");
+                    else
+                        Debug.Log(battle);
+
                     break;
                 }
 
@@ -675,6 +715,201 @@ namespace IsoRPG.EditorTools
                         if (added > 0) UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
                     }
                     break;
+
+                // Весь игровой набор герою: выбор цели, бой, сумка,
+                // характеристики, квесты, окна. Задание «hud» доносило только
+                // интерфейс — а клик по миру не читал на арене НИКТО, отсюда
+                // «не выделяются ни мобы, ни NPC».
+                case "player-kit":
+                    PlayerKit.Apply();
+                    break;
+
+                // Смерть, оглушение, полоска и возрождение мобам. Без этого
+                // убитый моб продолжает бить: обнулить здоровье некому мало,
+                // выключать бой и ИИ у трупа умеет только DeathHandler.
+                case "mob-kit":
+                    MobKit.Apply();
+                    break;
+
+                // Огонь и дым в очаге лагеря. Снимается заданием `campfire-off`.
+                case "campfire":
+                    CampFire.Apply();
+                    break;
+
+                case "campfire-off":
+                    CampFire.Clear();
+                    break;
+
+                // Варианты пламени в ряд у лагеря: выбрать подходящее одним
+                // кадром, а не пятью сборками подряд. СНИМАТЬ СРАЗУ ПОСЛЕ
+                // кадра — щуп в боевом мире читается заказчиком как баг, и
+                // читается справедливо.
+                case "fire-row":
+                    CampFire.Row();
+                    break;
+
+                // Эффекты на URP: вернуть частицам цвет и прозрачность.
+                case "fx-urp":
+                    FxMaterials.Apply();
+                    break;
+
+                // Витрина лошадей на выбор. В отдельной сцене, которая не
+                // сохраняется: в мир заказчика щупы не ставим.
+                case "horses-show":
+                    HorseShow.Build();
+                    break;
+
+                // Десять мастей лошади Synty — выбирать масть можно только
+                // увидев их все.
+                case "horse-skins":
+                    HorseShow.SyntySkins();
+                    break;
+
+                // Оживление боя: серия ударов, вздрагивание, жесты
+                // способностей, уклонение — герою и зверям.
+                case "combat-anims":
+                    HeroCombatAnimations.Build();
+                    HeroCombatAnimations.Beasts();
+                    break;
+
+                // Способности заново плюс книга героя: без второго шага новый
+                // приём лежит ассетом, но на панель не попадает.
+                case "abilities":
+                    RogueAbilitiesBuilder.Build();
+                    PlayerKit.Apply();
+                    break;
+
+                // Предметы, добыча, квесты и справочник — одним ходом.
+                // Порядок обязателен: квест ссылается на предмет, справочник
+                // собирается по обоим, и прогон по частям даёт квест с пустой
+                // ссылкой — молча, без единой ошибки.
+                case "items":
+                    ItemsBuilder.Build();
+
+                    // Иконки: сперва разметить PNG как спрайты, потом
+                    // связать. Текстура, не размеченная спрайтом, не
+                    // находится по пути МОЛЧА — предмет остаётся с пустым
+                    // квадратом, и выглядит это как «иконку не нарисовали».
+                    IconBinder.PrepareSprites("Assets/_Game/Art/UI/Icons/Items");
+                    IconBinder.PrepareSprites("Assets/_Game/Art/UI/Icons/Abilities");
+                    IconBinder.Bind();
+
+                    QuestBuilder.Build();
+                    DatabaseBuilder.Build();
+                    break;
+
+                // Кадр лагеря из редактора: дозорный, лошадь, костёр.
+                // Частицы огня в редакторе не проигрываются — пламя на таком
+                // кадре не появится, его смотреть только в игре.
+                case "camp-shot":
+                    SceneEye.Shot("camp", new Vector3(52.0f, 0.8f, -28.0f), 11f, 22f, 205f);
+                    break;
+
+                // Кто из живности стоит не на земле и кого не видно.
+                // Заказчик 01.09.2026: «мелкие кабаны провалились под землю и
+                // бьют оттуда», причём он их НЕ убивал — значит дело не в
+                // погружении трупа, а в самой расстановке.
+                case "mob-height":
+                {
+                    var mhTerrain = UnityEngine.Object.FindObjectsByType<Terrain>(
+                        FindObjectsInactive.Exclude, FindObjectsSortMode.None).FirstOrDefault();
+
+                    if (mhTerrain == null) { Debug.LogError("[IsoRPG] Террейна нет."); break; }
+
+                    int under = 0, hidden = 0, total = 0;
+
+                    foreach (var t in UnityEngine.Object.FindObjectsByType<IsoRPG.Combat.Targetable>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (t.Faction == IsoRPG.Combat.Faction.Player) continue;
+
+                        total++;
+
+                        Vector3 at = t.transform.position;
+                        float ground = mhTerrain.SampleHeight(at) + mhTerrain.transform.position.y;
+                        float diff = at.y - ground;
+
+                        // Видно ли вообще: выключенный объект или выключенные
+                        // рендереры дают «невидимого противника, который бьёт».
+                        var parts = t.GetComponentsInChildren<Renderer>(true);
+                        int on = 0;
+                        foreach (var r in parts) if (r.enabled && r.gameObject.activeInHierarchy) on++;
+
+                        bool invisible = !t.gameObject.activeInHierarchy || on == 0;
+                        if (invisible) hidden++;
+
+                        if (diff < -0.5f) under++;
+
+                        if (diff < -0.5f || diff > 2f || invisible)
+                            Debug.Log("[IsoRPG]   «" + t.DisplayName + "» (" + t.name + ") в " +
+                                      at.ToString("0.0") + ", земля " + ground.ToString("0.00") +
+                                      ", отклонение " + diff.ToString("0.00") + " м" +
+                                      ", видимых частей " + on + " из " + parts.Length +
+                                      (t.gameObject.activeInHierarchy ? "" : ", ОБЪЕКТ ВЫКЛЮЧЕН"));
+                    }
+
+                    Debug.Log("[IsoRPG] Живности " + total + ", под землёй " + under +
+                              ", невидимых " + hidden + ".");
+
+                    if (under > 0 || hidden > 0)
+                        Debug.LogError("[IsoRPG] Есть живность не на месте — см. строки выше.");
+
+                    break;
+                }
+
+                // Вторая лошадь — у лагеря дозорного, модель Synty, масть 3.
+                case "camp-horse":
+                    CampHorse.Build();
+                    MobKit.Apply();
+                    break;
+
+                // Щуп очага: где в сцене костровище и котелок. Замер до
+                // правки — ставить огонь «примерно туда» значит потом ловить
+                // пламя, висящее в метре от дров.
+                case "fire-probe":
+                {
+                    var npcSpot = Vector3.zero;
+
+                    foreach (var t in UnityEngine.Object.FindObjectsByType<IsoRPG.Combat.Targetable>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                        if (t.DisplayName == "Дозорный") npcSpot = t.transform.position;
+
+                    Debug.Log("[IsoRPG] Дозорный стоит в " + npcSpot.ToString("0.0"));
+
+                    int found = 0;
+
+                    foreach (var mf in UnityEngine.Object.FindObjectsByType<MeshFilter>(
+                             FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (mf.sharedMesh == null) continue;
+
+                        string mesh = mf.sharedMesh.name.ToLowerInvariant();
+
+                        bool interesting = mesh.Contains("fire") || mesh.Contains("camp") ||
+                                           mesh.Contains("pot") || mesh.Contains("cauldron") ||
+                                           mesh.Contains("log") || mesh.Contains("tripod") ||
+                                           mesh.Contains("tent");
+
+                        if (!interesting) continue;
+
+                        float away = npcSpot == Vector3.zero
+                            ? 0f
+                            : Vector3.Distance(mf.transform.position, npcSpot);
+
+                        // Только лагерь, а не весь мир: дрова и палатки
+                        // разбросаны по всей карте автора.
+                        if (npcSpot != Vector3.zero && away > 25f) continue;
+
+                        Debug.Log("[IsoRPG]   «" + mf.gameObject.name + "» меш «" + mf.sharedMesh.name +
+                                  "» в " + mf.transform.position.ToString("0.00") +
+                                  ", до Дозорного " + away.ToString("0.0") + " м" +
+                                  ", габарит " + mf.sharedMesh.bounds.size.ToString("0.00"));
+                        found++;
+                    }
+
+                    Debug.Log("[IsoRPG] Кандидатов у лагеря: " + found + ".");
+                    break;
+                }
 
                 case "audio":
                     {
@@ -1521,6 +1756,195 @@ namespace IsoRPG.EditorTools
 
                 case "wolves":
                     WolfPack.Build();
+
+                    // Полный набор существу сразу: смерть, оглушение, полоска,
+                    // возрождение. Без этого убитый моб продолжает бить.
+                    MobKit.Apply();
+                    break;
+
+                case "boars":
+                    BoarPack.Build();
+
+                    // Полный набор существу сразу: смерть, оглушение, полоска,
+                    // возрождение. Без этого убитый моб продолжает бить.
+                    MobKit.Apply();
+                    break;
+
+                case "topdown-shot":
+                    SceneEye.TopDown("topdown", Vector3.zero, 215f);
+                    break;
+
+                case "topdown-marked":
+                {
+                    // Кадр сверху с яркими метками на известных прудах —
+                    // чтобы читать зоны, нарисованные поверх снимка, по
+                    // настоящим координатам, а не на глаз.
+                    var lit = Shader.Find("Universal Render Pipeline/Lit");
+                    var pts = new (Vector2 pos, Color color, string label)[]
+                    {
+                        (new Vector2( 20f, -16f), Color.red,     "P1"),
+                        (new Vector2(-46f,  34f), Color.yellow,  "P2"),
+                        (new Vector2( 60f,  58f), Color.cyan,    "P3"),
+                        (new Vector2(-62f, -66f), Color.white,  "P4"),
+                    };
+
+                    var marks = new GameObject("МЕТКИ_ПРУДОВ");
+
+                    foreach (var p in pts)
+                    {
+                        var pillar = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                        pillar.name = "Метка " + p.label;
+                        pillar.transform.SetParent(marks.transform, false);
+                        pillar.transform.position = new Vector3(p.pos.x, 30f, p.pos.y);
+                        pillar.transform.localScale = new Vector3(6f, 60f, 6f);
+
+                        var mr = pillar.GetComponent<MeshRenderer>();
+                        if (lit != null)
+                        {
+                            var m = new Material(lit);
+                            m.SetColor("_BaseColor", p.color);
+                            m.SetFloat("_Smoothness", 0f);
+                            mr.sharedMaterial = m;
+                        }
+                    }
+
+                    SceneEye.TopDown("topdown-marked", Vector3.zero, 215f);
+
+                    UnityEngine.Object.DestroyImmediate(marks);   // сцену меткам не пачкаем
+
+                    Debug.Log("[IsoRPG] Кадр с метками прудов готов, метки из сцены убраны.");
+                    break;
+                }
+
+                case "boar-boss":
+                    BoarBossPack.Build();
+
+                    // Полный набор существу сразу: смерть, оглушение, полоска,
+                    // возрождение. Без этого убитый моб продолжает бить.
+                    MobKit.Apply();
+                    break;
+
+                case "npc":
+                    NpcPack.Build();
+
+                    // Полный набор существу сразу: смерть, оглушение, полоска,
+                    // возрождение. Без этого убитый моб продолжает бить.
+                    MobKit.Apply();
+                    break;
+
+                case "tent-obstacle":
+                {
+                    // Кабаны гоняются за героем и забираются НА палатку —
+                    // навигация считает её ткань такой же проходимой
+                    // поверхностью, как землю, потому что коллайдер палатки
+                    // запёкся в сетку как обычная статика. Переставать
+                    // двигать точки кабанов бесполезно: дело не в месте
+                    // спавна, а в погоне — агент идёт к герою напрямую,
+                    // где бы тот ни встал. Правильный фикс — вырезать
+                    // палатку из сетки препятствием, чтобы путь просто
+                    // обходил её.
+                    int marked = 0;
+
+                    foreach (var mf in UnityEngine.Object.FindObjectsByType<MeshFilter>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (mf.sharedMesh == null) continue;
+                        if (mf.sharedMesh.name.IndexOf("tent", System.StringComparison.OrdinalIgnoreCase) < 0)
+                            continue;
+
+                        var go = mf.gameObject;
+
+                        if (go.GetComponent<UnityEngine.AI.NavMeshObstacle>() == null)
+                        {
+                            var obstacle = go.AddComponent<UnityEngine.AI.NavMeshObstacle>();
+                            obstacle.carving = true;
+                            obstacle.shape = UnityEngine.AI.NavMeshObstacleShape.Box;
+                        }
+
+                        EditorUtility.SetDirty(go);
+                        marked++;
+
+                        Debug.Log("[IsoRPG] Палатка помечена препятствием: «" + go.name + "» на " +
+                                  go.transform.position.ToString("0.0") + ".");
+                    }
+
+                    if (marked == 0)
+                    {
+                        Debug.LogWarning("[IsoRPG] Палатки по имени меша не нашлось вовсе.");
+                    }
+                    else
+                    {
+                        NavBake.Rebake();
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+                    break;
+                }
+
+                case "hero-spawn":
+                {
+                    // Точка спавна — по координатам Павлона с карты сверху.
+                    // По имени «Player», а не по компоненту ввода: тот
+                    // висит на герое только в игре, а в редакторе, где
+                    // работает это задание, его ещё нет. Тот же приём, что
+                    // и в SyntyHeroSwap.
+                    var heroGo = UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include)
+                                     .FirstOrDefault(g => g.name == "Player");
+
+                    if (heroGo == null)
+                    {
+                        Debug.LogError("[IsoRPG] Героя в сцене нет — переносить некого.");
+                        break;
+                    }
+
+                    var terrain = UnityEngine.Object.FindObjectsByType<Terrain>(
+                        FindObjectsInactive.Exclude, FindObjectsSortMode.None).FirstOrDefault();
+
+                    if (terrain == null)
+                    {
+                        Debug.LogError("[IsoRPG] Террейна нет — переносить некуда.");
+                        break;
+                    }
+
+                    Vector2 spot = new Vector2(40f, 28f);
+
+                    float y = terrain.SampleHeight(new Vector3(spot.x, 0f, spot.y)) +
+                              terrain.transform.position.y;
+
+                    // Не agent.Warp(): в режиме редактора (не Play) навигация
+                    // не крутится, и Warp молча не двигает трансформ — герой
+                    // так и остался на старом месте, хотя лог рапортовал
+                    // успех. Ставим transform.position напрямую, как у
+                    // волков/кабанов/лошади.
+                    Vector3 to = new Vector3(spot.x, y, spot.y);
+
+                    if (UnityEngine.AI.NavMesh.SamplePosition(to, out var hit, 8f,
+                            UnityEngine.AI.NavMesh.AllAreas))
+                    {
+                        to = hit.position;
+                    }
+
+                    heroGo.transform.position = to;
+
+                    // Разворот на вид с пруда и лошади сразу в кадре —
+                    // Павлон прислал такой скриншот. Угол — среднее между
+                    // направлением на пруд (20,-16) и на лошадь (36,30) от
+                    // точки спавна, а не подобран на глаз.
+                    heroGo.transform.rotation = Quaternion.Euler(0f, 217f, 0f);
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Герой перенесён к точке 3 (лошадь): " +
+                              heroGo.transform.position.ToString("0.0") + ", развёрнут на 217°.");
+                    break;
+                }
+
+                case "horse":
+                    HorsePack.Build();
+
+                    // Полный набор существу сразу: смерть, оглушение, полоска,
+                    // возрождение. Без этого убитый моб продолжает бить.
+                    MobKit.Apply();
                     break;
 
                 case "hug":
@@ -2082,14 +2506,41 @@ namespace IsoRPG.EditorTools
 
                     if (uw == null) uw = cam.gameObject.AddComponent<IsoRPG.Cameras.Underwater>();
 
-                    // Плотность задаём ПРИНУДИТЕЛЬНО.
+                    // Цвет и непрозрачность заливки — из ЦВЕТА САМОЙ ВОДЫ, а
+                    // не придуманы отдельно. У «Water_Lake_URP» уже есть тон,
+                    // снятый с оригинального материала набора («water-fix»);
+                    // повторно изобретать его здесь — плодить два источника
+                    // истины для одного и того же цвета.
                     //
-                    // 0.055 при квадратичном законе давало на пяти метрах
-                    // всего 7% тумана, а весь подводный кадр — это дно в
-                    // пяти-десяти шагах. Мгла честно включалась и была не
-                    // видна. 0.16 даёт на пяти метрах около половины, а
-                    // дальше десяти всё уходит в цвет воды.
-                    uw.SetLook(new Color(0.10f, 0.42f, 0.44f), 0.16f);
+                    // Непрозрачность заливки привязана к альфе того же
+                    // материала: непрозрачная вода мутнее, прозрачная —
+                    // светлее. Коэффициент 0.6 подобран так, чтобы персонажа
+                    // было видно сквозь синеву, а не только синеву. Другая
+                    // вода с другой альфой получит соразмерную непрозрачность
+                    // автоматически, а не наугад.
+                    var srcWater = AssetDatabase.LoadAssetAtPath<Material>(
+                        "Assets/_Game/Art/Materials/Water_Lake_URP.mat");
+
+                    Color lookColor = new Color(0.10f, 0.42f, 0.44f);   // запасной — старое проверенное значение
+                    float lookAlpha = 0.5f;
+
+                    if (srcWater != null && srcWater.HasProperty("_BaseColor"))
+                    {
+                        var c = srcWater.GetColor("_BaseColor");
+                        lookColor = new Color(c.r, c.g, c.b);
+                        lookAlpha = Mathf.Clamp(c.a * 0.6f, 0.35f, 0.65f);
+
+                        Debug.Log("[IsoRPG] Подводный тон снят с «" + srcWater.name + "»: " +
+                                  lookColor + ", непрозрачность заливки " + lookAlpha.ToString("0.00") +
+                                  " (альфа воды " + c.a.ToString("0.00") + ").");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[IsoRPG] Материала воды нет или в нём нет _BaseColor — " +
+                                         "подводный тон взят запасным, старым проверенным.");
+                    }
+
+                    uw.SetLook(lookColor, lookAlpha);
                     EditorUtility.SetDirty(uw);
 
                     UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();

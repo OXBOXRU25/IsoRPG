@@ -148,10 +148,41 @@ namespace IsoRPG.Quests
         /// <summary>
         /// Сдать квест: забрать предметы, выдать награду.
         /// </summary>
-        public bool TurnIn(QuestDefinition quest)
+        public bool TurnIn(QuestDefinition quest) => TurnIn(quest, null);
+
+        /// <summary>
+        /// Сдать квест, взяв одну вещь из наград на выбор.
+        /// </summary>
+        /// <param name="chosen">
+        /// Что выбрал игрок. Null — выбора не было или квест его не
+        /// предлагает. Чужой предмет не принимаем: список наград задан
+        /// квестом, и подставить туда что угодно нельзя.
+        /// </param>
+        public bool TurnIn(QuestDefinition quest, ItemDefinition chosen)
         {
             if (quest == null || StateOf(quest) != QuestState.ReadyToTurnIn) return false;
             if (inventory == null) return false;
+
+            bool hasChoices = quest.rewardChoices != null && quest.rewardChoices.Length > 0;
+
+            if (hasChoices)
+            {
+                if (chosen == null)
+                {
+                    CombatLog.Add("Сначала выбери награду", LogKind.System);
+                    return false;
+                }
+
+                bool ours = false;
+                foreach (var option in quest.rewardChoices)
+                    if (option == chosen) { ours = true; break; }
+
+                if (!ours)
+                {
+                    Debug.LogWarning("[IsoRPG] Выбрана награда не из списка квеста — отклонено.");
+                    return false;
+                }
+            }
 
             // Сначала проверяем место под награду, потом забираем предметы.
             // Иначе можно отдать кости и не получить кинжал — потеря, которую
@@ -167,6 +198,12 @@ namespace IsoRPG.Quests
 
             if (quest.rewardItem != null)
                 inventory.Add(new ItemStack(quest.rewardItem, quest.rewardCount));
+
+            if (chosen != null)
+            {
+                inventory.Add(new ItemStack(chosen, 1));
+                CombatLog.Add(Loc.F("Награда: {0}", Loc.T(chosen.displayName)), LogKind.Loot);
+            }
 
             if (quest.rewardGold > 0) inventory.AddGold(quest.rewardGold);
 

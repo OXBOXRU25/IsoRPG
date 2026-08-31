@@ -830,7 +830,7 @@ namespace IsoRPG.EditorTools
         /// Материал добавляется вторым на каждый рендерер персонажа — это
         /// делает сам компонент в момент запуска, когда модель уже собрана.
         /// </summary>
-        private static void ApplySilhouetteLayer(GameObject go)
+        internal static void ApplySilhouetteLayer(GameObject go)
         {
             // Цвет по стороне: свой зелёный, чужой красный.
             var targetable = go.GetComponent<Targetable>();
@@ -858,7 +858,7 @@ namespace IsoRPG.EditorTools
         /// Пустой квадрат ничего не говорит игроку, а силуэт шлема или сапога
         /// объясняет назначение слота без единого слова и без обучения.
         /// </summary>
-        private static void SetupSlotHints(IsoRPG.Items.CharacterHud hud)
+        internal static void SetupSlotHints(IsoRPG.Items.CharacterHud hud)
         {
             var pairs = new (IsoRPG.Items.EquipSlot slot, string file)[]
             {
@@ -895,7 +895,7 @@ namespace IsoRPG.EditorTools
         /// Иконки кнопок нижнего ряда. Не найденная иконка не ломает ряд:
         /// кнопка останется квадратом и продолжит открывать своё окно.
         /// </summary>
-        private static void SetupHudBar(IsoRPG.UI.HudBar bar)
+        internal static void SetupHudBar(IsoRPG.UI.HudBar bar)
         {
             // Импорт настраивается до загрузки: текстура, не размеченная
             // как спрайт, не находится по пути — молча, без единой ошибки.
@@ -925,7 +925,7 @@ namespace IsoRPG.EditorTools
         /// Витрине нужны те же модель и контроллер, что и герою: она
         /// показывает его самого, а не похожего персонажа.
         /// </summary>
-        private static void SetupPreview(IsoRPG.Items.CharacterPreview preview)
+        internal static void SetupPreview(IsoRPG.Items.CharacterPreview preview)
         {
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(
                 "Assets/_Game/Prefabs/Player.prefab");
@@ -1222,7 +1222,7 @@ namespace IsoRPG.EditorTools
         }
 
         /// <summary>Модель из набора подземелья: кучки золота, мешочки.</summary>
-        private static GameObject LoadDungeonModel(string fileName)
+        internal static GameObject LoadDungeonModel(string fileName)
         {
             string path = "Assets/_Game/Art/KayKit/Dungeon/" + fileName + ".fbx";
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -1606,7 +1606,7 @@ namespace IsoRPG.EditorTools
         /// ассет такую случайность убирает: знак не станет розовым в
         /// собранной игре.
         /// </summary>
-        private static Material MarkerMaterial() =>
+        internal static Material MarkerMaterial() =>
             GetOrCreateMaterial("M_QuestMarker", new Color32(0xE8, 0xC3, 0x5A, 0xFF),
                                 smoothness: 0.2f, emissive: true);
 

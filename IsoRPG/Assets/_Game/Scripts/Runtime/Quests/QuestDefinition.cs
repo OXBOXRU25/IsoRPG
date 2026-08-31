@@ -37,6 +37,15 @@ namespace IsoRPG.Quests
         public int requiredCount = 5;
 
         [Header("Награда")]
+        /// <summary>
+        /// Награда на выбор. Игрок берёт ОДНУ вещь из этого списка при сдаче.
+        ///
+        /// Отдельно от <see cref="rewardItem"/>, а не вместо: гарантированная
+        /// награда и выбор — разные обещания, и в одном квесте могут быть оба.
+        /// Пусто — выбора нет, работает как раньше.
+        /// </summary>
+        public ItemDefinition[] rewardChoices = new ItemDefinition[0];
+
         public ItemDefinition rewardItem;
         public int rewardCount = 1;
         public int rewardExperience = 250;

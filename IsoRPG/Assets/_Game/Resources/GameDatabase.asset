@@ -15,10 +15,13 @@ MonoBehaviour:
   items:
   - {fileID: 11400000, guid: 838b415bfa4346c4d9130b0e7bfe5b58, type: 2}
   - {fileID: 11400000, guid: 6f8c1858f650a8141be3f3d5662c8ca8, type: 2}
+  - {fileID: 11400000, guid: aebe07f88ece47641aaff76c273a6cd4, type: 2}
   - {fileID: 11400000, guid: d37cf998e117bf146a2a881da3994abd, type: 2}
   - {fileID: 11400000, guid: 739cdda07cc89c247be818d78ce62223, type: 2}
+  - {fileID: 11400000, guid: 7bfdc43ba8d3c3645aef92582da3170e, type: 2}
   - {fileID: 11400000, guid: 4fea2840994be384e8559446d9d7890f, type: 2}
   - {fileID: 11400000, guid: 1ed3a7ffcca3ee241b2927d391ed6ca1, type: 2}
+  - {fileID: 11400000, guid: 2d46c61d2282432459ff665b6c96568a, type: 2}
   - {fileID: 11400000, guid: 3dab13f763a62364f84818fb502b3384, type: 2}
   - {fileID: 11400000, guid: 69df98c3d363c28439b8dae176eeb6b0, type: 2}
   - {fileID: 11400000, guid: a21fca9b41404d544924a302e1d7e1b1, type: 2}
@@ -48,4 +51,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a8e678d2378abae42a3efa69ba22de56, type: 2}
   - {fileID: 11400000, guid: a589de76482bedc4fbd74a5f50f1be2f, type: 2}
   quests:
+  - {fileID: 11400000, guid: fe038ebf64730544dab3c6b04e44aeb7, type: 2}
   - {fileID: 11400000, guid: 0c9cc7aa9b481f64aa6bfe42e7de7c74, type: 2}

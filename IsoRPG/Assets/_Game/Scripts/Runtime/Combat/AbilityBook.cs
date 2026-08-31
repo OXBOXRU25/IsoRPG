@@ -184,6 +184,18 @@ namespace IsoRPG.Combat
             if (readyTime.TryGetValue(ability, out float ready) && Time.time < ready)
                 return Fail(ability, "откат");
 
+            // Уровень. Проверяем раньше всего остального: приём, до которого
+            // герой не дорос, не должен ни тратить энергию, ни жаловаться на
+            // отсутствие цели — причина отказа одна и она понятная.
+            if (ability.requiredLevel > 1)
+            {
+                var levels = GetComponent<Experience>();
+                int level = levels != null ? levels.Level : 1;
+
+                if (level < ability.requiredLevel)
+                    return Fail(ability, "нужен " + ability.requiredLevel + "-й уровень");
+            }
+
             // Скрытность — способность без цели, поэтому её проверяем первой
             // и отдельно: обычные условия про дистанцию к ней не относятся.
             if (ability.togglesStealth) return ToggleStealth(ability);
@@ -219,6 +231,17 @@ namespace IsoRPG.Combat
                 return Fail(ability, "не хватает энергии");
 
             // --- Способность пошла ---
+            // Ускорение выдаём здесь, а не в момент касания: спринт — это
+            // мгновенное действие, у него нет удара, до которого можно ждать.
+            if (ability.moveSpeedBonus > 0f && ability.buffDuration > 0f)
+            {
+                var boost = GetComponent<SpeedBoost>();
+
+                if (boost == null) boost = gameObject.AddComponent<SpeedBoost>();
+
+                boost.Apply(ability.moveSpeedBonus, ability.buffDuration);
+            }
+
             globalReadyTime = Time.time + GlobalCooldown;
             if (ability.cooldown > 0f) readyTime[ability] = Time.time + ability.cooldown;
 
@@ -295,12 +318,37 @@ namespace IsoRPG.Combat
         {
             if (animDriver == null) return;
 
-            if (string.IsNullOrEmpty(ability.animationTrigger) || ability.animationTrigger == "Attack")
-                animDriver.PlayAttack();
-            else if (ability.animationTrigger == "StealthKill")
-                animDriver.PlayStealthKill();
-            else
-                animDriver.PlayAttack();
+            // Раньше здесь любой незнакомый триггер сваливался в обычный
+            // удар: четыре кнопки способностей играли один и тот же замах, и
+            // отличить их можно было только по цифрам урона. Теперь у жестов
+            // есть смысл — направленный, по площади, усиление себя.
+            switch (ability.animationTrigger)
+            {
+                case "StealthKill":
+                    animDriver.PlayStealthKill();
+                    break;
+
+                case "CastAttack":
+                    animDriver.PlayCast(IsoRPG.Player.CastKind.Attack);
+                    break;
+
+                case "CastAOE":
+                    animDriver.PlayCast(IsoRPG.Player.CastKind.Area);
+                    break;
+
+                case "CastBuff":
+                    animDriver.PlayCast(IsoRPG.Player.CastKind.Buff);
+                    break;
+
+                case "Dodge":
+                    animDriver.PlayDodge();
+                    break;
+
+                default:
+                    // Пустой триггер и «Attack» — обычный удар серией.
+                    animDriver.PlayAttack(0);
+                    break;
+            }
         }
 
         /// <summary>

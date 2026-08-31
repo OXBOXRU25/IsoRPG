@@ -181,9 +181,12 @@ namespace IsoRPG.Quests
             if (log != null) log.Accept(quest);
         }
 
-        public void TurnIn()
+        public void TurnIn() => TurnIn(null);
+
+        /// <summary>Сдать, взяв выбранную награду. Null — если выбора нет.</summary>
+        public void TurnIn(IsoRPG.Items.ItemDefinition chosen)
         {
-            if (log != null) log.TurnIn(quest);
+            if (log != null) log.TurnIn(quest, chosen);
         }
 
         // ------------------------------------------------------------------

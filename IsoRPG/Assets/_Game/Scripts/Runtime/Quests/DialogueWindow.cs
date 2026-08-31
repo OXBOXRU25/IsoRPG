@@ -26,6 +26,13 @@ namespace IsoRPG.Quests
         private const float Pad = 16f;
         private const float ButtonHeight = 32f;
 
+        // Окно высотой 190 обрезало текст квеста, а кнопки ложились поверх
+        // последних строк — Павлон 01.09.2026: «наград не вижу, окно
+        // обрезано». Высота под самый длинный наш текст плюс полоса под три
+        // кнопки: две награды на выбор и «Позже».
+        private const float WindowHeight = 430f;
+        private const float ButtonsArea = (ButtonHeight + 6f) * 3f;
+
         private Font font;
         private GameObject window;
         private Text title;
@@ -85,7 +92,10 @@ namespace IsoRPG.Quests
             var quest = current.Quest;
 
             LocalizedText.Bind(title, quest != null ? quest.title : "Разговор");
-            LocalizedText.Bind(body, current.CurrentText());
+
+            // Награды показываем сразу, а не только в журнале: игрок решает,
+            // браться ли за работу, по тому, что за неё дают.
+            LocalizedText.Bind(body, current.CurrentText() + Rewards(quest, current.State));
 
             foreach (var go in spawned) Destroy(go);
             spawned.Clear();
@@ -102,6 +112,35 @@ namespace IsoRPG.Quests
                     break;
 
                 case QuestState.ReadyToTurnIn:
+                {
+                    var choices = quest != null ? quest.rewardChoices : null;
+
+                    if (choices != null && choices.Length > 0)
+                    {
+                        // Награда на выбор: по кнопке на каждую вещь, как в
+                        // WoW. Одна кнопка «Отдать» тут не годится — игрок
+                        // должен нажать именно на ту вещь, которую берёт, и
+                        // видеть её название в момент нажатия.
+                        // Снизу вверх: «Позже» внизу, награды над ней —
+                        // чтобы случайный клик по нижней кнопке не забирал
+                        // вещь, которую игрок ещё выбирает.
+                        AddButton(0, "Позже", DeclineColor, Close, true);
+
+                        for (int i = 0; i < choices.Length && i < 3; i++)
+                        {
+                            var option = choices[i];
+                            if (option == null) continue;
+
+                            AddButton(i + 1, "Взять: " + option.displayName, AcceptColor, () =>
+                            {
+                                current.TurnIn(option);
+                                Close();
+                            }, true);
+                        }
+
+                        break;
+                    }
+
                     AddButton(0, "Отдать", AcceptColor, () =>
                     {
                         current.TurnIn();
@@ -109,6 +148,7 @@ namespace IsoRPG.Quests
                     });
                     AddButton(1, "Позже", DeclineColor, Close);
                     break;
+                }
 
                 default:
                     AddButton(0, "Закрыть", DeclineColor, Close);
@@ -116,7 +156,63 @@ namespace IsoRPG.Quests
             }
         }
 
+        /// <summary>
+        /// Строка наград под текстом квеста.
+        ///
+        /// Показывается и при взятии, и при сдаче: в первом случае это
+        /// обещание, во втором — напоминание, из чего выбирать. Пока квест в
+        /// работе награды не повторяем — там важна только цель.
+        /// </summary>
+        private static string Rewards(QuestDefinition quest, QuestState state)
+        {
+            if (quest == null) return string.Empty;
+            if (state != QuestState.Available && state != QuestState.ReadyToTurnIn) return string.Empty;
+
+            var lines = new System.Text.StringBuilder();
+
+            if (quest.rewardChoices != null && quest.rewardChoices.Length > 0)
+            {
+                lines.Append("\n\nНаграда на выбор:");
+
+                foreach (var option in quest.rewardChoices)
+                {
+                    if (option == null) continue;
+
+                    lines.Append("\n  • ").Append(Loc.T(option.displayName));
+
+                    // Броня — то, ради чего вещь и берут. Без неё выбор
+                    // делается вслепую, по одному названию.
+                    if (option.armor > 0) lines.Append(", броня ").Append(option.armor);
+                }
+            }
+
+            if (quest.rewardItem != null)
+                lines.Append("\n\nПолучите: ").Append(Loc.T(quest.rewardItem.displayName));
+
+            var extra = new List<string>();
+            if (quest.rewardExperience > 0) extra.Add(quest.rewardExperience + " опыта");
+            if (quest.rewardGold > 0) extra.Add(quest.rewardGold + " золота");
+
+            if (extra.Count > 0)
+                lines.Append("\n\nТакже: ").Append(string.Join(", ", extra));
+
+            return lines.ToString();
+        }
+
         private void AddButton(int index, string label, Color color, System.Action onClick)
+            => AddButton(index, label, color, onClick, false);
+
+        /// <summary>
+        /// Кнопка внизу окна.
+        /// </summary>
+        /// <param name="stacked">
+        /// Столбиком вверх, во всю ширину. Нужно для наград на выбор:
+        /// «Тканевые панталоны бабушки Талина Кини» в кнопку шириной 140
+        /// пикселей не влезает никак, а резать название нельзя — игрок
+        /// выбирает вещь именно по имени.
+        /// </param>
+        private void AddButton(int index, string label, Color color,
+                               System.Action onClick, bool stacked)
         {
             var go = new GameObject("Button" + index, typeof(Image), typeof(Button));
             var rect = (RectTransform)go.transform;
@@ -125,8 +221,17 @@ namespace IsoRPG.Quests
             rect.anchorMin = new Vector2(0f, 0f);
             rect.anchorMax = new Vector2(0f, 0f);
             rect.pivot = new Vector2(0f, 0f);
-            rect.anchoredPosition = new Vector2(index * 150f, 0f);
-            rect.sizeDelta = new Vector2(140f, ButtonHeight);
+
+            if (stacked)
+            {
+                rect.anchoredPosition = new Vector2(0f, index * (ButtonHeight + 6f));
+                rect.sizeDelta = new Vector2(Width - Pad * 2f, ButtonHeight);
+            }
+            else
+            {
+                rect.anchoredPosition = new Vector2(index * 150f, 0f);
+                rect.sizeDelta = new Vector2(140f, ButtonHeight);
+            }
 
             go.GetComponent<Image>().color = color;
             go.GetComponent<Button>().onClick.AddListener(() => onClick());
@@ -173,7 +278,7 @@ namespace IsoRPG.Quests
             rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = new Vector2(0f, -40f);
-            rect.sizeDelta = new Vector2(Width, 190f);
+            rect.sizeDelta = new Vector2(Width, WindowHeight);
 
             // Нарисованная рамка вместо плоской плашки. Заливка и
             // обводка нужны только тому, кому рамки не досталось: у неё
@@ -206,7 +311,7 @@ namespace IsoRPG.Quests
             var bodyRect = (RectTransform)body.transform;
             bodyRect.anchorMin = new Vector2(0f, 0f);
             bodyRect.anchorMax = new Vector2(1f, 1f);
-            bodyRect.offsetMin = new Vector2(Pad, Pad * 2f + ButtonHeight);
+            bodyRect.offsetMin = new Vector2(Pad, Pad + ButtonsArea);
             bodyRect.offsetMax = new Vector2(-Pad, -(Pad + 28f));
             body.alignment = TextAnchor.UpperLeft;
             body.horizontalOverflow = HorizontalWrapMode.Wrap;

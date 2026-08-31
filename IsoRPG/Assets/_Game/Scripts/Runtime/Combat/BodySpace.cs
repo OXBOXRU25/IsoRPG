@@ -49,8 +49,15 @@ namespace IsoRPG.Combat
             agent = GetComponent<NavMeshAgent>();
 
             // Игрока узнаём по вводу: он единственный, кем управляют.
+            // Герой не двигается ВООБЩЕ, монстр отходит быстро.
+            //
+            // Решение Павла от 01.09.2026: «пусть персонаж заходит в текстуры
+            // мобов, но моб при этом отходит на шаг». Прежние 0.15 у героя
+            // всё равно его подталкивали, и на клавишах это читалось как
+            // сопротивление управлению. Ноль честнее: игрока не двигает
+            // никто, кроме него самого.
             bool isPlayer = GetComponent<IsoRPG.Player.PlayerInputRouter>() != null;
-            yielding = isPlayer ? 0.15f : 1f;
+            yielding = isPlayer ? 0f : 2.5f;
 
             Fit();
         }
@@ -87,8 +94,19 @@ namespace IsoRPG.Combat
 
             Vector3 self = transform.position;
 
+            // Триггеры ВКЛЮЧАЕМ — и это не мелочь, а причина, по которой
+            // разведение годами не работало против игрока.
+            //
+            // Коллайдер героя помечен триггером намеренно: так он не мешает
+            // лучу клика проходить сквозь себя. Но поиск соседей шёл с
+            // Ignore, то есть герой для монстров физически не существовал —
+            // они спокойно въезжали в него, и Павлон 01.09.2026 видел это
+            // как «персонаж залезает на кабана».
+            //
+            // Лишнего не наберём: ниже отсеиваем всех, у кого нет
+            // навигационного агента, а зоны и спусковые объёмы его не носят.
             int count = Physics.OverlapSphereNonAlloc(
-                self, agent.radius * 2.5f, found, ~0, QueryTriggerInteraction.Ignore);
+                self, agent.radius * 2.5f, found, ~0, QueryTriggerInteraction.Collide);
 
             Vector3 push = Vector3.zero;
             int touched = 0;
@@ -122,6 +140,10 @@ namespace IsoRPG.Combat
             }
 
             if (touched == 0) return;
+
+            // Нулевая уступчивость — стоим намертво. Считать нас соседом
+            // при этом продолжают: мы для них стена, а не пустое место.
+            if (yielding <= 0f) return;
 
             Vector3 step = Vector3.ClampMagnitude(push, 1f) * PushSpeed * yielding * Time.deltaTime;
 

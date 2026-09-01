@@ -573,6 +573,14 @@ namespace IsoRPG.EditorTools
                     CreatureProbe.Animators();
                     break;
 
+                case "npc-probe":
+                    CreatureProbe.Npc();
+                    break;
+
+                case "sounds":
+                    SoundBankBuilder.Build();
+                    break;
+
                 case "heavy-off":
                     SceneWeight.Heavy(false);
                     break;

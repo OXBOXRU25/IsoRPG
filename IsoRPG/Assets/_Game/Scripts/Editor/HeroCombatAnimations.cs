@@ -264,8 +264,13 @@ namespace IsoRPG.EditorTools
             var runOut = landing.AddExitTransition();
             runOut.AddCondition(AnimatorConditionMode.Greater, 0.15f, "Speed");
             runOut.hasExitTime = true;
-            runOut.exitTime = 0.28f;
-            runOut.duration = 0.1f;
+            // 0.55, а не 0.28: клип приземления состоит из двух частей —
+            // герой приседает и разгибается. Обрыв на четверти оставлял
+            // только присед, и разгибание пропадало — Павлон 01.09.2026:
+            // «анимация приземления есть, а разгибания вообще нет, он резко
+            // переходит в стоячее положение».
+            runOut.exitTime = 0.55f;
+            runOut.duration = 0.16f;
 
             // Старое одиночное состояние больше не нужно: вход в него шёл по
             // тому же триггеру, и два перехода на один триггер дрались бы

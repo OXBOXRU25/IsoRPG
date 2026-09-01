@@ -68,7 +68,11 @@ namespace IsoRPG.EditorTools
             bank.boneVoice = Load("creak");
 
             bank.voiceMerchant = Load("npc_man");
-            bank.voiceVillager = Load("npc_woman");
+            // Голос селянина из банка убран 01.09.2026: у НПС теперь свои
+            // записанные фразы (NpcVoice), а этот абстрактный звук Павлон
+            // слышал как «бормотание». Пустой массив — Sfx молча ничего не
+            // играет, проверка на null там уже есть.
+            bank.voiceVillager = new AudioClip[0];
             bank.bossRoar = Load("boss_roar");
 
             bank.ambience = Load("forest_birds");

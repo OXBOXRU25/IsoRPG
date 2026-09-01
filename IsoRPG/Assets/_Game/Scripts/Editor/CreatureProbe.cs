@@ -66,6 +66,24 @@ namespace IsoRPG.EditorTools
         /// ломается: выключенный аниматор, отсутствующий аватар, пустой
         /// контроллер, чужая культя вместо модели.
         /// </summary>
+
+        /// <summary>Что висит на НПС: звук, голос, громкость — по факту, а не по коду.</summary>
+        public static void Npc()
+        {
+            var npc = Object.FindObjectsByType<IsoRPG.Quests.QuestGiver>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                            .FirstOrDefault();
+
+            if (npc == null) { Debug.LogWarning("[IsoRPG] Квестового НПС в сцене нет."); return; }
+
+            var sources = npc.GetComponentsInChildren<AudioSource>(true);
+            var voice = npc.GetComponent<IsoRPG.Quests.NpcVoice>();
+
+            Debug.Log(
+                $"[IsoRPG] НПС «{npc.name}»:\n" +
+                $"  компоненты: {string.Join(", ", npc.GetComponents<Component>().Select(c => c.GetType().Name))}\n" +
+                $"  источников звука {sources.Length}: {string.Join(", ", sources.Select(s => $"громкость {s.volume:F2}, клип {(s.clip != null ? s.clip.name : "нет")}"))}\n" +
+                $"  NpcVoice: {(voice != null ? "есть" : "НЕТ")}");
+        }
         public static void Animators()
         {
             var rows = Object.FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None)

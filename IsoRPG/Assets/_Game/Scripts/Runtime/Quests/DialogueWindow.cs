@@ -79,7 +79,9 @@ namespace IsoRPG.Quests
 
         public void Open(QuestGiver giver)
         {
-            if (giver != null) IsoRPG.Audio.Sfx.VillagerVoice(giver.transform.position);
+            // Старое «бормотание» убрано 01.09.2026: у НПС теперь настоящий
+            // голос с фразами (NpcVoice), и абстрактный звук поверх него
+            // звучал как помеха. Павлон: «его убираем вообще».
 
             if (giver == null) return;
 

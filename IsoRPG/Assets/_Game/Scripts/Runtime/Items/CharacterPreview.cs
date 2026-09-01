@@ -220,11 +220,15 @@ namespace IsoRPG.Items
             // Поле зрения чуть шире роста: при точной подгонке макушка
             // срезается краем, потому что габариты считаются по мешу, а
             // капюшон и оружие торчат за него.
-            stageCamera.orthographicSize = height * 0.45f;
+            // Поле зрения — 1.1 роста: при 0.9 герой физически не влезал,
+            // и ноги срезало краем кадра (Павлон 01.09.2026: «ноги
+            // обрезаны»). Запас в десятую долю оставляем на капюшон и
+            // оружие: габариты считаются по мешу, а они торчат за него.
+            stageCamera.orthographicSize = height * 0.55f;
 
             // Смотрим выше середины — тогда фигура садится ниже в кадре и
             // под ногами остаётся опора, а не обрез.
-            var focus = new Vector3(bounds.center.x, bounds.min.y + height * 0.62f, bounds.center.z);
+            var focus = new Vector3(bounds.center.x, bounds.min.y + height * 0.46f, bounds.center.z);
 
             // Взгляд слегка сверху: строго сбоку фигура выглядит плоской.
             go.transform.rotation = Quaternion.Euler(6f, 180f, 0f);

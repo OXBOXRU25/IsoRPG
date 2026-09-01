@@ -47,10 +47,10 @@ namespace IsoRPG.Items
         private const float Width = 490f;
 
         /// <summary>Сторона гнезда под вещь. В образце 40 при ширине окна 484.</summary>
-        private const float Slot = 46f;
+        private const float Slot = 53f;
 
         /// <summary>Шаг между гнёздами по вертикали: сторона плюс зазор 4.</summary>
-        private const float SlotStep = 50f;
+        private const float SlotStep = 57f;
 
         /// <summary>Колонка гнёзд: сама вещь плюс поля до края окна.</summary>
         private const float SlotColumnWidth = Slot + 14f;

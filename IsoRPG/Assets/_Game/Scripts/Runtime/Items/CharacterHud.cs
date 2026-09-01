@@ -85,7 +85,7 @@ namespace IsoRPG.Items
         /// <summary>Подзаголовок под именем: «Человек, разбойник 1-го уровня» в образце.</summary>
         private const float SubtitleHeight = 18f;
 
-        private const float StatsHeight = 212f;
+        private const float StatsHeight = 146f;
 
         // --- Карта окна. Все позиции заданы явно, сверху вниз. ---
         //
@@ -97,7 +97,7 @@ namespace IsoRPG.Items
         private const float ContentTop = Pad + TitleHeight + SubtitleHeight;
 
         /// <summary>Витрина с героем. В образце он занимает верхние две трети окна.</summary>
-        private const float ModelHeight = 270f;
+        private const float ModelHeight = 286f;
 
         /// <summary>Числа — сразу под моделью.</summary>
         private const float StatsTop = ContentTop + ModelHeight + 8f;

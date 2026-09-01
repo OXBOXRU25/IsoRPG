@@ -39,6 +39,7 @@ namespace IsoRPG.Player
         private float fallSpeed;
         private Vector3 lastMove;
         private bool movedThisFrame;
+        private int reported;
 
         /// <summary>
         /// Снимает столкновение капсулы с телами существ.
@@ -181,6 +182,51 @@ namespace IsoRPG.Player
         {
             if (!movedThisFrame) Move(Vector3.zero, false);
             movedThisFrame = false;
+        }
+
+
+        /// <summary>
+        /// Страховка: капсула всё-таки упёрлась в живое тело — пропускаем его
+        /// немедленно и навсегда.
+        ///
+        /// Разовый проход в <c>Start</c> не знает о существах, которые
+        /// появятся позже, и не спасёт, если игнор слетел (Unity сбрасывает
+        /// его, когда коллайдер выключали и включили снова). Событие
+        /// столкновения решает это без единой лишней операции: оно приходит
+        /// только в момент контакта, и второй раз в то же тело герой уже не
+        /// упрётся.
+        ///
+        /// Для ММО это и есть правильная форма: не искать существ каждый
+        /// кадр, а реагировать на факт.
+        /// </summary>
+        private void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            if (body == null || hit.collider == null) return;
+
+            // Живое узнаём по агенту навигации: он есть у всех, кто ходит, —
+            // мобов, НПС и лошадей. Обход идёт по короткой ветке самого тела,
+            // а не по сцене.
+            var owner = hit.collider.GetComponentInParent<UnityEngine.AI.NavMeshAgent>();
+            if (owner == null)
+            {
+                // Не живое — упёрлись в мир, так и надо. Печатаем первые
+                // несколько раз: без этого непонятно, что именно держит
+                // героя, а гадать мы уже перестали.
+                if (reported < 5)
+                {
+                    reported++;
+                    Debug.Log($"[IsoRPG] Упёрся в мир: {hit.collider.name} ({hit.collider.GetType().Name}, слой {hit.collider.gameObject.layer})");
+                }
+                return;
+            }
+
+            if (reported < 5)
+            {
+                reported++;
+                Debug.Log($"[IsoRPG] Упёрся в живое: {owner.name} через {hit.collider.name} — пропускаю");
+            }
+
+            Physics.IgnoreCollision(body, hit.collider, true);
         }
 
         /// <summary>Останавливает героя, сохраняя падение. Нужно, когда управление отпущено.</summary>

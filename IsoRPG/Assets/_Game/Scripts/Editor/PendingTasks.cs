@@ -557,6 +557,14 @@ namespace IsoRPG.EditorTools
                     CreatureProbe.Near();
                     break;
 
+                case "hero-probe":
+                    CreatureProbe.Hero();
+                    break;
+
+                case "no-avoidance":
+                    NoAvoidance.Apply();
+                    break;
+
                 case "heavy-off":
                     SceneWeight.Heavy(false);
                     break;

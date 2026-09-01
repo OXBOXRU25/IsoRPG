@@ -34,8 +34,14 @@ namespace IsoRPG.Combat
         [Tooltip("Скорость отхода, метров в секунду. Быстрее — читается как толчок.")]
         public float StepSpeed = 1.8f;
 
-        [Tooltip("Сколько длится один отшаг.")]
-        public float StepTime = 0.45f;
+        [Tooltip("Запас поверх суммы радиусов: с ним крупная морда выходит из игрока целиком, а не наполовину.")]
+        public float Clearance = 0.4f;
+
+        [Tooltip("Короче этого отшаг не читается как движение.")]
+        public float MinStep = 0.5f;
+
+        [Tooltip("Дальше этого моб уходил бы из боя.")]
+        public float MaxStep = 2.5f;
 
         [Tooltip("Пауза после отшага, чтобы моб не пятился без остановки.")]
         public float Cooldown = 1.2f;
@@ -45,7 +51,8 @@ namespace IsoRPG.Combat
         private MonsterBrain brain;
 
         private float crowdedFor;
-        private float steppingLeft;
+        private float stepLeft;
+        private float bodyReach = 0.5f;
         private float restLeft;
         private Vector3 stepDirection;
 
@@ -54,6 +61,18 @@ namespace IsoRPG.Combat
             agent = GetComponent<NavMeshAgent>();
             targets = GetComponent<TargetSelector>();
             brain = GetComponent<MonsterBrain>();
+
+            // Встроенный обход агентов — выключить.
+            //
+            // Это и была «лошадь отталкивается», которую Павлон видел
+            // 01.09.2026: у неё стоял HighQualityObstacleAvoidance, она
+            // замечала агента героя и сама уступала дорогу. Игрок при
+            // этом проходил сквозь неё — физика была ни при чём, и я
+            // четыре захода чинил не ту систему.
+            //
+            // Расходиться существа должны ТОЛЬКО отшагом в бою (ниже),
+            // как просил Павлон: «убери механику отталкивания вообще».
+            if (agent != null) agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
 
             Fit();
         }
@@ -79,6 +98,12 @@ namespace IsoRPG.Combat
 
             float radius = Mathf.Clamp(Mathf.Max(bounds.size.x, bounds.size.z) * 0.35f, 0.3f, 1.2f);
 
+            // Половина наибольшего горизонтального габарита. Радиус агента
+            // для этого не годится: он вычисляется как 0.35 от размера и у
+            // длинного тела заметно меньше полудлины — на столько моб и не
+            // отходил, оставляя морду внутри игрока.
+            bodyReach = Mathf.Max(bounds.size.x, bounds.size.z) * 0.5f;
+
             agent.radius = radius;
             agent.height = Mathf.Clamp(bounds.size.y, 1f, 4f);
         }
@@ -88,11 +113,16 @@ namespace IsoRPG.Combat
             if (agent == null || !agent.isActiveAndEnabled || !agent.isOnNavMesh) return;
 
             // Отшаг уже начат — доводим его до конца, не переспрашивая условия.
-            if (steppingLeft > 0f)
+            // Отшаг меряем в МЕТРАХ, а не в секундах: длина зависит от
+            // размера тела. Фиксированные 0.81 м не выводили из игрока
+            // морду крупного босса — Павлон 01.09.2026: «кабан босс
+            // отходит, а голова остаётся в персонаже».
+            if (stepLeft > 0f)
             {
-                steppingLeft -= Time.deltaTime;
-                agent.Move(stepDirection * StepSpeed * Time.deltaTime);
-                if (steppingLeft <= 0f) restLeft = Cooldown;
+                float step = Mathf.Min(StepSpeed * Time.deltaTime, stepLeft);
+                agent.Move(stepDirection * step);
+                stepLeft -= step;
+                if (stepLeft <= 0f) restLeft = Cooldown;
                 return;
             }
 
@@ -135,7 +165,8 @@ namespace IsoRPG.Combat
             Vector3 side = Vector3.Cross(Vector3.up, away) * (Random.value < 0.5f ? -1f : 1f);
 
             stepDirection = (away + side * 0.7f).normalized;
-            steppingLeft = StepTime;
+            // Отходим ровно настолько, чтобы тела разошлись, плюс запас.
+            stepLeft = Mathf.Clamp(bodyReach + PlayerRadius(player) - distance + Clearance, MinStep, MaxStep);
             crowdedFor = 0f;
         }
 

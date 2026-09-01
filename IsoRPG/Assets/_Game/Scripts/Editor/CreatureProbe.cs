@@ -25,6 +25,38 @@ namespace IsoRPG.EditorTools
         /// печатаем всё, у чего есть физический коллайдер в пятнадцати метрах
         /// от героя, с расстоянием и слоем.
         /// </summary>
+
+        /// <summary>
+        /// Что на самом деле висит на герое и как он движется.
+        ///
+        /// Заведён 01.09.2026, когда лошадь продолжила отталкивать после трёх
+        /// правок физики. Прежде чем чинить четвёртый раз, надо убедиться, что
+        /// правки вообще применены: если мотора на герое нет, он ходит
+        /// навигационным агентом, а агенты расталкиваются своим встроенным
+        /// обходом — и физика тут ни при чём.
+        /// </summary>
+        public static void Hero()
+        {
+            var player = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                               .FirstOrDefault(g => g.name == "Player");
+
+            if (player == null) { Debug.LogWarning("[IsoRPG] Игрока в сцене нет."); return; }
+
+            var body = player.GetComponent<CharacterController>();
+            var agent = player.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            var motor = player.GetComponents<MonoBehaviour>().FirstOrDefault(m => m != null && m.GetType().Name == "PlayerMotor");
+
+            string avoidance = agent == null ? "агента нет"
+                : $"качество обхода {agent.obstacleAvoidanceType}, приоритет {agent.avoidancePriority}, радиус {agent.radius:F2}";
+
+            Debug.Log(
+                $"[IsoRPG] Герой в сцене {player.scene.name}:\n" +
+                $"  CharacterController: {(body != null ? $"есть, радиус {body.radius:F2}, рост {body.height:F2}" : "НЕТ")}\n" +
+                $"  PlayerMotor: {(motor != null ? "есть" : "НЕТ")}\n" +
+                $"  агент двигает позицию: {(agent != null ? agent.updatePosition.ToString() : "-")}\n" +
+                $"  обход препятствий агентом: {avoidance}\n" +
+                $"  компоненты: {string.Join(", ", player.GetComponents<Component>().Select(c => c.GetType().Name))}");
+        }
         public static void Near()
         {
             var player = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
@@ -47,8 +79,21 @@ namespace IsoRPG.EditorTools
                            $" | аниматор выше: {(skin != null ? "да" : "нет")} | размер {c.bounds.size.x:F1}×{c.bounds.size.y:F1}×{c.bounds.size.z:F1}";
                 });
 
+            var agents = Object.FindObjectsByType<UnityEngine.AI.NavMeshAgent>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+                .Where(a => Vector3.Distance(a.transform.position, at) < 20f)
+                .OrderBy(a => Vector3.Distance(a.transform.position, at))
+                .Select(a => $"{a.name}: обход {a.obstacleAvoidanceType}, приоритет {a.avoidancePriority}, радиус {a.radius:F2}, останов {a.stoppingDistance:F1}");
+            Debug.Log("[IsoRPG] Агенты рядом (кто кого обходит): " + string.Join(" | ", agents));
+
+            var obstacles = Object.FindObjectsByType<UnityEngine.AI.NavMeshObstacle>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+                .Where(o => Vector3.Distance(o.transform.position, at) < 20f)
+                .Select(o => $"{o.name} (вырезает: {o.carving}, размер {o.size.x:F1}×{o.size.z:F1}, {Vector3.Distance(o.transform.position, at):F1} м)");
+
+            Debug.Log("[IsoRPG] Помехи навигации рядом: " + string.Join(" | ", obstacles));
+
             Debug.Log($"[IsoRPG] Рядом с героем ({at.x:F1}, {at.z:F1}):\n" + string.Join("\n", near));
         }
+
         public static void Report()
         {
             var all = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);

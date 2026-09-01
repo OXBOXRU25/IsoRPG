@@ -229,8 +229,33 @@ namespace IsoRPG.Items
 
         // ------------------------------------------------------------------
 
+
+        /// <summary>
+        /// Подхватывает подложки пустых слотов из ресурсов.
+        ///
+        /// Имя файла совпадает с именем слота, поэтому новый слот получает
+        /// свою подложку сам, без правки кода: положил рядом Tabard.png — и
+        /// она появилась в слоте гербовой накидки. Иконки нарезаны 01.09.2026
+        /// из сеток Павлона и выровнены по яркости.
+        ///
+        /// Грузим один раз при сборке окна: Resources.Load в обновлении
+        /// слота стоил бы поиска по всем ресурсам на каждую перерисовку.
+        /// </summary>
+        private void LoadSlotHints()
+        {
+            foreach (var slot in Slots)
+            {
+                if (slotHints.ContainsKey(slot) && slotHints[slot] != null) continue;
+
+                var sprite = Resources.Load<Sprite>("SlotIcons/" + slot);
+                if (sprite != null) slotHints[slot] = sprite;
+            }
+        }
+
         private void Build()
         {
+            LoadSlotHints();
+
             var canvasGo = new GameObject("CharacterHUD",
                 typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasGo.transform.SetParent(transform, false);

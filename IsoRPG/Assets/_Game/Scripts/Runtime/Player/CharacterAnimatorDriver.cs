@@ -30,6 +30,9 @@ namespace IsoRPG.Player
     {
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int AttackSpeedHash = Animator.StringToHash("AttackSpeed");
+
+        /// <summary>Множитель скорости приземления: на бегу оно должно пройти быстрее.</summary>
+        private static readonly int LandSpeedHash = Animator.StringToHash("LandSpeed");
         private static readonly int AttackHash = Animator.StringToHash("Attack");
         private static readonly int StealthKillHash = Animator.StringToHash("StealthKill");
         private static readonly int DeadHash = Animator.StringToHash("Dead");
@@ -147,6 +150,14 @@ namespace IsoRPG.Player
             if (speed <= 0f && smoothedSpeed < 0.05f) smoothedSpeed = 0f;
 
             animator.SetFloat(SpeedHash, smoothedSpeed);
+
+            // Приземление на бегу играем быстрее, а не обрезаем.
+            //
+            // Клип рассчитан на остановку: присед и разгибание занимают
+            // почти секунду, и всё это время герой едет по земле. Обрезать
+            // нельзя — пропадает разгибание. Ускоряем: обе фазы на месте,
+            // просто проходят вдвое быстрее.
+            animator.SetFloat(LandSpeedHash, smoothedSpeed > 0.15f ? 2f : 1f);
         }
 
         /// <summary>

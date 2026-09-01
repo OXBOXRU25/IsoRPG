@@ -29,8 +29,8 @@ namespace IsoRPG.Items
         /// <summary>Далеко под картой: там ничего нет и не будет.</summary>
         private static readonly Vector3 StageOrigin = new Vector3(0f, -500f, 0f);
 
-        private const int TextureWidth = 200;
-        private const int TextureHeight = 340;
+        private const int TextureWidth = 280;
+        private const int TextureHeight = 420;
 
         [Tooltip("Модель героя. Ту же, что и в мире.")]
         [SerializeField] private GameObject modelPrefab;
@@ -220,7 +220,7 @@ namespace IsoRPG.Items
             // Поле зрения чуть шире роста: при точной подгонке макушка
             // срезается краем, потому что габариты считаются по мешу, а
             // капюшон и оружие торчат за него.
-            stageCamera.orthographicSize = height * 0.72f;
+            stageCamera.orthographicSize = height * 0.45f;
 
             // Смотрим выше середины — тогда фигура садится ниже в кадре и
             // под ногами остаётся опора, а не обрез.

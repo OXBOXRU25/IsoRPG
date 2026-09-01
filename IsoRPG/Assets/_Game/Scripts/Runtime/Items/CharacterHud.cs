@@ -22,7 +22,13 @@ namespace IsoRPG.Items
         private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0xFF);
         /// <summary>Силуэт пустого слота: заметен, но не спорит с вещами.</summary>
         /// <summary>Подложка пустого гнезда. 0.28 было почти не видно на тёмной панели.</summary>
-        private static readonly Color HintColor = new Color(1f, 1f, 1f, 0.7f);
+        private static readonly Color HintColor = new Color(1f, 1f, 1f, 0.92f);
+
+        /// <summary>Подпись характеристики. Замер с образца 01.09.2026: золотистая.</summary>
+        private static readonly Color StatLabel = new Color32(202, 190, 107, 255);
+
+        /// <summary>Значение характеристики — почти белое, чтобы читалось первым.</summary>
+        private static readonly Color StatValue = new Color32(210, 221, 208, 255);
 
         private static readonly Color SlotEmpty = new Color32(0x2A, 0x27, 0x21, 0xFF);
         private static readonly Color TextColor = new Color32(0xE8, 0xE2, 0xD4, 0xFF);
@@ -41,10 +47,10 @@ namespace IsoRPG.Items
         private const float Width = 490f;
 
         /// <summary>Сторона гнезда под вещь. В образце 40 при ширине окна 484.</summary>
-        private const float Slot = 40f;
+        private const float Slot = 46f;
 
         /// <summary>Шаг между гнёздами по вертикали: сторона плюс зазор 4.</summary>
-        private const float SlotStep = 44f;
+        private const float SlotStep = 50f;
 
         /// <summary>Колонка гнёзд: сама вещь плюс поля до края окна.</summary>
         private const float SlotColumnWidth = Slot + 14f;
@@ -66,7 +72,8 @@ namespace IsoRPG.Items
         private const float ModelColumnWidth = Width - SlotColumnWidth * 2f;
 
         /// <summary>Шаг строки характеристик. В образце 22 при кегле 13.</summary>
-        private const float StatRow = 22f;
+        /// <summary>Шаг строки. Замер с образца: 21 пиксель.</summary>
+        private const float StatRow = 21f;
 
         /// <summary>Заголовок раздела: сверху воздуха больше, чем снизу.</summary>
         private const float StatHeader = 26f;
@@ -422,20 +429,12 @@ namespace IsoRPG.Items
 
             for (int i = 0; i < BottomSlots.Length; i++)
                 BuildRow(rect, BottomSlots[i], bottomX + i * SlotStep, bottomY);
-            // Тонкая черта между колонками: без неё числа читаются как
-            // продолжение списка вещей.
-            var divider = new GameObject("Divider", typeof(Image));
-            var dividerRect = (RectTransform)divider.transform;
-            dividerRect.SetParent(rect, false);
-            dividerRect.anchorMin = new Vector2(0f, 1f);
-            dividerRect.anchorMax = new Vector2(0f, 1f);
-            dividerRect.pivot = new Vector2(0f, 1f);
-            dividerRect.anchoredPosition = new Vector2(SlotColumnWidth - 8f, -(Pad + TitleHeight));
-            dividerRect.sizeDelta = new Vector2(1f, height - TitleHeight - Pad * 2f);
 
-            var dividerImage = divider.GetComponent<Image>();
-            dividerImage.color = PanelEdge;
-            dividerImage.raycastTarget = false;
+            // Разделитель колонок убран 01.09.2026: он остался от старой
+            // раскладки в три колонки и в новой проходил ровно через
+            // гнёзда левой колонки — Павлон видел его как полоску в один
+            // пиксель поверх иконок. В образце такой черты нет вовсе.
+
 
             BuildModel(rect, height);
             BuildStats(rect, height);
@@ -701,7 +700,7 @@ namespace IsoRPG.Items
             //
             // Поэтому не растягиваем, а вписываем по центру: высота
             // области целиком, ширина — сколько требует пропорция.
-            const float shotWidth = 200f, shotHeight = 340f;
+            const float shotWidth = 280f, shotHeight = 420f;
             float viewHeight = ModelHeight - 6f;
             float viewWidth = viewHeight * (shotWidth / shotHeight);
 
@@ -738,30 +737,24 @@ namespace IsoRPG.Items
             parent = leftColumn;
             float y = 0f;
 
-            y = StatSection(parent, "Общее", y);
-            y = StatLine(parent, "level", "Уровень", y);
-            y = StatLine(parent, "health", "Здоровье", y);
-            y = StatLine(parent, "energy", "Энергия", y);
-            y = StatLine(parent, "armor", "Броня", y);
-
-            y = StatSection(parent, "Характеристики", y);
+            // По пять строк в каждом блоке — как в образце. Уровень ушёл в
+            // подзаголовок, а «Броня» и «Сила крита» вынесены за рамку: пять
+            // строк читаются одним взглядом, восемь уже нет.
+            y = StatSection(parent, "Основные", y);
             y = StatLine(parent, "strength", "Сила", y);
             y = StatLine(parent, "agility", "Ловкость", y);
             y = StatLine(parent, "stamina", "Выносливость", y);
+            y = StatLine(parent, "health", "Здоровье", y);
+            y = StatLine(parent, "energy", "Энергия", y);
 
             parent = rightColumn;
             y = 0f;
 
             y = StatSection(parent, "Ближний бой", y);
-
-            // Имя оружия — на всю ширину колонки: «Кинжал бандита» рядом с
-            // подписью «Оружие» не помещается и вылезает за край.
-            y = StatWideLine(parent, "weapon", y);
             y = StatLine(parent, "damage", "Урон", y);
             y = StatLine(parent, "speed", "Скорость", y);
             y = StatLine(parent, "dps", "Урон в секунду", y);
             y = StatLine(parent, "crit", "Шанс крита", y);
-            y = StatLine(parent, "critmult", "Сила крита", y);
             y = StatLine(parent, "miss", "Шанс промаха", y);
 
             parent = parentBackup;
@@ -844,7 +837,7 @@ namespace IsoRPG.Items
         /// </summary>
         private float StatWideLine(RectTransform parent, string key, float y)
         {
-            var value = MakeText(parent, key + "Value", "—", 11, TextColor);
+            var value = MakeText(parent, key + "Value", "—", 12, StatValue);
 
             var rect = (RectTransform)value.transform;
             rect.anchorMin = new Vector2(0f, 1f);
@@ -925,7 +918,7 @@ namespace IsoRPG.Items
 
         private float StatLine(RectTransform parent, string key, string caption, float y)
         {
-            var label = MakeText(parent, key + "Label", caption, 11, TextDim);
+            var label = MakeText(parent, key + "Label", caption, 12, StatLabel);
             var labelRect = (RectTransform)label.transform;
             labelRect.anchorMin = new Vector2(0f, 1f);
             labelRect.anchorMax = new Vector2(0f, 1f);
@@ -934,7 +927,7 @@ namespace IsoRPG.Items
             labelRect.sizeDelta = new Vector2(StatColumnWidth - StatInset * 2f, StatRow);
             label.alignment = TextAnchor.MiddleLeft;
 
-            var value = MakeText(parent, key + "Value", "—", 11, TextColor);
+            var value = MakeText(parent, key + "Value", "—", 12, StatValue);
 
             // Значение обрезается по колонке, а не вылезает наружу: длинное
             // число лучше поджать, чем вывести за рамку окна.

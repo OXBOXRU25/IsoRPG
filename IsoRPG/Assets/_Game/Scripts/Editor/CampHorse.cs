@@ -61,11 +61,19 @@ namespace IsoRPG.EditorTools
         /// </summary>
         public static void Build()
         {
-            BuildOne(Spot, "Лошадь у лагеря");
-            BuildOne(SecondSpot, "Лошадь у пруда");
+            // Контроллер собираем ОДИН раз на обеих.
+            //
+            // HorseAnimations.Build() удаляет старый ассет и создаёт заново,
+            // поэтому второй вызов рушил ссылку, которую только что получила
+            // первая лошадь — она и вставала камнем. Классическая ловушка
+            // общего ассета: код одинаковый, а ресурс на двоих один.
+            var controller = HorseAnimations.Build();
+
+            BuildOne(Spot, "Лошадь у лагеря", controller);
+            BuildOne(SecondSpot, "Лошадь у пруда", controller);
         }
 
-        private static void BuildOne(Vector2 spot, string groupName)
+        private static void BuildOne(Vector2 spot, string groupName, UnityEditor.Animations.AnimatorController controller)
         {
             if (EditorApplication.isPlaying)
             {
@@ -126,7 +134,6 @@ namespace IsoRPG.EditorTools
 
             // Анимация. Без неё лошадь стоит истуканом посреди живого
             // лагеря — и это первое, что видно глазом.
-            var controller = HorseAnimations.Build();
 
             if (controller != null)
             {

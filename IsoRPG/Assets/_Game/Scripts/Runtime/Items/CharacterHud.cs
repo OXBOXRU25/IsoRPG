@@ -21,7 +21,8 @@ namespace IsoRPG.Items
         private static readonly Color PanelColor = new Color32(0x1C, 0x1A, 0x16, 0xF0);
         private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0xFF);
         /// <summary>Силуэт пустого слота: заметен, но не спорит с вещами.</summary>
-        private static readonly Color HintColor = new Color(1f, 1f, 1f, 0.28f);
+        /// <summary>Подложка пустого гнезда. 0.28 было почти не видно на тёмной панели.</summary>
+        private static readonly Color HintColor = new Color(1f, 1f, 1f, 0.7f);
 
         private static readonly Color SlotEmpty = new Color32(0x2A, 0x27, 0x21, 0xFF);
         private static readonly Color TextColor = new Color32(0xE8, 0xE2, 0xD4, 0xFF);
@@ -78,6 +79,27 @@ namespace IsoRPG.Items
         private const float SubtitleHeight = 18f;
 
         private const float StatsHeight = 150f;
+
+        // --- Карта окна. Все позиции заданы явно, сверху вниз. ---
+        //
+        // Так, а не выводом из соседних величин: раскладка, собранная из
+        // «высота минус то, плюс это», однажды перестаёт сходиться, и числа
+        // наезжают на модель — ровно это Павлон и увидел 01.09.2026.
+
+        /// <summary>Верх содержимого: сразу под заголовком с подзаголовком.</summary>
+        private const float ContentTop = Pad + TitleHeight + SubtitleHeight;
+
+        /// <summary>Витрина с героем. В образце он занимает верхние две трети окна.</summary>
+        private const float ModelHeight = 300f;
+
+        /// <summary>Числа — сразу под моделью.</summary>
+        private const float StatsTop = ContentTop + ModelHeight + 8f;
+
+        /// <summary>Полоса оружия — под числами.</summary>
+        private const float WeaponsTop = StatsTop + StatsHeight + 10f;
+
+        /// <summary>Полная высота окна. В образце 603 при экране 1920 x 1200.</summary>
+        private const float WindowHeight = WeaponsTop + Slot + Pad;
 
         /// <summary>
         /// Левая колонка: то, что надевают на корпус, сверху вниз по телу.
@@ -331,7 +353,7 @@ namespace IsoRPG.Items
             // 603 при экране 1920 x 1200 — у нас выходит близко к тому.
             float slotsHeight = Mathf.Max(LeftSlots.Length, RightSlots.Length) * SlotStep;
 
-            float height = TitleHeight + SubtitleHeight + slotsHeight + StatsHeight + Slot + Pad * 3f;
+            float height = WindowHeight;
 
             var go = new GameObject("CharacterWindow", typeof(Image));
             var rect = (RectTransform)go.transform;
@@ -369,7 +391,7 @@ namespace IsoRPG.Items
 
             // Раскладка по образцу WoW: гнёзда двумя колонками по краям,
             // между ними герой в полный рост, оружие полосой под ним.
-            float slotsTop = -(Pad + TitleHeight + SubtitleHeight);
+            float slotsTop = -ContentTop;
             float rightX = Width - Pad - Slot;
 
             for (int i = 0; i < LeftSlots.Length; i++)
@@ -380,7 +402,7 @@ namespace IsoRPG.Items
 
             // Оружие по центру под моделью: в образце это отдельная полоса,
             // отбитая от колонок, и читается она как «что в руках».
-            float bottomY = slotsTop - RightSlots.Length * SlotStep - StatsHeight - Pad;
+            float bottomY = -WeaponsTop;
             float bottomWidth = BottomSlots.Length * SlotStep - (SlotStep - Slot);
             float bottomX = (Width - bottomWidth) * 0.5f;
 
@@ -597,9 +619,9 @@ namespace IsoRPG.Items
         /// </summary>
         private void BuildModel(RectTransform parent, float height)
         {
-            float left = SlotColumnWidth + 4f;
-            float top = Pad + TitleHeight + SubtitleHeight + Mathf.Max(LeftSlots.Length, RightSlots.Length) * SlotStep - 130f;
-            float boxHeight = height - top - Pad;
+            float left = SlotColumnWidth;
+            float top = ContentTop;
+            float boxHeight = ModelHeight;
 
             var backGo = new GameObject("ModelBack", typeof(Image));
             var backRect = (RectTransform)backGo.transform;
@@ -666,7 +688,7 @@ namespace IsoRPG.Items
             // Числа теперь ПОД моделью, во всю её ширину: третьей колонки
             // в образце нет, и Павлон 01.09.2026 просил её убрать.
             float left = SlotColumnWidth;
-            float top = Pad + TitleHeight + SubtitleHeight + Mathf.Max(LeftSlots.Length, RightSlots.Length) * SlotStep - 130f;
+            float top = StatsTop;
             float viewHeight = StatsHeight;
 
             var scrollGo = new GameObject("StatsScroll", typeof(RectTransform), typeof(ScrollRect));

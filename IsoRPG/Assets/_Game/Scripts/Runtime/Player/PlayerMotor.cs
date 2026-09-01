@@ -40,63 +40,58 @@ namespace IsoRPG.Player
         private Vector3 lastMove;
         private bool movedThisFrame;
 
-        /// <summary>Как часто пересматривать список существ, секунд.</summary>
-        private const float RescanEvery = 2f;
-
-        private float rescanAt;
-
         /// <summary>
         /// Снимает столкновение капсулы с телами существ.
         ///
         /// Указание Павла 01.09.2026: сквозь мобов, НПС и лошадей игрок должен
         /// проходить насквозь, «как в WoW». Физика мира при этом остаётся —
-        /// камни, заборы и стены капсулу держат, — а вот живые тела для неё
-        /// проницаемы. Разводит их не физика, а <c>BodySpace</c>: моб,
-        /// который с тобой дерётся, сам отступает на шаг через секунду.
+        /// камни, заборы и стены капсулу держат. Разводит тела не физика, а
+        /// <c>BodySpace</c>: моб, который с тобой дерётся, отступает сам.
         ///
-        /// Существо узнаём по ДВУМ признакам, а не по одному. Сперва я брал
-        /// только навигационного агента — и Павлон тут же нашёл дыру: первая
-        /// лошадь в лагере агента не носит, стоит декорацией, и осталась для
-        /// игрока стеной, пока НПС и вторая лошадь пропускали насквозь.
-        /// Правило обязано быть общим, иначе каждое новое существо надо
-        /// вспоминать поимённо. Второй признак — скелетная сетка: она есть у
-        /// всего живого и не бывает у камня, забора и стены.
+        /// ЦЕНА ЗДЕСЬ ВАЖНЕЕ КРАСОТЫ. Первая версия перебирала все коллайдеры
+        /// сцены раз в две секунды и для каждого поднималась к корню мира,
+        /// обходя 32 444 меша: игра встала колом, Windows показывал
+        /// «приложение не отвечает». Теперь проход РАЗОВЫЙ и идёт по
+        /// навигационным агентам — их 263 на всю сцену, а не по коллайдерам,
+        /// которых 2077. Периодического перебора нет вовсе: новых существ
+        /// приносит <see cref="NoticeCreature"/>, которого зовёт возрождение.
         ///
-        /// Пересматриваем список по таймеру: мобы возрождаются, и коллайдер
-        /// возрождённого физике незнаком — без этого игрок упирался бы в
-        /// каждого, кто ожил после смерти.
+        /// Это ММО: всё, что выполняется повторно, умножается на число
+        /// игроков. Разовая тысяча операций — ничто, две секунды на кадр —
+        /// смерть.
         /// </summary>
-        private void RefreshCreatureIgnores()
+        public void RefreshCreatureIgnores()
         {
             if (body == null) return;
 
-            foreach (var col in Object.FindObjectsByType<Collider>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            foreach (var creature in Object.FindObjectsByType<UnityEngine.AI.NavMeshAgent>(
+                         FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             {
-                if (col == null || col.isTrigger || col.transform == transform) continue;
-                if (col.GetComponentInParent<CharacterController>() == body) continue;
+                if (creature == null || creature.transform == transform) continue;
+                NoticeCreature(creature.gameObject);
+            }
+        }
 
-                if (!IsCreature(col)) continue;
+        /// <summary>
+        /// Пропускает игрока сквозь одно существо.
+        ///
+        /// Зовётся при возрождении: у ожившего моба коллайдер новый, и физике
+        /// он незнаком — без этого игрок упирался бы в каждого, кто встал.
+        /// Обходим только ветку самого существа, а не сцену.
+        /// </summary>
+        public void NoticeCreature(GameObject creature)
+        {
+            if (body == null || creature == null) return;
 
+            foreach (var col in creature.GetComponentsInChildren<Collider>(true))
+            {
+                if (col == null || col.isTrigger) continue;
                 Physics.IgnoreCollision(body, col, true);
             }
         }
 
         /// <summary>
         /// Живое ли это тело: агент навигации или скелетная сетка выше по дереву.
-        ///
-        /// Скелетную ищем от владельца коллайдера вверх и затем вниз по всей
-        /// его ветке: у Synty коллайдер нередко висит на корне, а сама модель
-        /// с костями лежит ребёнком.
-        /// </summary>
-        private static bool IsCreature(Component col)
-        {
-            if (col.GetComponentInParent<UnityEngine.AI.NavMeshAgent>() != null) return true;
-
-            var root = col.transform;
-            while (root.parent != null && root.parent.GetComponent<Canvas>() == null) root = root.parent;
-
-            return root.GetComponentInChildren<SkinnedMeshRenderer>() != null;
-        }
 
 
         /// <summary>Фактическая скорость по земле. Аниматор выбирает по ней шаг и бег.</summary>
@@ -118,6 +113,14 @@ namespace IsoRPG.Player
                 agent.updatePosition = false;
                 agent.updateRotation = false;
             }
+        }
+
+        private void Start()
+        {
+            // Один раз за сцену. Дальше новых существ приносит
+            // возрождение через NoticeCreature — периодических
+            // проходов в игре нет.
+            RefreshCreatureIgnores();
         }
 
         /// <summary>
@@ -176,12 +179,6 @@ namespace IsoRPG.Player
         /// </summary>
         private void LateUpdate()
         {
-            if (Time.time >= rescanAt)
-            {
-                rescanAt = Time.time + RescanEvery;
-                RefreshCreatureIgnores();
-            }
-
             if (!movedThisFrame) Move(Vector3.zero, false);
             movedThisFrame = false;
         }

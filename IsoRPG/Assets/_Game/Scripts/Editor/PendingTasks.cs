@@ -549,6 +549,14 @@ namespace IsoRPG.EditorTools
                     HeroPhysics.Off();
                     break;
 
+                case "creature-probe":
+                    CreatureProbe.Report();
+                    break;
+
+                case "near-probe":
+                    CreatureProbe.Near();
+                    break;
+
                 case "heavy-off":
                     SceneWeight.Heavy(false);
                     break;

@@ -51,7 +51,7 @@ namespace IsoRPG.Items
 
         /// <summary>Третьей колонки больше нет: числа ушли под модель, как в образце.</summary>
         /// <summary>Блок чисел занимает всю ширину модели: он теперь под ней, а не сбоку.</summary>
-        private const float StatColumnWidth = ModelColumnWidth;
+        private const float StatColumnWidth = (ModelColumnWidth - 14f) * 0.5f;
 
         /// <summary>
         /// Отступ колонки чисел от края. Без него подписи упираются в рамку,
@@ -78,7 +78,7 @@ namespace IsoRPG.Items
         /// <summary>Подзаголовок под именем: «Человек, разбойник 1-го уровня» в образце.</summary>
         private const float SubtitleHeight = 18f;
 
-        private const float StatsHeight = 150f;
+        private const float StatsHeight = 212f;
 
         // --- Карта окна. Все позиции заданы явно, сверху вниз. ---
         //
@@ -90,7 +90,7 @@ namespace IsoRPG.Items
         private const float ContentTop = Pad + TitleHeight + SubtitleHeight;
 
         /// <summary>Витрина с героем. В образце он занимает верхние две трети окна.</summary>
-        private const float ModelHeight = 300f;
+        private const float ModelHeight = 270f;
 
         /// <summary>Числа — сразу под моделью.</summary>
         private const float StatsTop = ContentTop + ModelHeight + 8f;
@@ -116,6 +116,7 @@ namespace IsoRPG.Items
             EquipSlot.Shoulders,
             EquipSlot.Cloak,
             EquipSlot.Chest,
+            EquipSlot.Shirt,
             EquipSlot.Tabard,
             EquipSlot.Wrists,
         };
@@ -139,6 +140,10 @@ namespace IsoRPG.Items
             EquipSlot.MainHand,
             EquipSlot.OffHand,
             EquipSlot.Ranged,
+
+            // Колчан — справа от дальнего боя, как в образце: луку нужны
+            // стрелы, метательным кинжалам снаряды не нужны, и гнездо
+            // просто стоит пустым.
             EquipSlot.Ammo,
         };
 
@@ -171,6 +176,7 @@ namespace IsoRPG.Items
             { EquipSlot.Trinket, "Аксессуар" },
             { EquipSlot.Trinket2, "Аксессуар" },
             { EquipSlot.Tabard, "Гербовая накидка" },
+            { EquipSlot.Shirt, "Рубашка" },
         };
 
         [SerializeField] private Equipment equipment;
@@ -187,6 +193,7 @@ namespace IsoRPG.Items
 
         /// <summary>Рамка витрины. Картинку в неё вставляем при первом показе.</summary>
         private RectTransform modelBox;
+        private Text subtitle;
 
         private readonly Dictionary<EquipSlot, Image> slotIcons = new Dictionary<EquipSlot, Image>();
         private readonly Dictionary<EquipSlot, Text> slotLabels = new Dictionary<EquipSlot, Text>();
@@ -389,6 +396,13 @@ namespace IsoRPG.Items
             Place(title, new Vector2(Pad, -Pad), new Vector2(Width - Pad * 2f, TitleHeight));
             title.alignment = TextAnchor.MiddleCenter;
 
+            // Подзаголовок под именем — как в образце («Человек, разбойник
+            // 1-го уровня»). Расы и класса у нас пока нет, поэтому уровень:
+            // это единственное, что герой о себе уже сообщает.
+            subtitle = MakeText(rect, "Subtitle", "", 12, TextDim);
+            Place(subtitle, new Vector2(Pad, -(Pad + TitleHeight)), new Vector2(Width - Pad * 2f, SubtitleHeight));
+            subtitle.alignment = TextAnchor.MiddleCenter;
+
             // Раскладка по образцу WoW: гнёзда двумя колонками по краям,
             // между ними герой в полный рост, оружие полосой под ним.
             float slotsTop = -ContentTop;
@@ -442,12 +456,18 @@ namespace IsoRPG.Items
             iconRect.anchorMin = new Vector2(0f, 1f);
             iconRect.anchorMax = new Vector2(0f, 1f);
             iconRect.pivot = new Vector2(0f, 1f);
-            iconRect.anchoredPosition = new Vector2(x, y);
             // Сторона гнезда из образца: 40 при ширине окна 484. Прежние
             // 26 делали иконку вдвое мельче — Павлон 01.09.2026: «обрати
             // внимание на их размер в референсе, у тебя намного меньше».
-            iconRect.sizeDelta = new Vector2(Slot, Slot);
+            //
+            // Гнездо боеприпасов в образце заметно меньше соседей: оно не
+            // равноправная рука, а приложение к дальнему бою. Центрируем
+            // его по высоте полосы, иначе оно повисло бы на её верхнем крае.
+            float side = slot == EquipSlot.Ammo ? Slot * 0.82f : Slot;
+            float sink = (Slot - side) * 0.5f;
 
+            iconRect.anchoredPosition = new Vector2(x + sink, y - sink);
+            iconRect.sizeDelta = new Vector2(side, side);
             var icon = iconGo.GetComponent<Image>();
             icon.color = SlotEmpty;
             slotIcons[slot] = icon;
@@ -555,6 +575,14 @@ namespace IsoRPG.Items
             var talents = GetComponentInParent<IsoRPG.Progression.TalentBook>();
 
             Set("level", experience != null ? experience.Level.ToString() : "1");
+
+            // Подзаголовок: в образце под именем стоит «Человек, разбойник
+            // 1-го уровня». Расы и класса у нас нет — пишем то, что есть.
+            if (subtitle != null)
+            {
+                int level = experience != null ? experience.Level : 1;
+                LocalizedText.Bind(subtitle, "Искатель приключений, " + level + "-й уровень");
+            }
             Set("health", health != null ? health.Max.ToString() : "—");
             Set("energy", energy != null ? energy.Max.ToString() : "—");
             Set("armor", defense != null ? defense.Armor.ToString() : "0");
@@ -666,11 +694,22 @@ namespace IsoRPG.Items
             var viewGo = new GameObject("Model", typeof(RawImage));
             var viewRect = (RectTransform)viewGo.transform;
             viewRect.SetParent(modelBox, false);
-            viewRect.anchorMin = Vector2.zero;
-            viewRect.anchorMax = Vector2.one;
-            viewRect.offsetMin = new Vector2(3f, 3f);
-            viewRect.offsetMax = new Vector2(-3f, -3f);
+            // Держим пропорцию съёмки: витрина снимает героя в текстуру
+            // 200 x 340, а область под неё шире и ниже. Растянутая на всю
+            // область картинка сплющивала героя по высоте — Павлон
+            // 01.09.2026: «модель сплюснута, поставь её в нормальный рост».
+            //
+            // Поэтому не растягиваем, а вписываем по центру: высота
+            // области целиком, ширина — сколько требует пропорция.
+            const float shotWidth = 200f, shotHeight = 340f;
+            float viewHeight = ModelHeight - 6f;
+            float viewWidth = viewHeight * (shotWidth / shotHeight);
 
+            viewRect.anchorMin = new Vector2(0.5f, 0.5f);
+            viewRect.anchorMax = new Vector2(0.5f, 0.5f);
+            viewRect.pivot = new Vector2(0.5f, 0.5f);
+            viewRect.anchoredPosition = Vector2.zero;
+            viewRect.sizeDelta = new Vector2(viewWidth, viewHeight);
             var view = viewGo.GetComponent<RawImage>();
             view.texture = preview.Texture;
             view.raycastTarget = false;
@@ -685,55 +724,19 @@ namespace IsoRPG.Items
         /// </summary>
         private void BuildStats(RectTransform parent, float height)
         {
-            // Числа теперь ПОД моделью, во всю её ширину: третьей колонки
-            // в образце нет, и Павлон 01.09.2026 просил её убрать.
-            float left = SlotColumnWidth;
-            float top = StatsTop;
-            float viewHeight = StatsHeight;
+            // Две колонки рядом, без прокрутки — как в образце: слева свойства
+            // героя, справа ближний бой. Прокрутка здесь была лишней (числа
+            // помещаются), а её полоса торчала светлой чертой у края.
+            float gap = 14f;
+            float columnWidth = (ModelColumnWidth - gap) * 0.5f;
 
-            var scrollGo = new GameObject("StatsScroll", typeof(RectTransform), typeof(ScrollRect));
-            var scrollRect = (RectTransform)scrollGo.transform;
-            scrollRect.SetParent(parent, false);
-            scrollRect.anchorMin = new Vector2(0f, 1f);
-            scrollRect.anchorMax = new Vector2(0f, 1f);
-            scrollRect.pivot = new Vector2(0f, 1f);
-            scrollRect.anchoredPosition = new Vector2(left, -top);
-            scrollRect.sizeDelta = new Vector2(ModelColumnWidth, viewHeight);
-
-            var viewportGo = new GameObject("Viewport", typeof(RectTransform), typeof(RectMask2D));
-            var viewport = (RectTransform)viewportGo.transform;
-            viewport.SetParent(scrollRect, false);
-            viewport.anchorMin = Vector2.zero;
-            viewport.anchorMax = Vector2.one;
-            viewport.offsetMin = Vector2.zero;
-            viewport.offsetMax = Vector2.zero;
-
-            var contentGo = new GameObject("Content", typeof(RectTransform));
-            var content = (RectTransform)contentGo.transform;
-            content.SetParent(viewport, false);
-            content.anchorMin = new Vector2(0f, 1f);
-            content.anchorMax = new Vector2(1f, 1f);
-            content.pivot = new Vector2(0f, 1f);
-            content.anchoredPosition = Vector2.zero;
-
-            var bar = BuildScrollbar(scrollRect, viewHeight);
-
-            var scroll = scrollGo.GetComponent<ScrollRect>();
-            scroll.content = content;
-            scroll.viewport = viewport;
-            scroll.horizontal = false;
-            scroll.vertical = true;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
-            scroll.scrollSensitivity = 22f;
-            scroll.verticalScrollbar = bar;
-
-            // Полоса прячется сама, когда всё влезло: в окне и без неё тесно.
-            scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
-
-            float y = 0f;
+            var leftColumn = StatColumn(parent, "StatsLeft", SlotColumnWidth, columnWidth);
+            var rightColumn = StatColumn(parent, "StatsRight", SlotColumnWidth + columnWidth + gap, columnWidth);
 
             var parentBackup = parent;
-            parent = content;
+
+            parent = leftColumn;
+            float y = 0f;
 
             y = StatSection(parent, "Общее", y);
             y = StatLine(parent, "level", "Уровень", y);
@@ -746,10 +749,13 @@ namespace IsoRPG.Items
             y = StatLine(parent, "agility", "Ловкость", y);
             y = StatLine(parent, "stamina", "Выносливость", y);
 
+            parent = rightColumn;
+            y = 0f;
+
             y = StatSection(parent, "Ближний бой", y);
 
             // Имя оружия — на всю ширину колонки: «Кинжал бандита» рядом с
-            // подписью «Оружие» не помещается и вылезает за край окна.
+            // подписью «Оружие» не помещается и вылезает за край.
             y = StatWideLine(parent, "weapon", y);
             y = StatLine(parent, "damage", "Урон", y);
             y = StatLine(parent, "speed", "Скорость", y);
@@ -758,11 +764,21 @@ namespace IsoRPG.Items
             y = StatLine(parent, "critmult", "Сила крита", y);
             y = StatLine(parent, "miss", "Шанс промаха", y);
 
-            // Высота содержимого — по последней строке. Без неё прокрутка не
-            // знает, докуда ехать, и стоит на месте при любом списке.
-            content.sizeDelta = new Vector2(0f, -y + Pad);
-
             parent = parentBackup;
+        }
+
+        /// <summary>Колонка чисел: пустой прямоугольник, в который ложатся строки.</summary>
+        private RectTransform StatColumn(RectTransform parent, string name, float x, float width)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(parent, false);
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(x, -StatsTop);
+            rect.sizeDelta = new Vector2(width, StatsHeight);
+            return rect;
         }
 
         /// <summary>Тонкая полоса прокрутки: две плашки, без стрелок.</summary>
@@ -813,7 +829,7 @@ namespace IsoRPG.Items
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
             rect.anchoredPosition = new Vector2(StatInset, y - 6f);
-            rect.sizeDelta = new Vector2(StatColumnWidth - StatInset * 2f - ScrollWidth, StatHeader);
+            rect.sizeDelta = new Vector2(StatColumnWidth - StatInset * 2f, StatHeader);
             text.alignment = TextAnchor.LowerLeft;
 
             // Плюс зазор под заголовком: без него первая строка раздела
@@ -835,7 +851,7 @@ namespace IsoRPG.Items
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
             rect.anchoredPosition = new Vector2(StatInset, y);
-            rect.sizeDelta = new Vector2(StatColumnWidth - StatInset * 2f - ScrollWidth, StatRow);
+            rect.sizeDelta = new Vector2(StatColumnWidth - StatInset * 2f, StatRow);
             value.alignment = TextAnchor.MiddleLeft;
 
             statValues[key] = value;
@@ -915,7 +931,7 @@ namespace IsoRPG.Items
             labelRect.anchorMax = new Vector2(0f, 1f);
             labelRect.pivot = new Vector2(0f, 1f);
             labelRect.anchoredPosition = new Vector2(StatInset, y);
-            labelRect.sizeDelta = new Vector2(StatColumnWidth - StatInset * 2f - ScrollWidth, StatRow);
+            labelRect.sizeDelta = new Vector2(StatColumnWidth - StatInset * 2f, StatRow);
             label.alignment = TextAnchor.MiddleLeft;
 
             var value = MakeText(parent, key + "Value", "—", 11, TextColor);
@@ -929,7 +945,7 @@ namespace IsoRPG.Items
             valueRect.anchorMax = new Vector2(0f, 1f);
             valueRect.pivot = new Vector2(0f, 1f);
             valueRect.anchoredPosition = new Vector2(StatInset, y);
-            valueRect.sizeDelta = new Vector2(StatColumnWidth - StatInset * 2f - ScrollWidth, StatRow);
+            valueRect.sizeDelta = new Vector2(StatColumnWidth - StatInset * 2f, StatRow);
             value.alignment = TextAnchor.MiddleRight;
 
             statValues[key] = value;

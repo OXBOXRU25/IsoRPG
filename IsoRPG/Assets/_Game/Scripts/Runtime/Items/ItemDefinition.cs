@@ -48,6 +48,9 @@ namespace IsoRPG.Items
         /// <summary>Второй аксессуар: в WoW их два.</summary>
         Trinket2,
 
+        /// <summary>Рубашка. В WoW она над гербовой накидкой.</summary>
+        Shirt,
+
         /// <summary>Гербовая накидка. Иконку Павлон делает отдельно.</summary>
         Tabard,
     }

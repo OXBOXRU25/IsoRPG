@@ -176,6 +176,11 @@ namespace IsoRPG.EditorTools
             else
             {
                 var giver = npc.AddComponent<IsoRPG.Quests.QuestGiver>();
+
+                // Голос: пара фраз при обращении, случайно и с откатом.
+                // Клипы лежат в ресурсах, компонент подхватывает их сам.
+                npc.AddComponent<AudioSource>();
+                npc.AddComponent<IsoRPG.Quests.NpcVoice>();
                 giver.SetupMarkerMaterial(SandboxSceneBuilder.MarkerMaterial());
                 giver.Setup(quest);
                 EditorUtility.SetDirty(giver);

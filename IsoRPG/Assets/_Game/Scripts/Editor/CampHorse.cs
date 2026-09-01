@@ -35,6 +35,12 @@ namespace IsoRPG.EditorTools
 
         private const string MaterialPath = "Assets/_Game/Art/Materials/Mobs/Horse_Spots_URP.mat";
 
+        /// <summary>Масть лошади у лагеря — гнедая, как была до объединения сборщиков.</summary>
+        private const string BrownSkinPath =
+            "Assets/Malbers Animations/Horse AnimSet Pro/5 - Materials & Textures/Horse Poly Art/T_Horse_Brown.psd";
+
+        private const string BrownMaterialPath = "Assets/_Game/Art/Materials/Mobs/Horse_Brown_URP.mat";
+
         /// <summary>
         /// Место. В 3.4 м от дозорного (51.73, −28.23), юго-западнее — там
         /// открыто: бочки, стойка и ящик лагеря стоят восточнее.
@@ -79,10 +85,16 @@ namespace IsoRPG.EditorTools
             }
 
             var controller = HorseAnimations.Build();
-            var skinMaterial = MakeSkin();
+            // Две масти, оба материала готовятся ДО сборки лошадей.
+            //
+            // Ловушка та же, что была с контроллером: создание удаляет старый
+            // ассет и делает новый, поэтому вызов внутри сборки оставлял
+            // предыдущую лошадь без материала — пурпурной.
+            var spotsSkin = MakeSkin(SkinPath, MaterialPath, "Horse_Spots");
+            var brownSkin = MakeSkin(BrownSkinPath, BrownMaterialPath, "Horse_Brown");
 
-            BuildOne(Spot, "Лошадь у лагеря", controller, skinMaterial);
-            BuildOne(SecondSpot, "Лошадь у пруда", controller, skinMaterial);
+            BuildOne(Spot, "Лошадь у лагеря", controller, brownSkin);
+            BuildOne(SecondSpot, "Лошадь у пруда", controller, spotsSkin);
         }
 
         private static void BuildOne(Vector2 spot, string groupName, UnityEditor.Animations.AnimatorController controller, Material skinMaterial)
@@ -131,7 +143,7 @@ namespace IsoRPG.EditorTools
             model.transform.SetParent(tilt.transform, false);
             model.transform.localPosition = Vector3.zero;
 
-            Paint(model, skinMaterial);
+            if (skinMaterial != null) MobMaterials.ApplyMaterial(model, skinMaterial);
 
             // Прижимаем нижней точкой к земле.
             var parts = model.GetComponentsInChildren<Renderer>(true);
@@ -196,68 +208,28 @@ namespace IsoRPG.EditorTools
         /// пурпурной. Ровно то же было с контроллером анимаций. Общий
         /// ресурс готовим один раз и раздаём ссылку.
         /// </summary>
-        private static Material MakeSkin()
+        private static Material MakeSkin(string skinPath, string materialPath, string materialName)
         {
-            var existing = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
+            var existing = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
             if (existing != null) return existing;
 
-            var skin = AssetDatabase.LoadAssetAtPath<Texture2D>(SkinPath);
-            if (skin == null) { Debug.LogError("[IsoRPG] Нет текстуры масти " + SkinPath); return null; }
+            var skin = AssetDatabase.LoadAssetAtPath<Texture2D>(skinPath);
+            if (skin == null) { Debug.LogError("[IsoRPG] Нет текстуры масти " + skinPath); return null; }
 
             var lit = Shader.Find("Universal Render Pipeline/Lit");
             if (lit == null) { Debug.LogError("[IsoRPG] Нет шейдера URP/Lit — красить нечем."); return null; }
 
-            var material = new Material(lit) { name = "Horse_Synty_03" };
+            var material = new Material(lit) { name = materialName };
             material.SetTexture("_BaseMap", skin);
             material.SetFloat("_Smoothness", 0.1f);
 
-            var folder = System.IO.Path.GetDirectoryName(MaterialPath).Replace((char)92, (char)47);
+            var folder = System.IO.Path.GetDirectoryName(materialPath).Replace((char)92, (char)47);
             if (!AssetDatabase.IsValidFolder(folder))
                 AssetDatabase.CreateFolder(System.IO.Path.GetDirectoryName(folder).Replace((char)92, (char)47),
                                            System.IO.Path.GetFileName(folder));
 
-            AssetDatabase.CreateAsset(material, MaterialPath);
+            AssetDatabase.CreateAsset(material, materialPath);
             return material;
-        }
-
-        private static void Paint(GameObject model, Material material)
-        {
-            if (material != null) MobMaterials.ApplyMaterial(model, material);
-        }
-
-        private static void PaintOld(GameObject model)
-        {
-            var skin = AssetDatabase.LoadAssetAtPath<Texture2D>(SkinPath);
-
-            if (skin == null)
-            {
-                Debug.LogError("[IsoRPG] Нет текстуры масти " + SkinPath);
-                return;
-            }
-
-            var lit = Shader.Find("Universal Render Pipeline/Lit");
-
-            if (lit == null)
-            {
-                Debug.LogError("[IsoRPG] Нет шейдера URP/Lit — красить нечем.");
-                return;
-            }
-
-            var material = new Material(lit) { name = "Horse_Synty_03" };
-            material.SetTexture("_BaseMap", skin);
-            material.SetFloat("_Smoothness", 0.1f);
-
-            var folder = System.IO.Path.GetDirectoryName(MaterialPath).Replace('\\', '/');
-            if (!AssetDatabase.IsValidFolder(folder))
-                AssetDatabase.CreateFolder(System.IO.Path.GetDirectoryName(folder).Replace('\\', '/'),
-                                           System.IO.Path.GetFileName(folder));
-
-            if (AssetDatabase.LoadAssetAtPath<Material>(MaterialPath) != null)
-                AssetDatabase.DeleteAsset(MaterialPath);
-
-            AssetDatabase.CreateAsset(material, MaterialPath);
-
-            MobMaterials.ApplyMaterial(model, material);
         }
 
         /// <summary>Смотрит на костёр — как и дозорный.</summary>

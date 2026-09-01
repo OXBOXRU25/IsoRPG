@@ -261,6 +261,11 @@ namespace IsoRPG.Player
                         // Разворачиваем к себе до открытия окна: собеседник
                         // должен смотреть на того, с кем говорит.
                         giver.FaceTo(transform.position);
+
+                        // Голос при обращении: случайная фраза с откатом,
+                        // чтобы НПС не тараторил, если по нему накликивать.
+                        var voice = giver.GetComponent<IsoRPG.Quests.NpcVoice>();
+                        if (voice != null) voice.Speak();
                         if (dialogue != null) dialogue.Open(giver);
                     }
                     else

@@ -178,13 +178,30 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static int JumpPhases(AnimatorController controller, AnimatorStateMachine root)
         {
-            if (Find(root, "Jump_Air") != null) return 0;
+            // Пересобираем фазы ВСЕГДА, а не пропускаем готовые.
+            //
+            // Ранний выход означал, что любая правка клипов и переходов не
+            // доходит до уже собранного контроллера: он ассет, и живёт
+            // сам по себе. На боссе это стоило вечера — там состояние
+            // смерти осталось без выхода, хотя в коде выход был.
+            foreach (var name in new[] { "Jump_Start", "Jump_Air", "Jump_Land" })
+            {
+                var stale = Find(root, name);
+                if (stale != null) root.RemoveState(stale);
+            }
 
             const string Base = "Assets/Synty/AnimationBaseLocomotion/Animations/Sidekick/Masculine/InAir/";
 
             var takeOff = LoadAny(Base + "A_MOD_BL_Jump_Idle_Masc.fbx");
             var air = LoadAny(Base + "A_MOD_BL_InAir_FallShort_Masc.fbx");
-            var land = LoadAny(Base + "A_MOD_BL_Land_IdleSoft_Masc.fbx");
+            // Приземление берём СРЕДНЕЙ жёсткости, а не мягкое: в мягком
+            // герой встаёт на прямые ноги, и падение не читается вовсе.
+            // Павлон 01.09.2026: «при приземлении должна быть инерция, он
+            // должен немного приседать». В наборе три степени — Soft,
+            // Medium, Hard; Medium даёт приседание, не превращая прыжок
+            // через кочку в падение с крыши.
+            var land = LoadAny(Base + "A_MOD_BL_Land_IdleMedium_Masc.fbx")
+                       ?? LoadAny(Base + "A_MOD_BL_Land_IdleSoft_Masc.fbx");
 
             if (takeOff == null || air == null || land == null)
             {
@@ -219,10 +236,25 @@ namespace IsoRPG.EditorTools
             // Зависание → приземление, когда прыжок кончился. По флагу, а не
             // по времени: высота и длительность прыжка живут в JumpGesture, и
             // анимация обязана следовать за ними, а не наоборот.
+            // Приземление в стойку — только если герой ОСТАНОВИЛСЯ.
+            //
+            // Иначе выходило странное: клип приземления рассчитан на стойку,
+            // а мотор в это время продолжает вести героя — и он ехал по
+            // земле в позе приземления, а потом рывком переходил на бег.
+            // На ходу приземление пропускаем: бег сам по себе выглядит
+            // продолжением прыжка.
             var down = flight.AddTransition(landing);
             down.AddCondition(AnimatorConditionMode.IfNot, 0f, "InAir");
+            down.AddCondition(AnimatorConditionMode.Less, 0.15f, "Speed");
             down.hasExitTime = false;
             down.duration = 0.08f;
+
+            // На бегу — сразу в ход, минуя приземление.
+            var run = flight.AddExitTransition();
+            run.AddCondition(AnimatorConditionMode.IfNot, 0f, "InAir");
+            run.AddCondition(AnimatorConditionMode.Greater, 0.15f, "Speed");
+            run.hasExitTime = false;
+            run.duration = 0.1f;
 
             // Приземление → ход.
             var back = landing.AddExitTransition();

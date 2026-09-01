@@ -71,8 +71,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 284a48422caae2445906cd83c1dc9cfb, type: 3}
   voiceMerchant:
   - {fileID: 8300000, guid: 779d9e04fcc6d4441895759db946a1f1, type: 3}
-  voiceVillager:
-  - {fileID: 8300000, guid: 86adbd47acf2c194da581644ef48948f, type: 3}
+  voiceVillager: []
   bossRoar:
   - {fileID: 8300000, guid: 55129f48bf466b3468364e2d156d0a6b, type: 3}
   - {fileID: 8300000, guid: 0f5ba2170939aa54ba91ffce8478b703, type: 3}
@@ -83,6 +82,4 @@ MonoBehaviour:
   ambience:
   - {fileID: 8300000, guid: 24c61fbc7437c434eb630e9f5fafb237, type: 3}
   music:
-  - {fileID: 8300000, guid: 42e2aa625208cfc46994328310d412f2, type: 3}
-  - {fileID: 8300000, guid: 2e49ab319118e3642979448baaea7e1a, type: 3}
-  - {fileID: 8300000, guid: e7213704b69e3f24f92e1d4bd82d9402, type: 3}
+  - {fileID: 8300000, guid: 7036def98a7ef7b448f54c14fb068874, type: 3}

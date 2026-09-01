@@ -57,6 +57,30 @@ namespace IsoRPG.EditorTools
                 $"  обход препятствий агентом: {avoidance}\n" +
                 $"  компоненты: {string.Join(", ", player.GetComponents<Component>().Select(c => c.GetType().Name))}");
         }
+
+        /// <summary>
+        /// Состояние аниматоров у существ: кто чем анимирован и работает ли это.
+        ///
+        /// Заведён 01.09.2026: лошадь «встала как камень». Контроллер и клип на
+        /// месте, значит дело в самом объекте — печатаем то, что обычно и
+        /// ломается: выключенный аниматор, отсутствующий аватар, пустой
+        /// контроллер, чужая культя вместо модели.
+        /// </summary>
+        public static void Animators()
+        {
+            var rows = Object.FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Where(a => a != null)
+                .Take(30)
+                .Select(a =>
+                {
+                    string ctrl = a.runtimeAnimatorController != null ? a.runtimeAnimatorController.name : "НЕТ";
+                    string avatar = a.avatar != null ? (a.avatar.isValid ? "есть" : "негоден") : "НЕТ";
+                    return $"  {a.gameObject.name,-28} включён {(a.enabled ? "да " : "НЕТ")}| объект {(a.gameObject.activeInHierarchy ? "жив" : "выкл")}" +
+                           $" | контроллер {ctrl,-18} | аватар {avatar,-8} | культя {(a.isHuman ? "человек" : "прочее")}";
+                });
+
+            Debug.Log("[IsoRPG] Аниматоры сцены:\n" + string.Join("\n", rows));
+        }
         public static void Near()
         {
             var player = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)

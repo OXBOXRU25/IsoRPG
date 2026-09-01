@@ -41,10 +41,31 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static readonly Vector2 Spot = new Vector2(48.9f, -30.1f);
 
+        /// <summary>Вторая лошадь — там, где её ставил прежний отдельный сборщик.</summary>
+        private static readonly Vector2 SecondSpot = new Vector2(36f, 30f);
+
         private const string HearthMesh = "SM_Prop_Camp_Fireplace_01";
 
         [MenuItem("Tools/IsoRPG/Мир: лошадь у лагеря", priority = 43)]
+        /// <summary>
+        /// Ставит ОБЕИХ лошадей — одним и тем же кодом.
+        ///
+        /// До 01.09.2026 их собирали два разных задания, HorsePack и
+        /// CampHorse, хотя набор компонентов у них совпадал полностью.
+        /// Разошлись они только в мелочах сборки — и одна лошадь то
+        /// отталкивалась, то вставала камнем без контроллера, пока вторая
+        /// работала. Павлон: «зачем их ставят разные задания? чем это
+        /// аргументировано? сделай первую тем же заданием, что вторую».
+        ///
+        /// Возразить нечем: одинаковые вещи должен собирать один код.
+        /// </summary>
         public static void Build()
+        {
+            BuildOne(Spot, "Лошадь у лагеря");
+            BuildOne(SecondSpot, "Лошадь у пруда");
+        }
+
+        private static void BuildOne(Vector2 spot, string groupName)
         {
             if (EditorApplication.isPlaying)
             {
@@ -52,7 +73,7 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
-            var old = GameObject.Find(GroupName);
+            var old = GameObject.Find(groupName);
             if (old != null) Object.DestroyImmediate(old);
 
             var source = AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath);
@@ -75,8 +96,8 @@ namespace IsoRPG.EditorTools
             float y = terrain.SampleHeight(new Vector3(Spot.x, 0f, Spot.y)) +
                       terrain.transform.position.y;
 
-            var horse = new GameObject(GroupName);
-            horse.transform.position = new Vector3(Spot.x, y, Spot.y);
+            var horse = new GameObject(groupName);
+            horse.transform.position = new Vector3(spot.x, y, spot.y);
             horse.transform.rotation = Quaternion.Euler(0f, FaceHearth(horse.transform.position), 0f);
 
             // Узел наклона: он же прижимает модель к грунту, как у остальной

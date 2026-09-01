@@ -569,6 +569,10 @@ namespace IsoRPG.EditorTools
                     SpriteImport.Apply();
                     break;
 
+                case "anim-probe":
+                    CreatureProbe.Animators();
+                    break;
+
                 case "heavy-off":
                     SceneWeight.Heavy(false);
                     break;
@@ -1976,7 +1980,11 @@ namespace IsoRPG.EditorTools
                 }
 
                 case "horse":
-                    HorsePack.Build();
+                    // Обеих лошадей теперь ставит CampHorse: прежний отдельный
+                    // сборщик HorsePack давал тот же набор компонентов, но
+                    // расходился в мелочах, и его лошадь то отталкивалась, то
+                    // вставала без контроллера анимации.
+                    CampHorse.Build();
 
                     // Полный набор существу сразу: смерть, оглушение, полоска,
                     // возрождение. Без этого убитый моб продолжает бить.

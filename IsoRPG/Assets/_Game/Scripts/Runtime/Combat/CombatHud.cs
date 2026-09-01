@@ -25,6 +25,15 @@ namespace IsoRPG.Combat
         private static readonly Color HealthBack = new Color32(0x2A, 0x14, 0x12, 0xFF);
         private static readonly Color PortraitColor = new Color32(0x4A, 0x42, 0x36, 0xFF);
         private static readonly Color EnergyColor = new Color32(0xE8, 0xC3, 0x5A, 0xFF);
+
+        /// <summary>
+        /// Насколько заливка утоплена в жёлоб подложки.
+        ///
+        /// Четыре точки: стенка жёлоба в картинке около двенадцати пикселей
+        /// при высоте 124, то есть примерно десятая часть; наши полоски
+        /// высотой около сорока, десятая — четыре.
+        /// </summary>
+        private const float BarInset = 4f;
         private static readonly Color EnergyBack = new Color32(0x2C, 0x24, 0x10, 0xFF);
         private static readonly Color TextColor = new Color32(0xE8, 0xE2, 0xD4, 0xFF);
         private static readonly Color TextDim = new Color32(0xA8, 0xA0, 0x90, 0xFF);
@@ -62,7 +71,31 @@ namespace IsoRPG.Combat
         private const float PortraitCenterY = 0.491f;
         private const float PortraitDiameter = 0.236f;   // от ширины рамки
 
-        private const float BarsFrom = 0.300f;
+        /// <summary>
+        /// Во сколько раз каменная рамка портрета больше самого портрета.
+        ///
+        /// У картинки `inventory-slot-small 1` кромка занимает по 26 точек с
+        /// каждой стороны при холсте 188 — это 28% ширины. Чтобы портрет
+        /// внутри остался прежнего размера, рамка должна быть примерно на
+        /// треть крупнее его.
+        /// </summary>
+        private const float PortraitFrameScale = 1.32f;
+
+        /// <summary>Зазор между рамкой портрета и полосками, в долях ширины панели.</summary>
+        private const float PortraitGap = 0.028f;
+
+        /// <summary>
+        /// Полоски начинаются ЗА рамкой портрета, а не поверх неё.
+        ///
+        /// Павлон 01.09.2026: «бары заходят на портрет, надо отодвинуть». Так
+        /// и было: правый край портрета приходился на 0.326 ширины, а полоски
+        /// начинались с 0.300 — наезд в восемь точек. Теперь начало считается
+        /// от портрета и его рамки, а не задаётся числом: поменяется размер
+        /// портрета — полоски отойдут сами.
+        /// </summary>
+        private const float BarsFrom =
+            PortraitCenterX + PortraitDiameter * PortraitFrameScale * 0.5f + PortraitGap;
+
         private const float BarsTo = 0.980f;
         private const float TopBarFrom = 0.225f;
         private const float TopBarTo = 0.420f;
@@ -87,12 +120,16 @@ namespace IsoRPG.Combat
         private const float NeutralPortraitCenterY = 0.496f;
         private const float NeutralPortraitDiameter = 0.228f;
 
-        private const float NeutralPlateFrom = 0.290f;
+        private const float NeutralPlateFrom =
+            NeutralPortraitCenterX + NeutralPortraitDiameter * PortraitFrameScale * 0.5f + PortraitGap;
+
         private const float NeutralPlateTo = 0.980f;
         private const float NeutralPlateTop = 0.330f;
         private const float NeutralPlateBottom = 0.640f;
 
-        private const float EnemyBarFrom = 0.290f;
+        private const float EnemyBarFrom =
+            EnemyPortraitCenterX + EnemyPortraitDiameter * PortraitFrameScale * 0.5f + PortraitGap;
+
         private const float EnemyBarTo = 0.980f;
         private const float EnemyBarTop = 0.363f;
         private const float EnemyBarBottom = 0.605f;
@@ -418,12 +455,12 @@ namespace IsoRPG.Combat
             // пропускает, так что ломать там нечего.
 
             var healthBar = CreateGrooveBar(player, "Health", AllyHealthColor,
-                                            TopBarFrom, TopBarTo);
+                                            TopBarFrom, TopBarTo, fillSprite: "UI/Bar_Fill_Health");
             playerHealthFill = healthBar.fill;
             playerHealthText = healthBar.label;
 
             var energyBar = CreateGrooveBar(player, "Energy", EnergyColor,
-                                            LowBarFrom, LowBarTo);
+                                            LowBarFrom, LowBarTo, fillSprite: "UI/Bar_Fill_Stamina");
             playerEnergyFill = energyBar.fill;
             playerEnergyText = energyBar.label;
 
@@ -826,6 +863,17 @@ namespace IsoRPG.Combat
                 }
             }
 
+            // Каменная подложка под каждым гнездом — кладётся первой, чтобы
+            // оказаться под иконкой. Выбор Павлона 01.09.2026:
+            // `inventory-slot-small` с рамкой `inventory-slot-small 1`.
+            var backing = Resources.Load<Sprite>("UI/Slot_Backing");
+
+            if (backing != null)
+            {
+                for (int i = 0; i < BarSlots; i++)
+                    AddSlotArt(barRect, i * (SlotSize + SlotGap), backing, "SlotBack" + (i + 1));
+            }
+
             for (int i = 0; i < BarSlots; i++)
             {
                 float x = i * (SlotSize + SlotGap);
@@ -953,6 +1001,40 @@ namespace IsoRPG.Combat
                     cooldownText = cdText
                 });
             }
+
+            // Рамки — последними, поверх всего: иначе кромка окажется под
+            // иконкой и откатом, и гнездо будет выглядеть незакрытым.
+            var slotFrame = Resources.Load<Sprite>("UI/Frame_Portrait");
+
+            if (slotFrame != null)
+            {
+                for (int i = 0; i < BarSlots; i++)
+                    AddSlotArt(barRect, i * (SlotSize + SlotGap), slotFrame, "SlotFrame" + (i + 1));
+            }
+        }
+
+        /// <summary>
+        /// Кладёт картинку ровно в гнездо приёма — подложку или рамку.
+        ///
+        /// Указатель не ловит: клики должны доставаться самой кнопке приёма,
+        /// иначе панель перестанет нажиматься, а причина будет невидимой.
+        /// </summary>
+        private static void AddSlotArt(RectTransform bar, float x, Sprite sprite, string name)
+        {
+            var go = new GameObject(name, typeof(Image));
+            var rect = (RectTransform)go.transform;
+            rect.SetParent(bar, false);
+
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.zero;
+            rect.pivot = Vector2.zero;
+            rect.anchoredPosition = new Vector2(x, 0f);
+            rect.sizeDelta = new Vector2(SlotSize, SlotSize);
+
+            var image = go.GetComponent<Image>();
+            image.sprite = sprite;
+            image.type = Image.Type.Sliced;
+            image.raycastTarget = false;
         }
 
         /// <summary>
@@ -1004,6 +1086,15 @@ namespace IsoRPG.Combat
             {
                 image.sprite = art;
                 image.type = Image.Type.Simple;
+            }
+            else if (Resources.Load<Sprite>("UI/Frame_Portrait") != null)
+            {
+                // Подложку убираем совсем — решение Павлона 01.09.2026:
+                // «убрать подложку под ними нашу, поставить портрет в рамку и
+                // рядом просто два бара». Своя оправа теперь есть и у
+                // портрета, и у полосок, а тёмная плашка позади них только
+                // утяжеляла угол экрана.
+                image.color = new Color(0f, 0f, 0f, 0f);
             }
             else
             {
@@ -1075,6 +1166,34 @@ namespace IsoRPG.Combat
             if (centerY < 0f) centerY = PortraitCenterY;
             if (diameter <= 0f) diameter = PortraitDiameter;
 
+            // Каменная рамка вокруг портрета.
+            //
+            // Выбор Павлона 01.09.2026: `inventory-slot-small 1` из набора
+            // gui_fantasy_kit — «портрет в рамку, а подложку нашу убрать».
+            // Кладём ПОД портрет и крупнее его: у рамки своя кромка, и если
+            // подогнать её вровень, портрет закроет камень.
+            var frameArt = Resources.Load<Sprite>("UI/Frame_Portrait");
+
+            if (frameArt != null)
+            {
+                var frameGo = new GameObject("PortraitFrame", typeof(Image));
+                var frameRect = (RectTransform)frameGo.transform;
+                frameRect.SetParent(panel, false);
+
+                float frameSize = width * diameter * PortraitFrameScale;
+
+                frameRect.anchorMin = new Vector2(0f, 1f);
+                frameRect.anchorMax = new Vector2(0f, 1f);
+                frameRect.pivot = new Vector2(0.5f, 0.5f);
+                frameRect.anchoredPosition = new Vector2(width * centerX, -height * centerY);
+                frameRect.sizeDelta = new Vector2(frameSize, frameSize);
+
+                var frameImage = frameGo.GetComponent<Image>();
+                frameImage.sprite = frameArt;
+                frameImage.type = Image.Type.Sliced;
+                frameImage.raycastTarget = false;
+            }
+
             // Круглое окно, за края которого портрет не вылезет.
             //
             // Портреты рисуются квадратными, а гнездо круглое: без обрезки
@@ -1126,16 +1245,57 @@ namespace IsoRPG.Combat
         /// внутри его границ, поэтому пустая полоса выглядит как пустой
         /// жёлоб, а не как чёрный прямоугольник поверх рисунка.
         /// </summary>
+        /// <summary>
+        /// Во сколько раз ужать картинку, чтобы она села в полоску по высоте.
+        ///
+        /// Зачем. У 9-slice углы не тянутся — они рисуются в своём размере, и
+        /// если сумма верхней и нижней границы больше высоты полоски, Unity
+        /// сжимает их, а рисунок сминается. 01.09.2026 Павлон увидел ровно
+        /// это: подложка высотой 124 с границами 30 и 30 в полоске высотой 25
+        /// превратилась в две шляпки по краям, «гантели».
+        ///
+        /// Считаем от ФАКТИЧЕСКОЙ высоты полоски, а не подбираем число:
+        /// полоски у нас разной высоты (у игрока, у цели, под курсором), и
+        /// подобранное под одну сомнётся на другой.
+        /// </summary>
+        private static float SliceFit(Sprite sprite, float height)
+        {
+            if (sprite == null || height <= 1f) return 1f;
+
+            return Mathf.Max(1f, sprite.rect.height / height);
+        }
+
         private (RectTransform fill, Text label) CreateGrooveBar(
             RectTransform panel, string name, Color color, float fromY, float toY,
-            float fromX = -1f, float toX = -1f)
+            float fromX = -1f, float toX = -1f, string fillSprite = null)
         {
             if (fromX < 0f) fromX = BarsFrom;
             if (toX < 0f) toX = BarsTo;
 
-            var host = new GameObject(name, typeof(RectTransform));
+            // Подложка под полоску — каменный жёлоб.
+            //
+            // Выбор Павлона 01.09.2026 из набора gui_fantasy_kit. Полоска без
+            // подложки на светлой земле теряет края: тёмный прямоугольник
+            // читается как грязь, а не как шкала. Жёлоб даёт ей границу.
+            var socket = Resources.Load<Sprite>("UI/Bar_Socket");
+
+            var host = new GameObject(name, socket != null
+                                                ? new[] { typeof(RectTransform), typeof(Image) }
+                                                : new[] { typeof(RectTransform) });
             var hostRect = (RectTransform)host.transform;
             hostRect.SetParent(panel, false);
+
+            // Высота полоски на экране — из неё считается всё остальное.
+            float barHeight = panel.rect.height * Mathf.Abs(toY - fromY);
+
+            if (socket != null)
+            {
+                var socketImage = host.GetComponent<Image>();
+                socketImage.sprite = socket;
+                socketImage.type = Image.Type.Sliced;
+                socketImage.raycastTarget = false;
+                socketImage.pixelsPerUnitMultiplier = SliceFit(socket, barHeight);
+            }
 
             hostRect.anchorMin = new Vector2(fromX, 1f - toY);
             hostRect.anchorMax = new Vector2(toX, 1f - fromY);
@@ -1153,6 +1313,38 @@ namespace IsoRPG.Combat
             var fillImage = fillGo.GetComponent<Image>();
             fillImage.color = color;
             fillImage.raycastTarget = false;
+
+            // Готовая заливка со стеклянным бликом, если она заказана.
+            //
+            // Цвет остаётся тонировкой: у здоровья союзника картинка зелёная и
+            // цвет её почти не трогает, а полоска врага той же картинкой
+            // уводится в красный. Одна картинка на оба случая — иначе пришлось
+            // бы держать по файлу на каждый оттенок.
+            if (!string.IsNullOrEmpty(fillSprite))
+            {
+                var art = Resources.Load<Sprite>(fillSprite);
+
+                if (art != null)
+                {
+                    fillImage.sprite = art;
+                    fillImage.type = Image.Type.Sliced;
+                    fillImage.pixelsPerUnitMultiplier =
+                        SliceFit(art, barHeight - BarInset * 2f);
+
+                    // Картинка уже нужного цвета — тонировку снимаем. Зелёная
+                    // заливка, умноженная на наш зелёный, уходит в болото и
+                    // теряет блик, ради которого её и брали.
+                    fillImage.color = Color.white;
+                }
+            }
+
+            // Внутрь жёлоба, а не вровень с ним: край подложки должен
+            // оставаться виден, иначе жёлоб не читается.
+            if (socket != null)
+            {
+                fillRect.offsetMin = new Vector2(BarInset, BarInset);
+                fillRect.offsetMax = new Vector2(-BarInset, -BarInset);
+            }
 
             var label = CreateText(hostRect, "Value", "", 11, TextColor,
                                    Vector2.zero, Vector2.zero);

@@ -3667,6 +3667,18 @@ namespace IsoRPG.EditorTools
                     CameraBlockProbe.Run();
                     break;
 
+                case "ui-shot":
+                    UiShot.Run();
+                    break;
+
+                case "ui-sprites":
+                    UiSprites.Apply();
+                    break;
+
+                case "ui-norms":
+                    UiNorms.Run();
+                    break;
+
                 default:
                     Debug.LogWarning("[IsoRPG] Не знаю задания «" + task + "».");
                     break;

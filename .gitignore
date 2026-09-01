@@ -180,3 +180,11 @@ unity-*.log
 
 # Листы иконок от генератора — исходники, в игру идут нарезанные
 /Icons/
+
+# Набор gui_fantasy_kit — источник картинок для интерфейса.
+# Разложен в корень Assets своими папками; нужные картинки перенесены
+# в _Game/Resources/UI, сам набор восстанавливается из H:\2\UI Синти.
+IsoRPG/Assets/Assets/
+IsoRPG/Assets/Assets.meta
+IsoRPG/Assets/Scenes/GUI_Fantasy_Kit.unity
+IsoRPG/Assets/Scenes/GUI_Fantasy_Kit.unity.meta

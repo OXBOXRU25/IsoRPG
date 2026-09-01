@@ -26,6 +26,9 @@ namespace IsoRPG.UI
         /// </summary>
         private const float Size = 26f;
 
+        /// <summary>Размер каменной кнопки закрытия — у неё своя оправа, ей нужно место.</summary>
+        private const float StoneSize = 36f;
+
         /// <summary>
         /// На сколько рамка выступает за края панели.
         ///
@@ -104,7 +107,24 @@ namespace IsoRPG.UI
         {
             if (panel == null) return false;
 
-            // Рамки выключены общим рубильником — окно остаётся плашкой.
+            // Рамка одной картинкой — ПЕРЕД рубильником, и это важно.
+            //
+            // Выбор Павлона 01.09.2026: золотая `Frame_Box05` из набора Synty
+            // внешним бордюром на все окна. Она умеет 9-slice — углы не
+            // тянутся, тянутся только стороны, — поэтому собирать раму из
+            // четырёх краёв и четырёх углов больше незачем.
+            //
+            // Рубильник `UiFrames.Enabled` выключен с 27.08.2026 и гасит
+            // СТАРЫЙ покупной арт: плашку приёмов, панель игрока в дереве с
+            // золотом и панель цели в камне с трещинами — три материала,
+            // читавшиеся как три разные игры. Новая рамка одна на все окна и
+            // ни с чем не спорит, поэтому под рубильник не попадает. Сначала
+            // я поставил её ПОСЛЕ проверки — и окна остались голыми, потому
+            // что до неё дело не доходило.
+            var whole = Resources.Load<Sprite>("UI/Frame_Synty05");
+            if (whole != null) return ApplyWholeFrame(panel, whole);
+
+            // Старый путь из нарезанных деталей — только при рубильнике.
             if (!UiFrames.Enabled) return false;
 
             var cornerSprite = Resources.Load<Sprite>("UI/Win2_Corner");
@@ -205,6 +225,81 @@ namespace IsoRPG.UI
             // прямоугольник накрывает квадрат внутри угла, а сама кромка
             // остаётся углом буквы Г снаружи от него.
             face.transform.SetAsLastSibling();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Во сколько раз ужата рамка. Число АВТОРСКОЕ, не наше.
+        ///
+        /// Щуп `ui-norms` прочитал 249 префабов набора: `Frame_Box05` стоит у
+        /// Synty 17 раз, и всегда с множителем 3 при авторских границах 200.
+        /// Стенка картинки — 50 пикселей (замер по альфе), значит на экране
+        /// она выходит примерно в 17 точек, а угол — в 67.
+        ///
+        /// Здесь стояло «ужать так, чтобы стенка вышла в 28» — число я взял
+        /// от прежней рамки, собранной из деталей. Оно и близко не совпало с
+        /// тем, как эту рамку использует её художник.
+        /// </summary>
+        private const float AuthorSlice = 3f;
+
+        /// <summary>Толщина видимой стенки рамки в пикселях картинки — замер по альфе.</summary>
+        private const float WallInSprite = 50f;
+
+        /// <summary>
+        /// Рамка одной картинкой с 9-slice.
+        ///
+        /// Углы у такой картинки не растягиваются — Unity режет её на девять
+        /// кусков и тянет только стороны и середину. Середина у рамки пустая,
+        /// поэтому окно любого размера получает раму с неискажённым узором.
+        /// </summary>
+        private static bool ApplyWholeFrame(GameObject panel, Sprite sprite)
+        {
+            // Своя заливка панели больше не нужна — поверхность даёт рамка.
+            // Прозрачной, а не выключенной: Image продолжает ловить клики, и
+            // окно по-прежнему таскается за любое пустое место.
+            var own = panel.GetComponent<Image>();
+            if (own != null)
+            {
+                own.sprite = null;
+                own.color = new Color(0f, 0f, 0f, 0f);
+            }
+
+            var root = new GameObject("Frame", typeof(RectTransform));
+            var frame = (RectTransform)root.transform;
+            frame.SetParent((RectTransform)panel.transform, false);
+
+            frame.anchorMin = Vector2.zero;
+            frame.anchorMax = Vector2.one;
+            frame.offsetMin = new Vector2(-FrameBleed, -FrameBleed);
+            frame.offsetMax = new Vector2(FrameBleed, FrameBleed);
+            frame.SetAsFirstSibling();
+
+            var element = root.AddComponent<LayoutElement>();
+            element.ignoreLayout = true;
+
+            // Поверхность окна — под рамой и с отступом ровно в её толщину,
+            // чтобы золото легло на край, а не поверх содержимого.
+            // Отступ поверхности — ровно под стенку рамки в её авторском
+            // масштабе, а не под прежние 28 точек.
+            float wall = WallInSprite / AuthorSlice;
+
+            var face = MakePiece(frame, "Face", null);
+            face.rectTransform.anchorMin = Vector2.zero;
+            face.rectTransform.anchorMax = Vector2.one;
+            face.rectTransform.offsetMin = new Vector2(wall, wall);
+            face.rectTransform.offsetMax = new Vector2(-wall, -wall);
+            face.color = Face;
+
+            var border = MakePiece(frame, "Border", sprite);
+            border.rectTransform.anchorMin = Vector2.zero;
+            border.rectTransform.anchorMax = Vector2.one;
+            border.rectTransform.offsetMin = Vector2.zero;
+            border.rectTransform.offsetMax = Vector2.zero;
+            border.type = Image.Type.Sliced;
+            border.fillCenter = false;
+
+            border.pixelsPerUnitMultiplier = AuthorSlice;
 
             return true;
         }
@@ -379,6 +474,25 @@ namespace IsoRPG.UI
             var plate = go.GetComponent<Image>();
             plate.color = Plate;
 
+            // Каменная кнопка с крестиком вместо буквы «икс».
+            //
+            // Выбор Павлона 01.09.2026: `close-btn` из набора gui_fantasy_kit.
+            // Буква рисовалась встроенным шрифтом и читалась как отладочная
+            // заглушка, особенно рядом с золотой рамкой окна.
+            var art = Resources.Load<Sprite>("UI/Button_CloseStone");
+
+            if (art != null)
+            {
+                plate.sprite = art;
+                plate.type = Image.Type.Simple;
+                plate.color = Color.white;
+
+                // Кнопка крупнее прежней плашки: у картинки своя каменная
+                // оправа, и в 26 точках от неё остаётся каша. Тридцать шесть —
+                // столько, чтобы крестик внутри оправы читался.
+                rect.sizeDelta = new Vector2(StoneSize, StoneSize);
+            }
+
             var button = go.GetComponent<Button>();
             button.targetGraphic = plate;
             button.onClick.AddListener(onClose);
@@ -389,6 +503,18 @@ namespace IsoRPG.UI
             colors.pressedColor = PlateHover;
             colors.fadeDuration = 0.06f;
             button.colors = colors;
+
+            // С картинкой буква не нужна — крестик уже нарисован на камне.
+            // Подсветку тогда даёт сама кнопка через цвета состояний.
+            if (art != null)
+            {
+                colors = button.colors;
+                colors.normalColor = Color.white;
+                colors.highlightedColor = new Color(1f, 0.86f, 0.78f, 1f);
+                colors.pressedColor = new Color(0.78f, 0.72f, 0.66f, 1f);
+                button.colors = colors;
+                return;
+            }
 
             var textGo = new GameObject("X", typeof(Text));
             var textRect = (RectTransform)textGo.transform;

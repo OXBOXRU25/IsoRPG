@@ -44,6 +44,8 @@ namespace IsoRPG.Player
         [SerializeField] private float markerLifetime = 0.6f;
 
         private NavMeshAgent agent;
+        private PlayerMotor motor;
+        private KeyboardMove keys;
         private Camera cam;
         private float nextRepathTime;
         private float markerHideTime;
@@ -60,6 +62,8 @@ namespace IsoRPG.Player
         {
             agent = GetComponent<NavMeshAgent>();
             cam = Camera.main;
+            motor = GetComponent<PlayerMotor>();
+            keys = GetComponent<KeyboardMove>();
 
             if (destinationMarker != null) destinationMarker.SetActive(false);
         }
@@ -74,6 +78,33 @@ namespace IsoRPG.Player
         private void Update()
         {
             HandleMarker();
+            DriveByPath();
+        }
+
+        /// <summary>
+        /// Ведёт героя по посчитанному пути физической капсулой.
+        ///
+        /// Когда на герое стоит <c>PlayerMotor</c>, агент только считает
+        /// маршрут: позицию он не трогает. Двигать обязан мотор, иначе весь
+        /// смысл теряется — агент протащил бы героя сквозь те самые
+        /// коллайдеры, ради которых физика и заводилась.
+        ///
+        /// Клавиши главнее клика: пока ведут они, здесь молчим, иначе оба
+        /// зовут мотор в одном кадре и герой едет с двойной скоростью.
+        /// </summary>
+        private void DriveByPath()
+        {
+            if (motor == null || agent == null || !agent.isOnNavMesh) return;
+            if (keys != null && keys.IsSteering) return;
+            if (agent.pathPending) return;
+
+            if (agent.remainingDistance <= agent.stoppingDistance + 0.05f)
+            {
+                motor.Halt();
+                return;
+            }
+
+            motor.Move(agent.desiredVelocity);
         }
 
         /// <summary>

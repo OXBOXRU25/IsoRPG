@@ -30,6 +30,7 @@ namespace IsoRPG.Player
         public float TurnSpeed = 720f;
 
         private NavMeshAgent agent;
+        private PlayerMotor motor;
         private ClickToMoveController clicker;
         private bool steering;
 
@@ -44,12 +45,15 @@ namespace IsoRPG.Player
         /// персонаж едет по земле в позе стоя. Спрашивать надо у того, кто
         /// реально двигает.
         /// </summary>
-        public float Speed => steering && agent != null ? agent.speed : 0f;
+        public float Speed => !steering ? 0f
+                             : motor != null ? motor.Speed
+                             : agent != null ? agent.speed : 0f;
 
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
             clicker = GetComponent<ClickToMoveController>();
+            motor = GetComponent<PlayerMotor>();
         }
 
         private void Update()
@@ -78,6 +82,16 @@ namespace IsoRPG.Player
             if (direction.sqrMagnitude < 0.001f) return;
 
             Take();
+
+            // Есть физическая капсула — ведём ею: она упирается в коллайдеры
+            // мира, а agent.Move прошёл бы сквозь них. Мотор доворачивает
+            // корпус сам, поэтому старый доворот ниже — только для схемы
+            // без мотора.
+            if (motor != null)
+            {
+                motor.Move(direction * agent.speed);
+                return;
+            }
 
             agent.Move(direction * agent.speed * Time.deltaTime);
 

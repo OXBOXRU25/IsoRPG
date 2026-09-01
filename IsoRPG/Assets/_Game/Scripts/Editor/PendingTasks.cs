@@ -533,6 +533,22 @@ namespace IsoRPG.EditorTools
                     SceneWeight.Report();
                     break;
 
+                case "phys-probe":
+                    PhysicsProbe.Report();
+                    break;
+
+                case "phys-census":
+                    PhysicsProbe.Census();
+                    break;
+
+                case "hero-physics":
+                    HeroPhysics.On();
+                    break;
+
+                case "hero-physics-off":
+                    HeroPhysics.Off();
+                    break;
+
                 case "heavy-off":
                     SceneWeight.Heavy(false);
                     break;

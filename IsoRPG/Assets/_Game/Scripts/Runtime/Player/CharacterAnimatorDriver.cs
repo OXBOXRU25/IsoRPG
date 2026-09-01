@@ -67,12 +67,14 @@ namespace IsoRPG.Player
         [SerializeField] private float idleThreshold = 0.1f;
 
         private NavMeshAgent agent;
+        private PlayerMotor motor;
         private float smoothedSpeed;
         private KeyboardMove keys;
 
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
+            motor = GetComponent<PlayerMotor>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
 
             health = GetComponent<IsoRPG.Combat.Health>();
@@ -121,7 +123,10 @@ namespace IsoRPG.Player
             // Берём фактическую скорость, а не желаемую: при обходе препятствия
             // и на поворотах она отличается, и анимация должна следовать за тем,
             // что происходит на экране, а не за намерением.
-            float speed = agent.velocity.magnitude;
+            // С физической капсулой скорость спрашиваем у неё: агент
+            // при выключенном updatePosition своей velocity не ведёт,
+            // и герой ехал бы по земле в позе стоя.
+            float speed = motor != null ? motor.Speed : agent.velocity.magnitude;
 
             // Клавиши двигают героя мимо пути агента, и его собственная
             // скорость при этом остаётся нулевой. Спрашиваем у того, кто

@@ -21,6 +21,9 @@ namespace IsoRPG.World
 
         private void Update()
         {
+            // Общее правило поведения НПС — одно на всех, см. NpcBehaviour.
+            if (!IsoRPG.World.NpcBehaviour.FaceHero) return;
+            return;
             if (hero == null)
             {
                 var go = GameObject.Find("Player");

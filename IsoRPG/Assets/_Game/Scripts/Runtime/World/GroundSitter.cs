@@ -64,6 +64,8 @@ namespace IsoRPG.World
                 {
                     // Своё не считаем землёй.
                     if (candidate.collider.transform.IsChildOf(plant)) continue;
+                    // И чужое живое тело: спина зверя — не грунт.
+                    if (candidate.collider.GetComponentInParent<UnityEngine.AI.NavMeshAgent>() != null) continue;
                     if (candidate.distance >= nearest) continue;
 
                     nearest = candidate.distance;

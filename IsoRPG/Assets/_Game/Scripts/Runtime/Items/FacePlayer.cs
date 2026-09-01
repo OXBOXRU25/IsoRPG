@@ -48,6 +48,9 @@ namespace IsoRPG.Items
 
         private void Update()
         {
+            // Общее правило поведения НПС — одно на всех, см. NpcBehaviour.
+            if (!IsoRPG.World.NpcBehaviour.FaceHero) return;
+            return;
             if (player == null && Time.time >= nextSearch)
             {
                 nextSearch = Time.time + SearchInterval;

@@ -137,6 +137,18 @@ namespace IsoRPG.Items
             { EquipSlot.Necklace, "Ожерелье" },
             { EquipSlot.Cloak, "Плащ" },
             { EquipSlot.Ranged, "Метательное" },
+
+            // Слоты, добавленные 01.09.2026 под набор иконок Павлона.
+            // Без имени здесь построение окна падало на первом же таком
+            // гнезде и обрывалось: не рисовались ни правая колонка, ни
+            // модель, ни числа — окно выглядело пустой панелью.
+            { EquipSlot.Shoulders, "Плечи" },
+            { EquipSlot.Wrists, "Запястья" },
+            { EquipSlot.Waist, "Пояс" },
+            { EquipSlot.Ammo, "Колчан" },
+            { EquipSlot.Trinket, "Аксессуар" },
+            { EquipSlot.Trinket2, "Аксессуар" },
+            { EquipSlot.Tabard, "Гербовая накидка" },
         };
 
         [SerializeField] private Equipment equipment;

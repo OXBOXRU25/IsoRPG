@@ -70,6 +70,9 @@ namespace IsoRPG.World
             foreach (var candidate in hits)
             {
                 if (candidate.collider.transform.IsChildOf(transform)) continue;
+                // Чужое живое тело тоже не земля: иначе моб встаёт на спину
+                // соседа. Признак живого — навигационный агент выше по ветке.
+                if (candidate.collider.GetComponentInParent<UnityEngine.AI.NavMeshAgent>() != null) continue;
                 if (candidate.distance >= nearest) continue;
 
                 nearest = candidate.distance;

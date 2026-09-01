@@ -66,6 +66,13 @@ namespace IsoRPG.World
             foreach (var candidate in hits)
             {
                 if (candidate.collider.transform.IsChildOf(root)) continue;
+
+                // ...и ЧУЖОЕ живое тело тоже не земля. 01.09.2026 босс
+                // отошёл, встал над мелким кабаном — и оба поднялись в
+                // воздух: луч принял спину соседа за грунт. Отсекаем всё,
+                // у чего выше по ветке есть навигационный агент: это
+                // признак живого, общий для мобов, НПС и лошадей.
+                if (candidate.collider.GetComponentInParent<UnityEngine.AI.NavMeshAgent>() != null) continue;
                 if (candidate.distance >= nearest) continue;
 
                 nearest = candidate.distance;

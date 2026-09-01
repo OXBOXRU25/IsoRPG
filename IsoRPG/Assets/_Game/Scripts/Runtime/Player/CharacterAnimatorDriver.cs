@@ -51,6 +51,36 @@ namespace IsoRPG.Player
         private static readonly int SneakingHash = Animator.StringToHash("Sneaking");
         private static readonly int AirborneHash = Animator.StringToHash("InAir");
 
+        // Состояние вздрагивания зовётся «GetHit» у всех: и у героя, и у
+        // зверей — так его называет задание combat-anims.
+        private static readonly int FlinchStateHash = Animator.StringToHash("GetHit");
+
+        // Состояния удара: у зверей одно «Attack», у героя серия «Attack_1»…
+        // «Attack_6» (их заводит то же задание).
+        private static readonly int[] AttackStateHashes =
+        {
+            Animator.StringToHash("Attack"),
+            Animator.StringToHash("Attack_1"),
+            Animator.StringToHash("Attack_2"),
+            Animator.StringToHash("Attack_3"),
+            Animator.StringToHash("Attack_4"),
+            Animator.StringToHash("Attack_5"),
+            Animator.StringToHash("Attack_6"),
+        };
+
+        /// <summary>
+        /// Пауза между вздрагиваниями.
+        ///
+        /// 1.2 с при реакции в 0.41 с: зверь дёргается примерно на каждый
+        /// второй удар и остаётся в реакции пятую часть боя, а не всю его.
+        /// Было 0.35 — этого не хватило, потому что мешала не частота
+        /// триггера, а длина клипа (замер 01.09.2026: реакция 1.42 с при
+        /// ударе героя раз в 1.4 с).
+        /// </summary>
+        private const float FlinchGap = 1.2f;
+
+        private float nextHitTime;
+
         [Tooltip("Аниматор персонажа. Обычно на дочерней модели.")]
         [SerializeField] private Animator animator;
 
@@ -216,11 +246,70 @@ namespace IsoRPG.Player
                 animator.SetBool(SneakingHash, sneaking);
         }
 
-        /// <summary>Вздрогнуть от попадания.</summary>
+        /// <summary>
+        /// Вздрогнуть от попадания. Не чаще, чем длится сама реакция.
+        ///
+        /// Павлон 01.09.2026: «мелкие кабаны в бою разворачиваются, а босс
+        /// после атаки стоит замерев» — и добавил решающее: ломается ТОЛЬКО
+        /// когда бьёшь в ответ. То есть виновата не навигация и не кольцо
+        /// боя, а вот этот триггер.
+        ///
+        /// Что происходило. Серия ударов кинжалом идёт чаще, чем длится клип
+        /// вздрагивания. Вход в GetHit стоит из Any State с запретом перехода
+        /// в себя — но триггер при этом НЕ расходуется, он копится и стреляет
+        /// сразу на выходе. Зверь возвращался в GetHit кадр в кадр: босс
+        /// вечно проигрывал первые кадры реакции (со стороны — «замер»), у
+        /// мелких не играл бег, и разворот шёл голым скольжением.
+        ///
+        /// Лечится здесь, а не в контроллере: место одно на всех — героя,
+        /// зверей, НПС, — и всё, что мы добавим потом. Пауза чуть короче
+        /// клипа, чтобы частые попадания всё же читались как серия.
+        /// </summary>
         public void PlayHit()
         {
-            if (animator != null && Has(HitHash, AnimatorControllerParameterType.Trigger))
-                animator.SetTrigger(HitHash);
+            if (animator == null || !Has(HitHash, AnimatorControllerParameterType.Trigger)) return;
+
+            if (Time.time < nextHitTime) return;
+
+            // Реакция уже идёт — не ставим триггер вовсе. Именно поставленный
+            // «в никуда» триггер и копился: перейти в себя состояние не может,
+            // а параметр остаётся взведённым до первой возможности.
+            if (InFlinch()) return;
+
+            // Свой замах не отменяем.
+            //
+            // Павлон 01.09.2026 разобрал сам: «моя атака прерывает анимацию
+            // его атаки, и он в этот момент замирает». Так и есть — вход во
+            // вздрагивание стоит из Any State и сносит любое состояние,
+            // включая начатый удар. У босса удар длится 1.27 с и почти
+            // никогда не доигрывал.
+            //
+            // В больших РПГ удар доводится до конца: бойца бьют — он
+            // продолжает бить. Вздрог пропускаем, он не важнее замаха.
+            if (InAttack()) return;
+
+            nextHitTime = Time.time + FlinchGap;
+            animator.SetTrigger(HitHash);
+        }
+
+        /// <summary>Играет ли сейчас вздрагивание (или переход в него).</summary>
+        private bool InFlinch()
+        {
+            if (animator.GetCurrentAnimatorStateInfo(0).shortNameHash == FlinchStateHash) return true;
+
+            return animator.IsInTransition(0) &&
+                   animator.GetNextAnimatorStateInfo(0).shortNameHash == FlinchStateHash;
+        }
+
+        /// <summary>Идёт ли собственный удар. У зверей состояние одно, у героя серия из шести.</summary>
+        private bool InAttack()
+        {
+            int now = animator.GetCurrentAnimatorStateInfo(0).shortNameHash;
+
+            foreach (int hash in AttackStateHashes)
+                if (hash == now) return true;
+
+            return false;
         }
 
         /// <summary>Уклониться.</summary>

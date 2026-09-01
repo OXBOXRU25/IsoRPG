@@ -3651,6 +3651,22 @@ namespace IsoRPG.EditorTools
                     BeautifulSky.ApplyMenu();
                     break;
 
+                case "creature-layer":
+                    CreatureLayer.Apply();
+                    break;
+
+                case "boar-probe":
+                    BoarProbe.Run();
+                    break;
+
+                case "flinch-tune":
+                    FlinchTune.Apply();
+                    break;
+
+                case "cam-block":
+                    CameraBlockProbe.Run();
+                    break;
+
                 default:
                     Debug.LogWarning("[IsoRPG] Не знаю задания «" + task + "».");
                     break;

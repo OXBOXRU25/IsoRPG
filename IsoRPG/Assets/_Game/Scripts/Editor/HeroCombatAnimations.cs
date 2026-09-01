@@ -245,22 +245,27 @@ namespace IsoRPG.EditorTools
             // продолжением прыжка.
             var down = flight.AddTransition(landing);
             down.AddCondition(AnimatorConditionMode.IfNot, 0f, "InAir");
-            down.AddCondition(AnimatorConditionMode.Less, 0.15f, "Speed");
             down.hasExitTime = false;
             down.duration = 0.08f;
-
-            // На бегу — сразу в ход, минуя приземление.
-            var run = flight.AddExitTransition();
-            run.AddCondition(AnimatorConditionMode.IfNot, 0f, "InAir");
-            run.AddCondition(AnimatorConditionMode.Greater, 0.15f, "Speed");
-            run.hasExitTime = false;
-            run.duration = 0.1f;
 
             // Приземление → ход.
             var back = landing.AddExitTransition();
             back.hasExitTime = true;
             back.exitTime = 0.8f;
             back.duration = 0.12f;
+
+            // На бегу выходим из приземления ВТРОЕ раньше.
+            //
+            // Совсем убирать его нельзя — Павлон 01.09.2026: «на месте
+            // прекрасная анимация приземления, а на бегу её нету». Но и
+            // играть целиком нельзя: клип рассчитан на стойку, и герой
+            // едет в нём по земле. Короткий выход оставляет приседание
+            // читаемым и сразу отдаёт управление бегу.
+            var runOut = landing.AddExitTransition();
+            runOut.AddCondition(AnimatorConditionMode.Greater, 0.15f, "Speed");
+            runOut.hasExitTime = true;
+            runOut.exitTime = 0.28f;
+            runOut.duration = 0.1f;
 
             // Старое одиночное состояние больше не нужно: вход в него шёл по
             // тому же триггеру, и два перехода на один триггер дрались бы
@@ -465,7 +470,6 @@ namespace IsoRPG.EditorTools
             var back = state.AddExitTransition();
             back.hasExitTime = true;
             back.exitTime = 0.85f;
-            back.duration = 0.12f;
 
             return 1;
         }

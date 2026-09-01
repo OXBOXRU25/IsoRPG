@@ -18,8 +18,10 @@ namespace IsoRPG.Items
     /// </summary>
     public sealed class CharacterHud : MonoBehaviour, IsoRPG.UI.IHudWindow
     {
-        private static readonly Color PanelColor = new Color32(0x1C, 0x1A, 0x16, 0xF0);
-        private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0xFF);
+        /// <summary>Панель окна. Замер образца 01.09.2026: (19,19,18) — почти чёрная,
+        /// нейтральная. Наша была (60,53,42), то есть заметно коричневая.</summary>
+        private static readonly Color PanelColor = new Color32(0x13, 0x13, 0x12, 0xF2);
+        private static readonly Color PanelEdge = new Color32(0x2E, 0x2E, 0x2A, 0xFF);
         /// <summary>Силуэт пустого слота: заметен, но не спорит с вещами.</summary>
         /// <summary>Подложка пустого гнезда. 0.28 было почти не видно на тёмной панели.</summary>
         private static readonly Color HintColor = new Color(1f, 1f, 1f, 0.92f);
@@ -30,7 +32,10 @@ namespace IsoRPG.Items
         /// <summary>Значение характеристики — почти белое, чтобы читалось первым.</summary>
         private static readonly Color StatValue = new Color32(210, 221, 208, 255);
 
-        private static readonly Color SlotEmpty = new Color32(0x2A, 0x27, 0x21, 0xFF);
+        /// <summary>Заголовок раздела чисел. Замер образца: белый.</summary>
+        private static readonly Color SectionColor = new Color32(221, 221, 221, 255);
+
+        private static readonly Color SlotEmpty = new Color32(0x23, 0x22, 0x1D, 0xFF);
         private static readonly Color TextColor = new Color32(0xE8, 0xE2, 0xD4, 0xFF);
         private static readonly Color TextDim = new Color32(0xA8, 0xA0, 0x90, 0xFF);
         private static readonly Color StatColor = new Color32(0x8A, 0xC8, 0x7A, 0xFF);
@@ -50,7 +55,15 @@ namespace IsoRPG.Items
         private const float Slot = 53f;
 
         /// <summary>Шаг между гнёздами по вертикали: сторона плюс зазор 4.</summary>
-        private const float SlotStep = 57f;
+        /// <summary>
+        /// Шаг гнёзд — не число, а деление доступной высоты.
+        ///
+        /// В образце колонки идут почти до низа окна, ниже списка чисел, и
+        /// заканчиваются у полосы оружия. Павлон 01.09.2026: «у тебя они не
+        /// доходят до низа совсем». Фиксированный шаг этого и не мог дать:
+        /// он не знает, сколько места есть.
+        /// </summary>
+        private const float SlotStep = (WeaponsTop - ContentTop) / 8f;
 
         /// <summary>Колонка гнёзд: сама вещь плюс поля до края окна.</summary>
         private const float SlotColumnWidth = Slot + 14f;
@@ -815,7 +828,9 @@ namespace IsoRPG.Items
 
         private float StatSection(RectTransform parent, string caption, float y)
         {
-            var text = MakeText(parent, "Section" + caption, caption, 12, StatColor);
+            // Белый, а не зелёный: замер образца 01.09.2026 дал (221,221,221).
+            // Зелёный был моей выдумкой — Павлон: «в ВОВ они белые».
+            var text = MakeText(parent, "Section" + caption, caption, 13, SectionColor);
 
             var rect = (RectTransform)text.transform;
             rect.anchorMin = new Vector2(0f, 1f);

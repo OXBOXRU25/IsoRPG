@@ -228,7 +228,7 @@ namespace IsoRPG.Items
 
             // Смотрим выше середины — тогда фигура садится ниже в кадре и
             // под ногами остаётся опора, а не обрез.
-            var focus = new Vector3(bounds.center.x, bounds.min.y + height * 0.46f, bounds.center.z);
+            var focus = new Vector3(bounds.center.x, bounds.min.y + height * 0.54f, bounds.center.z);
 
             // Взгляд слегка сверху: строго сбоку фигура выглядит плоской.
             go.transform.rotation = Quaternion.Euler(6f, 180f, 0f);

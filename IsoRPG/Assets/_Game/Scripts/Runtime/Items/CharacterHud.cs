@@ -35,7 +35,10 @@ namespace IsoRPG.Items
         /// <summary>Заголовок раздела чисел. Замер образца: белый.</summary>
         private static readonly Color SectionColor = new Color32(221, 221, 221, 255);
 
-        private static readonly Color SlotEmpty = new Color32(0x23, 0x22, 0x1D, 0xFF);
+        private static readonly Color SlotEmpty = new Color32(0x2C, 0x2A, 0x24, 0xFF);
+
+        /// <summary>Кант гнезда: он и делает его видимым на тёмной панели.</summary>
+        private static readonly Color SlotFrame = new Color32(0x4E, 0x49, 0x3E, 0xFF);
         private static readonly Color TextColor = new Color32(0xE8, 0xE2, 0xD4, 0xFF);
         private static readonly Color TextDim = new Color32(0xA8, 0xA0, 0x90, 0xFF);
         private static readonly Color StatColor = new Color32(0x8A, 0xC8, 0x7A, 0xFF);
@@ -412,7 +415,7 @@ namespace IsoRPG.Items
                 edge.GetComponent<Image>().color = PanelEdge;
             }
 
-            var title = MakeText(rect, "Title", "Персонаж", 14, TextColor);
+            var title = MakeText(rect, "Title", "Шико", 15, TextColor);
             Place(title, new Vector2(Pad, -Pad), new Vector2(Width - Pad * 2f, TitleHeight));
             title.alignment = TextAnchor.MiddleCenter;
 
@@ -480,6 +483,25 @@ namespace IsoRPG.Items
 
             iconRect.anchoredPosition = new Vector2(x + sink, y - sink);
             iconRect.sizeDelta = new Vector2(side, side);
+            // Рамка вокруг гнезда.
+            //
+            // Без неё гнездо не видно вовсе: заливка почти совпадает с
+            // панелью, и глаз читает только иконку внутри. Отсюда шли
+            // круги «блоки меньше, чем в ВОВ» — увеличивать надо было не
+            // число, а заметность: в образце у каждого гнезда свой кант.
+            var frame = new GameObject("Frame", typeof(Image));
+            var frameRect = (RectTransform)frame.transform;
+            frameRect.SetParent(iconRect, false);
+            frameRect.anchorMin = Vector2.zero;
+            frameRect.anchorMax = Vector2.one;
+            frameRect.offsetMin = new Vector2(-1f, -1f);
+            frameRect.offsetMax = new Vector2(1f, 1f);
+            frame.transform.SetAsFirstSibling();
+
+            var frameImage = frame.GetComponent<Image>();
+            frameImage.color = SlotFrame;
+            frameImage.raycastTarget = false;
+
             var icon = iconGo.GetComponent<Image>();
             icon.color = SlotEmpty;
             slotIcons[slot] = icon;
@@ -593,7 +615,7 @@ namespace IsoRPG.Items
             if (subtitle != null)
             {
                 int level = experience != null ? experience.Level : 1;
-                LocalizedText.Bind(subtitle, "Искатель приключений, " + level + "-й уровень");
+                LocalizedText.Bind(subtitle, "Человек, разбойник " + level + "-й уровень");
             }
             Set("health", health != null ? health.Max.ToString() : "—");
             Set("energy", energy != null ? energy.Max.ToString() : "—");
@@ -843,7 +865,10 @@ namespace IsoRPG.Items
             // Плюс зазор под заголовком: без него первая строка раздела
             // приклеена к нему и читается как его продолжение, а не как
             // отдельная величина.
-            return y - StatHeader - 4f;
+            // Зазор под заголовком увеличен 01.09.2026: Павлон попросил отодвинуть
+            // числа от «Основные» и «Ближний бой» — вплотную они читались как
+            // продолжение заголовка, а не как отдельный список.
+            return y - StatHeader - 10f;
         }
 
         /// <summary>

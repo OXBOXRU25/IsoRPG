@@ -97,7 +97,7 @@ namespace IsoRPG.Items
         private const float ContentTop = Pad + TitleHeight + SubtitleHeight;
 
         /// <summary>Витрина с героем. В образце он занимает верхние две трети окна.</summary>
-        private const float ModelHeight = 286f;
+        private const float ModelHeight = 320f;
 
         /// <summary>Числа — сразу под моделью.</summary>
         private const float StatsTop = ContentTop + ModelHeight + 8f;

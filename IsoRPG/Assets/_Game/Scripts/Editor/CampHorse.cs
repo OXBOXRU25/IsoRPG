@@ -67,13 +67,25 @@ namespace IsoRPG.EditorTools
             // поэтому второй вызов рушил ссылку, которую только что получила
             // первая лошадь — она и вставала камнем. Классическая ловушка
             // общего ассета: код одинаковый, а ресурс на двоих один.
-            var controller = HorseAnimations.Build();
+            // Сносим лошадей ЛЮБОГО прежнего имени, а не только своего.
+            //
+            // Прежний сборщик звал свою «Лошадь», наш ищет «Лошадь у пруда»
+            // — и старая оставалась на месте: Павлон увидел двух в одной
+            // точке. Убираем по всем именам, которые у них когда-либо были.
+            foreach (var name in new[] { "Лошадь", "Лошадь у лагеря", "Лошадь у пруда" })
+            {
+                var stale = GameObject.Find(name);
+                if (stale != null) Object.DestroyImmediate(stale);
+            }
 
-            BuildOne(Spot, "Лошадь у лагеря", controller);
-            BuildOne(SecondSpot, "Лошадь у пруда", controller);
+            var controller = HorseAnimations.Build();
+            var skinMaterial = MakeSkin();
+
+            BuildOne(Spot, "Лошадь у лагеря", controller, skinMaterial);
+            BuildOne(SecondSpot, "Лошадь у пруда", controller, skinMaterial);
         }
 
-        private static void BuildOne(Vector2 spot, string groupName, UnityEditor.Animations.AnimatorController controller)
+        private static void BuildOne(Vector2 spot, string groupName, UnityEditor.Animations.AnimatorController controller, Material skinMaterial)
         {
             if (EditorApplication.isPlaying)
             {
@@ -119,7 +131,7 @@ namespace IsoRPG.EditorTools
             model.transform.SetParent(tilt.transform, false);
             model.transform.localPosition = Vector3.zero;
 
-            Paint(model);
+            Paint(model, skinMaterial);
 
             // Прижимаем нижней точкой к земле.
             var parts = model.GetComponentsInChildren<Renderer>(true);
@@ -161,7 +173,7 @@ namespace IsoRPG.EditorTools
 
             EditorSceneManager.MarkAllScenesDirty();
 
-            Debug.Log("[IsoRPG] Лошадь у лагеря: " + horse.transform.position.ToString("0.00") +
+            Debug.Log("[IsoRPG] " + groupName + ": " + horse.transform.position.ToString("0.00") +
                       ", разворот " + horse.transform.eulerAngles.y.ToString("0") + "°.");
 
             Check(horse);
@@ -176,7 +188,44 @@ namespace IsoRPG.EditorTools
         /// перезагрузки сцены, а потом объект остаётся вовсе без материала и
         /// становится пурпурным — поломка, которую легко принять за чужую.
         /// </summary>
-        private static void Paint(GameObject model)
+        /// <summary>
+        /// Готовит материал масти РАЗ на всех лошадей.
+        ///
+        /// Создание удаляет старый ассет и делает новый, поэтому вызов на
+        /// вторую лошадь оставлял первую без материала — она становилась
+        /// пурпурной. Ровно то же было с контроллером анимаций. Общий
+        /// ресурс готовим один раз и раздаём ссылку.
+        /// </summary>
+        private static Material MakeSkin()
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
+            if (existing != null) return existing;
+
+            var skin = AssetDatabase.LoadAssetAtPath<Texture2D>(SkinPath);
+            if (skin == null) { Debug.LogError("[IsoRPG] Нет текстуры масти " + SkinPath); return null; }
+
+            var lit = Shader.Find("Universal Render Pipeline/Lit");
+            if (lit == null) { Debug.LogError("[IsoRPG] Нет шейдера URP/Lit — красить нечем."); return null; }
+
+            var material = new Material(lit) { name = "Horse_Synty_03" };
+            material.SetTexture("_BaseMap", skin);
+            material.SetFloat("_Smoothness", 0.1f);
+
+            var folder = System.IO.Path.GetDirectoryName(MaterialPath).Replace((char)92, (char)47);
+            if (!AssetDatabase.IsValidFolder(folder))
+                AssetDatabase.CreateFolder(System.IO.Path.GetDirectoryName(folder).Replace((char)92, (char)47),
+                                           System.IO.Path.GetFileName(folder));
+
+            AssetDatabase.CreateAsset(material, MaterialPath);
+            return material;
+        }
+
+        private static void Paint(GameObject model, Material material)
+        {
+            if (material != null) MobMaterials.ApplyMaterial(model, material);
+        }
+
+        private static void PaintOld(GameObject model)
         {
             var skin = AssetDatabase.LoadAssetAtPath<Texture2D>(SkinPath);
 

@@ -70,6 +70,9 @@ namespace IsoRPG.Combat
         private float pendingImpactTime = -1f;
         private Targetable pendingVictim;
 
+        /// <summary>Цель, вокруг которой мы заняли место в кольце.</summary>
+        private Transform ringTarget;
+
         // Игрок приказал идти. Пока приказ в силе, за целью не бежим:
         // ручное управление всегда главнее автоматики, иначе персонаж
         // возвращается к врагу, хотя его явно уводят.
@@ -110,6 +113,11 @@ namespace IsoRPG.Combat
         private void OnDisable()
         {
             if (weapon != null) weapon.Changed -= ApplyWeaponRhythm;
+
+            // Освобождаем место в кольце: без этого сектор остаётся за
+            // убитым, и живым бойцам достаётся тесное второе кольцо.
+            CombatRing.Release(ringTarget, this);
+            ringTarget = null;
         }
 
         /// <summary>Ритм боя задаёт оружие: и частоту ударов, и длительность анимации.</summary>
@@ -223,16 +231,14 @@ namespace IsoRPG.Combat
 
         private void ChaseTo(Targetable target, float attackDistance)
         {
-            // Идём не в саму цель, а в точку перед ней: иначе агент упирается
-            // в её тело, толкается и не может доехать до «места назначения».
-            Vector3 toSelf = (transform.position - target.transform.position);
-            toSelf.y = 0f;
-
-            Vector3 direction = toSelf.sqrMagnitude > 0.001f
-                ? toSelf.normalized
-                : transform.forward;
-
-            Vector3 standPoint = target.transform.position + direction * (attackDistance * 0.8f);
+            // Идём не в саму цель, а в СВОЙ сектор кольца вокруг неё.
+            //
+            // Раньше все нападающие целились в одну точку «перед целью» —
+            // отсюда куча-мала: 01.09.2026 босс встал ровно на мелкого
+            // кабана. Кольцо разводит их по восьми местам и держит место
+            // за бойцом, пока он дерётся.
+            ringTarget = target.transform;
+            Vector3 standPoint = CombatRing.StandPoint(target.transform, this, attackDistance * 0.8f);
 
             // У игрока движением заведует контроллер кликов — он умеет
             // притягивать точку к навигационной сетке и показывать отметку.
@@ -254,6 +260,10 @@ namespace IsoRPG.Combat
 
         private void StopMoving()
         {
+            // Из боя вышли — место в кольце больше не наше.
+            CombatRing.Release(ringTarget, this);
+            ringTarget = null;
+
             if (agent != null && agent.isOnNavMesh && agent.hasPath)
                 agent.ResetPath();
         }

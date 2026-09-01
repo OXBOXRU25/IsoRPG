@@ -19,28 +19,41 @@ namespace IsoRPG.Quests
         private static readonly Color PanelColor = new Color32(0x1C, 0x1A, 0x16, 0xE0);
         private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0x8A);
         private static readonly Color TextColor = new Color32(0xE8, 0xE2, 0xD4, 0xFF);
+        /// <summary>Заголовки разделов. В образце они выделены цветом, а не только кеглем.</summary>
+        private static readonly Color TitleColor = new Color32(0xE8, 0xC8, 0x7A, 0xFF);
+        /// <summary>Пояснение под заголовком награды — тише основного текста.</summary>
+        private static readonly Color HintColor = new Color32(0xAE, 0xA6, 0x92, 0xFF);
         private static readonly Color AcceptColor = new Color32(0x4A, 0x7A, 0x4A, 0xFF);
         private static readonly Color DeclineColor = new Color32(0x5A, 0x44, 0x40, 0xFF);
 
-        private const float Width = 460f;
-        private const float Pad = 16f;
-        private const float ButtonHeight = 32f;
+        // Размеры сняты с окна квеста WoW 01.09.2026 по просьбе Павла: там
+        // 478 x 590 при экране 1920 x 1200, то есть четверть ширины экрана и
+        // половина высоты. Наше было 460 x 430 — почти квадрат, и оттого
+        // текст лип к кнопкам, а разделов в нём не читалось вовсе.
+        private const float Width = 480f;
+        private const float Pad = 18f;
+        private const float ButtonHeight = 30f;
 
-        // Окно высотой 190 обрезало текст квеста, а кнопки ложились поверх
-        // последних строк — Павлон 01.09.2026: «наград не вижу, окно
-        // обрезано». Высота под самый длинный наш текст плюс полоса под три
-        // кнопки: две награды на выбор и «Позже».
-        private const float WindowHeight = 430f;
+        /// <summary>Половина высоты экрана при нашем эталоне 1920 x 1080 — та же доля, что у образца.</summary>
+        private const float WindowHeight = 540f;
+
         private const float ButtonsArea = (ButtonHeight + 6f) * 3f;
 
         private Font font;
         private GameObject window;
         private Text title;
         private Text body;
+        private RectTransform content;
+        private Text questTitle;
+        private Text objectivesHeader;
+        private Text objectives;
+        private Text rewardsHeader;
+        private Text rewardsHint;
         private RectTransform buttons;
 
         private readonly List<GameObject> spawned = new List<GameObject>();
         private QuestGiver current;
+        private QuestLog log;
 
         public bool IsOpen => window != null && window.activeSelf;
 
@@ -91,11 +104,32 @@ namespace IsoRPG.Quests
 
             var quest = current.Quest;
 
-            LocalizedText.Bind(title, quest != null ? quest.title : "Разговор");
+            // Шапка — собеседник, а не задание: в образце вверху стоит имя
+            // того, с кем говоришь.
+            LocalizedText.Bind(title, current.DisplayName);
+
+            bool offering = current.State == QuestState.Available;
+            bool turningIn = current.State == QuestState.ReadyToTurnIn;
+            bool aboutQuest = quest != null && (offering || turningIn || current.State == QuestState.Active);
+
+            // Название задания — верхним регистром, как в образце: оно там
+            // работает не украшением, а разделителем шапки и текста.
+            Fill(questTitle, aboutQuest ? quest.title.ToUpperInvariant() : null);
+            Fill(body, current.CurrentText());
+
+            // Цели: пока задание в работе или предлагается. После сдачи их
+            // показывать незачем — там уже речь про награду.
+            Fill(objectivesHeader, aboutQuest && !turningIn ? "ЦЕЛИ ЗАДАНИЯ" : null);
+            Fill(objectives, aboutQuest && !turningIn ? quest.ObjectiveLine(ProgressOf(quest)) : null);
+
+            bool hasChoice = quest != null && quest.rewardChoices != null && quest.rewardChoices.Length > 0;
 
             // Награды показываем сразу, а не только в журнале: игрок решает,
             // браться ли за работу, по тому, что за неё дают.
-            LocalizedText.Bind(body, current.CurrentText() + Rewards(quest, current.State));
+            Fill(rewardsHeader, aboutQuest ? "НАГРАДЫ" : null);
+            Fill(rewardsHint, !aboutQuest ? null
+                              : hasChoice ? "Вы сможете выбрать одну из наград:"
+                              : Rewards(quest, current.State).TrimStart('\n'));
 
             foreach (var go in spawned) Destroy(go);
             spawned.Clear();
@@ -229,8 +263,12 @@ namespace IsoRPG.Quests
             }
             else
             {
-                rect.anchoredPosition = new Vector2(index * 150f, 0f);
-                rect.sizeDelta = new Vector2(140f, ButtonHeight);
+                // Кнопки по краям, как в образце: согласие слева, отказ
+                // справа. Рядом посередине они читаются как пара равных,
+                // и промахнуться по нужной легче.
+                float span = Width - Pad * 2f - 150f;
+                rect.anchoredPosition = new Vector2(index == 0 ? 0f : span, 0f);
+                rect.sizeDelta = new Vector2(150f, ButtonHeight);
             }
 
             go.GetComponent<Image>().color = color;
@@ -299,6 +337,9 @@ namespace IsoRPG.Quests
                 edge.GetComponent<Image>().color = PanelEdge;
             }
 
+            // Шапка — имя собеседника, по центру: так в образце, и так сразу
+            // понятно, с кем говоришь. Название задания уехало внутрь, к
+            // тексту, и стало там самым крупным.
             title = MakeText(rect, "Title", "", 15, TextColor);
             var titleRect = (RectTransform)title.transform;
             titleRect.anchorMin = new Vector2(0f, 1f);
@@ -306,15 +347,34 @@ namespace IsoRPG.Quests
             titleRect.pivot = new Vector2(0f, 1f);
             titleRect.anchoredPosition = new Vector2(Pad, -Pad);
             titleRect.sizeDelta = new Vector2(-Pad * 2f, 22f);
+            title.alignment = TextAnchor.MiddleCenter;
 
-            body = MakeText(rect, "Body", "", 13, TextColor);
-            var bodyRect = (RectTransform)body.transform;
-            bodyRect.anchorMin = new Vector2(0f, 0f);
-            bodyRect.anchorMax = new Vector2(1f, 1f);
-            bodyRect.offsetMin = new Vector2(Pad, Pad + ButtonsArea);
-            bodyRect.offsetMax = new Vector2(-Pad, -(Pad + 28f));
-            body.alignment = TextAnchor.UpperLeft;
-            body.horizontalOverflow = HorizontalWrapMode.Wrap;
+            // Разделы колонкой, как в образце: название задания, описание,
+            // цели, награды. Раскладку ведёт группа — тогда пустой раздел
+            // (у обычного разговора нет ни целей, ни наград) выключается, а
+            // остальные сами сдвигаются вверх, без пустых дыр.
+            var contentGo = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            content = (RectTransform)contentGo.transform;
+            content.SetParent(rect, false);
+            content.anchorMin = Vector2.zero;
+            content.anchorMax = Vector2.one;
+            content.offsetMin = new Vector2(Pad, Pad + ButtonsArea);
+            content.offsetMax = new Vector2(-Pad, -(Pad + 30f));
+
+            var layout = contentGo.GetComponent<VerticalLayoutGroup>();
+            layout.childAlignment = TextAnchor.UpperLeft;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            layout.spacing = 8f;
+
+            questTitle = MakeSection(content, "QuestTitle", 19, TitleColor);
+            body = MakeSection(content, "Description", 15, TextColor);
+            objectivesHeader = MakeSection(content, "ObjectivesHeader", 17, TitleColor);
+            objectives = MakeSection(content, "Objectives", 15, TextColor);
+            rewardsHeader = MakeSection(content, "RewardsHeader", 17, TitleColor);
+            rewardsHint = MakeSection(content, "RewardsHint", 13, HintColor);
 
             var row = new GameObject("Buttons", typeof(RectTransform));
             buttons = (RectTransform)row.transform;
@@ -327,6 +387,51 @@ namespace IsoRPG.Quests
 
             window = go;
             window.SetActive(false);
+        }
+
+        /// <summary>
+        /// Раздел окна: строка или абзац, который сам занимает нужную высоту.
+        ///
+        /// Высоту считает сам текст, а не мы числом: длинное описание иначе
+        /// налезает на цели, а короткое оставляет дыру посреди окна.
+        /// </summary>
+        private Text MakeSection(RectTransform parent, string name, int size, Color color)
+        {
+            var text = MakeText(parent, name, "", size, color);
+            text.alignment = TextAnchor.UpperLeft;
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+
+            var fitter = text.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            return text;
+        }
+
+        /// <summary>Заполняет раздел или прячет его, если сказать нечего.</summary>
+        /// <summary>
+        /// Сколько уже собрано по заданию.
+        ///
+        /// Журнал живёт на игроке; ищем его один раз и запоминаем — окно
+        /// открывается часто, а поиск по сцене дорогой.
+        /// </summary>
+        private int ProgressOf(QuestDefinition quest)
+        {
+            if (quest == null) return 0;
+
+            if (log == null) log = Object.FindFirstObjectByType<QuestLog>();
+
+            return log != null ? log.Progress(quest) : 0;
+        }
+
+        private static void Fill(Text target, string value)
+        {
+            if (target == null) return;
+
+            bool has = !string.IsNullOrEmpty(value);
+            target.gameObject.SetActive(has);
+
+            if (has) LocalizedText.Bind(target, value);
         }
 
         private Text MakeText(RectTransform parent, string name, string content, int size, Color color)

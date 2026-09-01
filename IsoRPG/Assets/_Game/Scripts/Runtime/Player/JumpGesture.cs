@@ -23,6 +23,9 @@ namespace IsoRPG.Player
         [Tooltip("Насколько высоко подпрыгивает, в метрах.")]
         [SerializeField] private float height = 1.7f;
 
+        [Tooltip("Высота настоящего прыжка с физической капсулой, метров. Отдельно от height: тот задавал дугу переноса, а это подъём тела.")]
+        [SerializeField] private float jumpHeight = 1.1f;
+
         [Tooltip("Сколько длится прыжок, вместе со взлётом и приземлением.")]
         //
         // Замер по WoW: там персонаж висит в воздухе около секунды и
@@ -60,8 +63,18 @@ namespace IsoRPG.Player
         private Vector3 hopFrom;
         private Vector3 hopTo;
         private bool hopping;
+        private PlayerMotor motor;
 
-        public bool IsJumping => Time.time < startTime + duration;
+        /// <summary>
+        /// Летит ли герой. С физической капсулой спрашиваем её саму:
+        /// прыжок кончается приземлением, а не истёкшим таймером, —
+        /// иначе анимация вставала на ноги, пока тело ещё в воздухе.
+        /// Первые полтораста миллисекунд считаем полётом всегда: на
+        /// кадре толчка капсула ещё касается земли.
+        /// </summary>
+        public bool IsJumping => motor != null
+                                 ? Time.time < startTime + 0.15f || !motor.IsGrounded
+                                 : Time.time < startTime + duration;
 
         private void Awake()
         {
@@ -69,6 +82,7 @@ namespace IsoRPG.Player
             agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
             health = GetComponent<IsoRPG.Combat.Health>();
             food = GetComponent<IsoRPG.Items.FoodConsumer>();
+            motor = GetComponent<PlayerMotor>();
 
             // Поднимаем ту же ветку, в которой живёт аниматор: это и есть
             // видимая модель, всё остальное — логика и коллайдер.
@@ -124,6 +138,23 @@ namespace IsoRPG.Player
         /// </summary>
         private void TryHop()
         {
+            // Физическая капсула — прыгаем по-настоящему.
+            //
+            // Никакого поиска площадки: толчок вверх, а горизонталь даёт то
+            // же управление, что и на бегу. Куда долетел — там и приземлился,
+            // столкновения по дороге считает сама капсула.
+            //
+            // Прежний перебор точек и был причиной обеих жалоб Павла: он
+            // искал, КУДА перенести героя, и потому то перелетал низкий
+            // камень (ближайшая годная точка оказывалась за ним), то
+            // затаскивал на высокий, с которого не слезть — наверху нет
+            // навигационной сетки, и обратный поиск не находил ничего.
+            if (motor != null)
+            {
+                if (motor.Jump(jumpHeight)) startTime = Time.time;
+                return;
+            }
+
             if (agent == null || !agent.isOnNavMesh) return;
 
             Vector3 direction = transform.forward;
@@ -199,6 +230,11 @@ namespace IsoRPG.Player
                 airborne = IsJumping;
                 animation.SetAirborne(airborne);
             }
+
+            // С физической капсулой тело летит по-настоящему: ни переносить
+            // его, ни поднимать модель не надо, иначе к настоящему полёту
+            // добавится второй, нарисованный.
+            if (motor != null) return;
 
             // Перенос через преграду. Идёт по земле, а модель поверх этого
             // поднимается своей параболой — вместе выходит дуга.

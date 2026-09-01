@@ -17,6 +17,12 @@ namespace IsoRPG.Quests
         [Header("Тексты")]
         public string title = "Название квеста";
 
+        [Tooltip("Уровень задания. Показывается в скобках перед названием, как в WoW: по нему игрок решает, по зубам ли оно.")]
+        public int level = 1;
+
+        [Tooltip("Зона, к которой относится задание. Заголовок группы в панели отслеживания.")]
+        public string zone = "Колдридж-Вэлли";
+
         [TextArea(3, 6)]
         [Tooltip("Что говорит NPC, предлагая работу.")]
         public string offerText = "";

@@ -40,6 +40,65 @@ namespace IsoRPG.Player
         private Vector3 lastMove;
         private bool movedThisFrame;
 
+        /// <summary>Как часто пересматривать список существ, секунд.</summary>
+        private const float RescanEvery = 2f;
+
+        private float rescanAt;
+
+        /// <summary>
+        /// Снимает столкновение капсулы с телами существ.
+        ///
+        /// Указание Павла 01.09.2026: сквозь мобов, НПС и лошадей игрок должен
+        /// проходить насквозь, «как в WoW». Физика мира при этом остаётся —
+        /// камни, заборы и стены капсулу держат, — а вот живые тела для неё
+        /// проницаемы. Разводит их не физика, а <c>BodySpace</c>: моб,
+        /// который с тобой дерётся, сам отступает на шаг через секунду.
+        ///
+        /// Существо узнаём по ДВУМ признакам, а не по одному. Сперва я брал
+        /// только навигационного агента — и Павлон тут же нашёл дыру: первая
+        /// лошадь в лагере агента не носит, стоит декорацией, и осталась для
+        /// игрока стеной, пока НПС и вторая лошадь пропускали насквозь.
+        /// Правило обязано быть общим, иначе каждое новое существо надо
+        /// вспоминать поимённо. Второй признак — скелетная сетка: она есть у
+        /// всего живого и не бывает у камня, забора и стены.
+        ///
+        /// Пересматриваем список по таймеру: мобы возрождаются, и коллайдер
+        /// возрождённого физике незнаком — без этого игрок упирался бы в
+        /// каждого, кто ожил после смерти.
+        /// </summary>
+        private void RefreshCreatureIgnores()
+        {
+            if (body == null) return;
+
+            foreach (var col in Object.FindObjectsByType<Collider>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (col == null || col.isTrigger || col.transform == transform) continue;
+                if (col.GetComponentInParent<CharacterController>() == body) continue;
+
+                if (!IsCreature(col)) continue;
+
+                Physics.IgnoreCollision(body, col, true);
+            }
+        }
+
+        /// <summary>
+        /// Живое ли это тело: агент навигации или скелетная сетка выше по дереву.
+        ///
+        /// Скелетную ищем от владельца коллайдера вверх и затем вниз по всей
+        /// его ветке: у Synty коллайдер нередко висит на корне, а сама модель
+        /// с костями лежит ребёнком.
+        /// </summary>
+        private static bool IsCreature(Component col)
+        {
+            if (col.GetComponentInParent<UnityEngine.AI.NavMeshAgent>() != null) return true;
+
+            var root = col.transform;
+            while (root.parent != null && root.parent.GetComponent<Canvas>() == null) root = root.parent;
+
+            return root.GetComponentInChildren<SkinnedMeshRenderer>() != null;
+        }
+
+
         /// <summary>Фактическая скорость по земле. Аниматор выбирает по ней шаг и бег.</summary>
         public float Speed { get; private set; }
 
@@ -117,6 +176,12 @@ namespace IsoRPG.Player
         /// </summary>
         private void LateUpdate()
         {
+            if (Time.time >= rescanAt)
+            {
+                rescanAt = Time.time + RescanEvery;
+                RefreshCreatureIgnores();
+            }
+
             if (!movedThisFrame) Move(Vector3.zero, false);
             movedThisFrame = false;
         }

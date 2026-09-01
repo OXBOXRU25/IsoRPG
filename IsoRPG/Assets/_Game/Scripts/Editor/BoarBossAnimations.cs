@@ -102,6 +102,18 @@ namespace IsoRPG.EditorTools
             toDeath.duration = 0.1f;
             toDeath.canTransitionToSelf = false;
 
+            // Обратно — когда возродился. Без этого воскресший босс остаётся
+            // лежать и бьёт из положения трупа, а его удары идут без
+            // анимации: переход в атаку выходит только из «движения», а из
+            // «смерти» выхода не было вовсе. Павлон 01.09.2026: «у кабана
+            // босса анимация боя пропала, я возродился — и она появилась».
+            // У обычных зверей это давно починено в BeastBuilder, сюда
+            // правку не донесли: тот же список собран в двух местах.
+            var revive = death.AddTransition(move);
+            revive.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dead");
+            revive.hasExitTime = false;
+            revive.duration = 0.1f;
+
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
 

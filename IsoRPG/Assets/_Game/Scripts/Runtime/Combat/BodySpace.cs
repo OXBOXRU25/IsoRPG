@@ -1,63 +1,59 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AI;
 
 namespace IsoRPG.Combat
 {
     /// <summary>
-    /// Не даёт телам залезать друг в друга.
+    /// Отшаг моба, в котором стоит игрок. Не расталкивание.
     ///
-    /// Расталкивание, встроенное в навигацию, работает только пока агент
-    /// идёт по пути. А в бою происходит ровно обратное: монстр дошёл,
-    /// остановился и бьёт — и с этого мгновения ничто их не разводит.
-    /// Плюс ходьба на клавишах двигает героя напрямую, мимо навигации, и
-    /// туда обход не заглядывает вовсе. В итоге герой и упырь стоят в одной
-    /// точке, просвечивая друг сквозь друга.
+    /// Переписано 01.09.2026 по указанию Павла: «убери механику отталкивания
+    /// вообще — я должен заходить в их текстуры, но мобы делают отшаг в
+    /// сторону или назад; НПС и лошадей это не касается, через них я просто
+    /// прохожу». Прежняя версия непрерывно разводила тела, и это ощущалось
+    /// как сопротивление управлению: герой упирался в невидимую подушку
+    /// вокруг каждого существа.
     ///
-    /// Здесь — простое телесное разведение: если чужой центр ближе суммы
-    /// радиусов, обоих мягко отодвигает. Мягко и есть ключевое слово:
-    /// жёсткий выталкивающий импульс дёргает камеру и сбивает удары, а
-    /// плавное расхождение читается как «потеснились».
+    /// Вовская схема, которую воспроизводим:
     ///
-    /// Радиус берётся у навигационного агента, а он подогнан под фактический
-    /// размер модели — иначе крупный упырь с радиусом мелкого скелета всё
-    /// равно влезал бы в героя по пояс.
+    /// - тела не сталкиваются вообще: сквозь любого можно пройти насквозь;
+    /// - мирный моб, НПС и лошадь не двигаются ни при каких условиях —
+    ///   через них проходишь как через дым;
+    /// - но моб, который с тобой дерётся, не станет стоять внутри тебя: если
+    ///   вы слиплись, он через секунду отступает на шаг.
+    ///
+    /// Секунда здесь не для красоты. Отход мгновенный читается как
+    /// отталкивание — то самое, от которого уходим; пауза даёт игроку
+    /// отойти самому, и тогда моб остаётся на месте.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     public sealed class BodySpace : MonoBehaviour
     {
-        [Tooltip("Насколько быстро тела расходятся, метров в секунду.")]
-        public float PushSpeed = 2.2f;
+        [Tooltip("Сколько секунд терпеть игрока внутри себя, прежде чем отступить.")]
+        public float Patience = 1f;
 
-        [Tooltip("Сколько соседей проверяем за раз.")]
-        public int Neighbours = 8;
+        [Tooltip("Скорость отхода, метров в секунду. Быстрее — читается как толчок.")]
+        public float StepSpeed = 1.8f;
+
+        [Tooltip("Сколько длится один отшаг.")]
+        public float StepTime = 0.45f;
+
+        [Tooltip("Пауза после отшага, чтобы моб не пятился без остановки.")]
+        public float Cooldown = 1.2f;
 
         private NavMeshAgent agent;
-        private readonly Collider[] found = new Collider[16];
+        private TargetSelector targets;
+        private MonsterBrain brain;
 
-        /// <summary>
-        /// Насколько охотно уступает дорогу.
-        ///
-        /// В WoW при столкновении отходит ПРОТИВНИК, а не игрок: героя
-        /// никто не двигает, иначе теряется ощущение, что миром управляешь
-        /// ты. Поэтому у игрока вес почти нулевой — он стоит, — а монстр
-        /// отступает на шаг и продолжает бить с приличного расстояния.
-        /// </summary>
-        private float yielding = 1f;
+        private float crowdedFor;
+        private float steppingLeft;
+        private float restLeft;
+        private Vector3 stepDirection;
 
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
-
-            // Игрока узнаём по вводу: он единственный, кем управляют.
-            // Герой не двигается ВООБЩЕ, монстр отходит быстро.
-            //
-            // Решение Павла от 01.09.2026: «пусть персонаж заходит в текстуры
-            // мобов, но моб при этом отходит на шаг». Прежние 0.15 у героя
-            // всё равно его подталкивали, и на клавишах это читалось как
-            // сопротивление управлению. Ноль честнее: игрока не двигает
-            // никто, кроме него самого.
-            bool isPlayer = GetComponent<IsoRPG.Player.PlayerInputRouter>() != null;
-            yielding = isPlayer ? 0f : 2.5f;
+            targets = GetComponent<TargetSelector>();
+            brain = GetComponent<MonsterBrain>();
 
             Fit();
         }
@@ -68,7 +64,8 @@ namespace IsoRPG.Combat
         /// В сборщике они выписаны числами — 0.4 герою, 0.45 монстрам, — но
         /// монстры приходят разного размера, и у крупных радиус оказывался
         /// вдвое меньше туши. Замер по нарисованным границам знает правду о
-        /// каждом.
+        /// каждом. Нужен и здесь: расстояние «стоим друг в друге» считается
+        /// по нему же.
         /// </summary>
         private void Fit()
         {
@@ -80,8 +77,6 @@ namespace IsoRPG.Combat
             var bounds = renderers[0].bounds;
             for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
 
-            // Половина ширины — но с запасом вниз: плечи и оружие в габариты
-            // входят, а тесниться из-за них персонажи не должны.
             float radius = Mathf.Clamp(Mathf.Max(bounds.size.x, bounds.size.z) * 0.35f, 0.3f, 1.2f);
 
             agent.radius = radius;
@@ -90,66 +85,68 @@ namespace IsoRPG.Combat
 
         private void LateUpdate()
         {
-            if (agent == null || !agent.isActiveAndEnabled) return;
+            if (agent == null || !agent.isActiveAndEnabled || !agent.isOnNavMesh) return;
 
-            Vector3 self = transform.position;
-
-            // Триггеры ВКЛЮЧАЕМ — и это не мелочь, а причина, по которой
-            // разведение годами не работало против игрока.
-            //
-            // Коллайдер героя помечен триггером намеренно: так он не мешает
-            // лучу клика проходить сквозь себя. Но поиск соседей шёл с
-            // Ignore, то есть герой для монстров физически не существовал —
-            // они спокойно въезжали в него, и Павлон 01.09.2026 видел это
-            // как «персонаж залезает на кабана».
-            //
-            // Лишнего не наберём: ниже отсеиваем всех, у кого нет
-            // навигационного агента, а зоны и спусковые объёмы его не носят.
-            int count = Physics.OverlapSphereNonAlloc(
-                self, agent.radius * 2.5f, found, ~0, QueryTriggerInteraction.Collide);
-
-            Vector3 push = Vector3.zero;
-            int touched = 0;
-
-            for (int i = 0; i < count && touched < Neighbours; i++)
+            // Отшаг уже начат — доводим его до конца, не переспрашивая условия.
+            if (steppingLeft > 0f)
             {
-                var other = found[i];
-                if (other == null || other.transform == transform) continue;
-
-                var otherAgent = other.GetComponentInParent<NavMeshAgent>();
-                if (otherAgent == null || otherAgent == agent) continue;
-
-                Vector3 away = self - otherAgent.transform.position;
-                away.y = 0f;
-
-                float gap = agent.radius + otherAgent.radius;
-                float distance = away.magnitude;
-
-                // Совпали точно — расходимся в любую сторону, иначе
-                // направление не вычислить и они останутся слипшимися.
-                if (distance < 0.001f)
-                {
-                    away = new Vector3(Random.value - 0.5f, 0f, Random.value - 0.5f).normalized;
-                    distance = 0.001f;
-                }
-
-                if (distance >= gap) continue;
-
-                push += away.normalized * (gap - distance);
-                touched++;
+                steppingLeft -= Time.deltaTime;
+                agent.Move(stepDirection * StepSpeed * Time.deltaTime);
+                if (steppingLeft <= 0f) restLeft = Cooldown;
+                return;
             }
 
-            if (touched == 0) return;
+            if (restLeft > 0f)
+            {
+                restLeft -= Time.deltaTime;
+                return;
+            }
 
-            // Нулевая уступчивость — стоим намертво. Считать нас соседом
-            // при этом продолжают: мы для них стена, а не пустое место.
-            if (yielding <= 0f) return;
+            // Отходит только тот, кто дерётся с игроком. Нет боевого разума
+            // или нет цели — стоим: это НПС, лошадь или мирный зверь, сквозь
+            // которых игрок должен проходить насквозь.
+            if (brain == null || targets == null) return;
 
-            Vector3 step = Vector3.ClampMagnitude(push, 1f) * PushSpeed * yielding * Time.deltaTime;
+            var target = targets.Current;
+            if (target == null) { crowdedFor = 0f; return; }
 
-            // Через агента, а не присваиванием позиции: иначе тело сойдёт с
-            // навигационной сетки и провалится сквозь помост или стену.
-            if (agent.isOnNavMesh) agent.Move(step);
+            var player = target.GetComponentInParent<IsoRPG.Player.PlayerInputRouter>();
+            if (player == null) { crowdedFor = 0f; return; }
+
+            Vector3 away = transform.position - player.transform.position;
+            away.y = 0f;
+
+            float distance = away.magnitude;
+            float touching = agent.radius + PlayerRadius(player);
+
+            if (distance >= touching) { crowdedFor = 0f; return; }
+
+            crowdedFor += Time.deltaTime;
+            if (crowdedFor < Patience) return;
+
+            // Совпали точка в точку — направление не вычислить, берём любое.
+            if (distance < 0.01f)
+                away = new Vector3(Random.value - 0.5f, 0f, Random.value - 0.5f).normalized;
+            else
+                away /= distance;
+
+            // Вбок, а не строго назад: пятящийся моб выглядит испуганным, а
+            // шаг в сторону — как «подвинулся, чтобы не мешать».
+            Vector3 side = Vector3.Cross(Vector3.up, away) * (Random.value < 0.5f ? -1f : 1f);
+
+            stepDirection = (away + side * 0.7f).normalized;
+            steppingLeft = StepTime;
+            crowdedFor = 0f;
+        }
+
+        /// <summary>Радиус тела игрока: у него теперь физическая капсула, у неё и спрашиваем.</summary>
+        private static float PlayerRadius(Component player)
+        {
+            var body = player.GetComponentInParent<CharacterController>();
+            if (body != null) return body.radius;
+
+            var playerAgent = player.GetComponentInParent<NavMeshAgent>();
+            return playerAgent != null ? playerAgent.radius : 0.4f;
         }
     }
 }

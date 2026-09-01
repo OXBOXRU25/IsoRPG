@@ -102,10 +102,44 @@ namespace IsoRPG.Items
 
         private void Start()
         {
+            // Модель берём у живого героя, а не из своего поля.
+            //
+            // 01.09.2026 Павлон увидел в окне персонажа СТАРУЮ модель — ту,
+            // что стояла на прежней арене: поле заполнил её сборщик, а на
+            // новой арене героя сменили, и витрина об этом не узнала. Это
+            // тот же класс ошибки, что с лошадью-стеной: список собран в двух
+            // местах, и второе место повторяло первое по памяти. Пока витрина
+            // смотрит на самого героя, разойтись они не могут в принципе.
+            var live = LiveHeroModel();
+            if (live != null) modelPrefab = live;
+
             if (modelPrefab == null) return;
 
             Build();
             SetVisible(false);
+        }
+
+        /// <summary>
+        /// Модель героя из сцены: узел со скелетной сеткой под игроком.
+        ///
+        /// Ищем скелетную сетку, а не имя и не префаб: у любого героя она
+        /// есть, как бы его ни звали и из какого набора он ни был собран.
+        /// </summary>
+        private GameObject LiveHeroModel()
+        {
+            var owner = GetComponentInParent<IsoRPG.Player.PlayerInputRouter>();
+            if (owner == null) return null;
+
+            var skin = owner.GetComponentInChildren<SkinnedMeshRenderer>();
+            if (skin == null) return null;
+
+            // Поднимаемся до узла, на котором висит аниматор: это и есть
+            // корень модели, а сама сетка лежит у него ребёнком.
+            var node = skin.transform;
+            while (node.parent != null && node.parent != owner.transform && node.GetComponent<Animator>() == null)
+                node = node.parent;
+
+            return node.gameObject;
         }
 
         private void OnDestroy()

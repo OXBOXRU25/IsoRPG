@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using IsoRPG.Localization;
 using UnityEngine.InputSystem;
@@ -30,64 +31,98 @@ namespace IsoRPG.Items
         private static readonly Color ScrollHandle = new Color32(0x5A, 0x52, 0x42, 0xFF);
 
         private const float Margin = 18f;
+
         /// <summary>
-        /// Все три колонки одной ширины: вещи, герой, числа.
-        ///
-        /// Равные доли читаются как три раздела одного окна, а разной ширины —
-        /// как главный раздел и два довеска. Здесь все три равнозначны.
+        /// Ширина окна. Снята с образца 01.09.2026: у WoW 484 при экране
+        /// 1920 x 1200 — четверть ширины. У нас было 750: три равные колонки
+        /// в ряд, и окно читалось таблицей, а не портретом героя.
         /// </summary>
-        private const float ColumnWidth = 250f;
+        private const float Width = 490f;
 
-        private const float SlotColumnWidth = ColumnWidth;
+        /// <summary>Сторона гнезда под вещь. В образце 40 при ширине окна 484.</summary>
+        private const float Slot = 40f;
 
-        /// <summary>Правая колонка с числами.</summary>
-        private const float StatColumnWidth = ColumnWidth;
+        /// <summary>Шаг между гнёздами по вертикали: сторона плюс зазор 4.</summary>
+        private const float SlotStep = 44f;
+
+        /// <summary>Колонка гнёзд: сама вещь плюс поля до края окна.</summary>
+        private const float SlotColumnWidth = Slot + 14f;
+
+        /// <summary>Третьей колонки больше нет: числа ушли под модель, как в образце.</summary>
+        /// <summary>Блок чисел занимает всю ширину модели: он теперь под ней, а не сбоку.</summary>
+        private const float StatColumnWidth = ModelColumnWidth;
 
         /// <summary>
-        /// Отступ колонки чисел от разделителя и от правого края окна.
-        /// Без него подписи упираются в черту слева, а значения — в рамку
-        /// справа, и колонка читается как вываленная за край.
+        /// Отступ колонки чисел от края. Без него подписи упираются в рамку,
+        /// и колонка читается как вываленная за край.
         /// </summary>
         private const float StatInset = 12f;
 
         /// <summary>Ширина полосы прокрутки. Тонкая: она подсказка, не орган управления.</summary>
         private const float ScrollWidth = 5f;
 
-        /// <summary>Витрина с моделью — между вещами и числами, как в жанре.</summary>
-        private const float ModelColumnWidth = ColumnWidth;
+        /// <summary>Витрина с моделью — между колонками вещей, во всю их ширину.</summary>
+        private const float ModelColumnWidth = Width - SlotColumnWidth * 2f;
 
-        private const float Width = SlotColumnWidth + ModelColumnWidth + StatColumnWidth;
-        /// <summary>
-        /// Шаг строки. При кегле 11 шестнадцати пикселей мало: буквы
-        /// соседних строк почти касаются, и колонка читается как сплошное
-        /// пятно. Девятнадцать дают тот же воздух, что между слотами слева.
-        /// </summary>
-        private const float StatRow = 19f;
+        /// <summary>Шаг строки характеристик. В образце 22 при кегле 13.</summary>
+        private const float StatRow = 22f;
 
         /// <summary>Заголовок раздела: сверху воздуха больше, чем снизу.</summary>
-        private const float StatHeader = 27f;
-        private const float RowHeight = 30f;
-        private const float Pad = 12f;
-        private const float TitleHeight = 24f;
-        private const float StatsHeight = 86f;
+        private const float StatHeader = 26f;
 
-        // Слоты, которые показываем. Порядок сверху вниз — как на человеке.
-        private static readonly EquipSlot[] Slots =
+        private const float RowHeight = SlotStep;
+        private const float Pad = 14f;
+        private const float TitleHeight = 24f;
+
+        /// <summary>Подзаголовок под именем: «Человек, разбойник 1-го уровня» в образце.</summary>
+        private const float SubtitleHeight = 18f;
+
+        private const float StatsHeight = 150f;
+
+        /// <summary>
+        /// Левая колонка: то, что надевают на корпус, сверху вниз по телу.
+        ///
+        /// Раскладка снята с образца 01.09.2026 — в WoW гнёзда стоят двумя
+        /// колонками по краям окна, а между ними в полный рост стоит герой.
+        /// Прежний одиночный столбец из двенадцати строк с подписями занимал
+        /// треть окна и не оставлял модели места.
+        /// </summary>
+        private static readonly EquipSlot[] LeftSlots =
         {
             EquipSlot.Head,
             EquipSlot.Necklace,
-            EquipSlot.Chest,
+            EquipSlot.Shoulders,
             EquipSlot.Cloak,
+            EquipSlot.Chest,
+            EquipSlot.Tabard,
+            EquipSlot.Wrists,
+        };
+
+        /// <summary>Правая колонка: руки, ноги и украшения.</summary>
+        private static readonly EquipSlot[] RightSlots =
+        {
             EquipSlot.Hands,
+            EquipSlot.Waist,
             EquipSlot.Legs,
             EquipSlot.Feet,
+            EquipSlot.Ring,
+            EquipSlot.Ring2,
+            EquipSlot.Trinket,
+            EquipSlot.Trinket2,
+        };
+
+        /// <summary>Оружие — полосой под моделью, как в образце.</summary>
+        private static readonly EquipSlot[] BottomSlots =
+        {
             EquipSlot.MainHand,
             EquipSlot.OffHand,
             EquipSlot.Ranged,
-            EquipSlot.Ring,
-            EquipSlot.Ring2,
+            EquipSlot.Ammo,
         };
 
+        /// <summary>Все гнёзда одним списком — для обхода при обновлении.</summary>
+        private static readonly EquipSlot[] Slots =
+            LeftSlots.Concat(RightSlots).Concat(BottomSlots).ToArray();
         private static readonly Dictionary<EquipSlot, string> SlotNames = new Dictionary<EquipSlot, string>
         {
             { EquipSlot.Head, "Голова" },
@@ -279,9 +314,12 @@ namespace IsoRPG.Items
             // Числа под неё подстраиваются прокруткой: список характеристик
             // растёт с каждой механикой, и тянуть за ним окно означает
             // однажды получить окно выше экрана.
-            float slotsHeight = Slots.Length * RowHeight;
+            // Высота: заголовок с подзаголовком, самая длинная колонка
+            // гнёзд, блок чисел под моделью и полоса оружия. В образце
+            // 603 при экране 1920 x 1200 — у нас выходит близко к тому.
+            float slotsHeight = Mathf.Max(LeftSlots.Length, RightSlots.Length) * SlotStep;
 
-            float height = TitleHeight + slotsHeight + Pad * 2f;
+            float height = TitleHeight + SubtitleHeight + slotsHeight + StatsHeight + Slot + Pad * 3f;
 
             var go = new GameObject("CharacterWindow", typeof(Image));
             var rect = (RectTransform)go.transform;
@@ -317,9 +355,25 @@ namespace IsoRPG.Items
             Place(title, new Vector2(Pad, -Pad), new Vector2(Width - Pad * 2f, TitleHeight));
             title.alignment = TextAnchor.MiddleCenter;
 
-            for (int i = 0; i < Slots.Length; i++)
-                BuildRow(rect, Slots[i], -(Pad + TitleHeight + i * RowHeight));
+            // Раскладка по образцу WoW: гнёзда двумя колонками по краям,
+            // между ними герой в полный рост, оружие полосой под ним.
+            float slotsTop = -(Pad + TitleHeight + SubtitleHeight);
+            float rightX = Width - Pad - Slot;
 
+            for (int i = 0; i < LeftSlots.Length; i++)
+                BuildRow(rect, LeftSlots[i], Pad, slotsTop - i * SlotStep);
+
+            for (int i = 0; i < RightSlots.Length; i++)
+                BuildRow(rect, RightSlots[i], rightX, slotsTop - i * SlotStep);
+
+            // Оружие по центру под моделью: в образце это отдельная полоса,
+            // отбитая от колонок, и читается она как «что в руках».
+            float bottomY = slotsTop - RightSlots.Length * SlotStep - StatsHeight - Pad;
+            float bottomWidth = BottomSlots.Length * SlotStep - (SlotStep - Slot);
+            float bottomX = (Width - bottomWidth) * 0.5f;
+
+            for (int i = 0; i < BottomSlots.Length; i++)
+                BuildRow(rect, BottomSlots[i], bottomX + i * SlotStep, bottomY);
             // Тонкая черта между колонками: без неё числа читаются как
             // продолжение списка вещей.
             var divider = new GameObject("Divider", typeof(Image));
@@ -345,7 +399,7 @@ namespace IsoRPG.Items
             window.SetActive(false);
         }
 
-        private void BuildRow(RectTransform parent, EquipSlot slot, float y)
+        private void BuildRow(RectTransform parent, EquipSlot slot, float x, float y)
         {
             // Квадратик предмета
             var iconGo = new GameObject(slot + "Icon", typeof(Image), typeof(Button));
@@ -354,8 +408,11 @@ namespace IsoRPG.Items
             iconRect.anchorMin = new Vector2(0f, 1f);
             iconRect.anchorMax = new Vector2(0f, 1f);
             iconRect.pivot = new Vector2(0f, 1f);
-            iconRect.anchoredPosition = new Vector2(Pad, y);
-            iconRect.sizeDelta = new Vector2(26f, 26f);
+            iconRect.anchoredPosition = new Vector2(x, y);
+            // Сторона гнезда из образца: 40 при ширине окна 484. Прежние
+            // 26 делали иконку вдвое мельче — Павлон 01.09.2026: «обрати
+            // внимание на их размер в референсе, у тебя намного меньше».
+            iconRect.sizeDelta = new Vector2(Slot, Slot);
 
             var icon = iconGo.GetComponent<Image>();
             icon.color = SlotEmpty;
@@ -388,6 +445,12 @@ namespace IsoRPG.Items
 
             // Подпись: название слота или предмета
             var label = MakeText(parent, slot + "Label", SlotNames[slot], 12, TextDim);
+
+            // Подписей в образце нет: гнёзда опознаются по рисунку, а
+            // название вещи показывает подсказка при наведении. Объект
+            // оставляем — на него завязано обновление слота, — но не
+            // рисуем, иначе колонка вещей снова расползётся на треть окна.
+            label.enabled = false;
             Place(label, new Vector2(Pad + 32f, y - 4f), new Vector2(Width - Pad * 2f - 32f, 20f));
             slotLabels[slot] = label;
         }
@@ -523,7 +586,7 @@ namespace IsoRPG.Items
         private void BuildModel(RectTransform parent, float height)
         {
             float left = SlotColumnWidth + 4f;
-            float top = Pad + TitleHeight;
+            float top = Pad + TitleHeight + SubtitleHeight + Mathf.Max(LeftSlots.Length, RightSlots.Length) * SlotStep - 130f;
             float boxHeight = height - top - Pad;
 
             var backGo = new GameObject("ModelBack", typeof(Image));
@@ -588,9 +651,11 @@ namespace IsoRPG.Items
         /// </summary>
         private void BuildStats(RectTransform parent, float height)
         {
-            float left = SlotColumnWidth + ModelColumnWidth;
-            float top = Pad + TitleHeight;
-            float viewHeight = height - top - Pad;
+            // Числа теперь ПОД моделью, во всю её ширину: третьей колонки
+            // в образце нет, и Павлон 01.09.2026 просил её убрать.
+            float left = SlotColumnWidth;
+            float top = Pad + TitleHeight + SubtitleHeight + Mathf.Max(LeftSlots.Length, RightSlots.Length) * SlotStep - 130f;
+            float viewHeight = StatsHeight;
 
             var scrollGo = new GameObject("StatsScroll", typeof(RectTransform), typeof(ScrollRect));
             var scrollRect = (RectTransform)scrollGo.transform;
@@ -599,7 +664,7 @@ namespace IsoRPG.Items
             scrollRect.anchorMax = new Vector2(0f, 1f);
             scrollRect.pivot = new Vector2(0f, 1f);
             scrollRect.anchoredPosition = new Vector2(left, -top);
-            scrollRect.sizeDelta = new Vector2(StatColumnWidth, viewHeight);
+            scrollRect.sizeDelta = new Vector2(ModelColumnWidth, viewHeight);
 
             var viewportGo = new GameObject("Viewport", typeof(RectTransform), typeof(RectMask2D));
             var viewport = (RectTransform)viewportGo.transform;

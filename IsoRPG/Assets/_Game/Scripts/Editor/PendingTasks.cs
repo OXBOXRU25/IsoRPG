@@ -565,6 +565,10 @@ namespace IsoRPG.EditorTools
                     NoAvoidance.Apply();
                     break;
 
+                case "slot-icons":
+                    SpriteImport.Apply();
+                    break;
+
                 case "heavy-off":
                     SceneWeight.Heavy(false);
                     break;

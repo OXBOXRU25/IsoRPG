@@ -261,7 +261,6 @@ namespace IsoRPG.Player
                         // Разворачиваем к себе до открытия окна: собеседник
                         // должен смотреть на того, с кем говорит.
                         giver.FaceTo(transform.position);
-
                         if (dialogue != null) dialogue.Open(giver);
                     }
                     else

@@ -137,6 +137,15 @@ namespace IsoRPG.Audio
         /// <summary>Рык главаря. Громче остальных: это событие, а не реплика.</summary>
         public static void BossRoar(Vector3 at) => Play(bank?.bossRoar, at, 0.9f, 0.04f);
 
+        /// <summary>Рычание волка при захвате цели. Тише рыка главаря: он рядовой.</summary>
+        public static void WolfSnarl(Vector3 at) => Play(bank?.wolfSnarl, at, 0.7f, 0.07f);
+
+        /// <summary>Волчий вой. Редкий и дальний — для настроения места.</summary>
+        public static void WolfHowl(Vector3 at) => Play(bank?.wolfHowl, at, 0.55f, 0.05f);
+
+        /// <summary>Хрюканье кабана.</summary>
+        public static void BoarGrunt(Vector3 at) => Play(bank?.boarGrunt, at, 0.7f, 0.1f);
+
         // ------------------------------------------------------------------
 
         public static void Play(AudioClip[] set, Vector3 at, float volume = 1f,

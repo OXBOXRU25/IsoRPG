@@ -39,8 +39,20 @@ namespace IsoRPG.Combat
         private const int MaxLines = 12;
         private const float Pad = 8f;
 
-        // Приподнят над иконкой сумки, чтобы они не налезали друг на друга.
-        private const float BottomOffset = 84f;
+        /// <summary>
+        /// Низ журнала — вровень с низом ряда приёмов.
+        ///
+        /// Павлон 02.09.2026: «опусти его ниже, чтобы был параллельно блокам
+        /// со скилами». Раньше журнал стоял на 84 точках — его подняли, чтобы
+        /// не налезал на иконку сумки, — и нижняя строка висела выше ряда
+        /// приёмов, отчего низ экрана читался как две разные полки.
+        ///
+        /// Число то же, что у ряда приёмов: поле экрана плюс полоска опыта
+        /// (`ScreenMargin + ExpBarHeight` в CombatHud). Держим здесь копией,
+        /// а не ссылкой: журнал живёт отдельным компонентом и не должен
+        /// знать про устройство боевого интерфейса.
+        /// </summary>
+        private const float BottomOffset = 28f;
 
         private readonly List<Text> lines = new List<Text>();
         private readonly List<string> buffer = new List<string>();

@@ -73,12 +73,21 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 779d9e04fcc6d4441895759db946a1f1, type: 3}
   voiceVillager: []
   bossRoar:
-  - {fileID: 8300000, guid: 55129f48bf466b3468364e2d156d0a6b, type: 3}
-  - {fileID: 8300000, guid: 0f5ba2170939aa54ba91ffce8478b703, type: 3}
+  - {fileID: 8300000, guid: c4dd05e94a69b944680d5c2f3d3f7598, type: 3}
+  - {fileID: 8300000, guid: 5d95fc77816db7b4a8043a4b00c30398, type: 3}
+  - {fileID: 8300000, guid: bcbb623cefc961f4ba68b0a5790af77f, type: 3}
   boneVoice:
   - {fileID: 8300000, guid: 2d7745551bed7f64fb52d19f6f807d66, type: 3}
   - {fileID: 8300000, guid: 3bcda3c81e314b24da02432761af836d, type: 3}
   - {fileID: 8300000, guid: b29fbb8950c84ac48abb76c4646ca4b8, type: 3}
+  wolfSnarl:
+  - {fileID: 8300000, guid: 02ea5b34916ddb44880b6d9bbf3546b4, type: 3}
+  - {fileID: 8300000, guid: 08d91d14c671d2d47a8192a435a705f9, type: 3}
+  wolfHowl:
+  - {fileID: 8300000, guid: ad362e9244b7a7c42973fa9f903d09d6, type: 3}
+  - {fileID: 8300000, guid: e908bb02bd14c2c49aa3fc1b6d7c7157, type: 3}
+  boarGrunt:
+  - {fileID: 8300000, guid: 0906c92a99ac8dc4bae9748459af67a8, type: 3}
   ambience:
   - {fileID: 8300000, guid: 24c61fbc7437c434eb630e9f5fafb237, type: 3}
   music:

@@ -70,6 +70,15 @@ namespace IsoRPG.Audio
         [Tooltip("Скрип костей нежити. Для скелета он выразительнее рычания.")]
         public AudioClip[] boneVoice;
 
+        [Tooltip("Рычание волка. Звучит, когда он берёт цель.")]
+        public AudioClip[] wolfSnarl;
+
+        [Tooltip("Волчий вой. Изредка и без причины — он для настроения места, а не для боя.")]
+        public AudioClip[] wolfHowl;
+
+        [Tooltip("Хрюканье кабана. Рядовой зверь, звучит тише и чаще рыка главаря.")]
+        public AudioClip[] boarGrunt;
+
         [Header("Окружение")]
         [Tooltip("Непрерывный фон места: птицы, ветер, вода. Играет петлёй.")]
         public AudioClip[] ambience;

@@ -17,8 +17,23 @@ namespace IsoRPG.Items
     /// </summary>
     public sealed class WeaponVisual : MonoBehaviour
     {
-        private const string RightSlotBone = "handslot.r";
-        private const string LeftSlotBone = "handslot.l";
+        /// <summary>
+        /// Кости-держатели, по порядку поиска.
+        ///
+        /// У KayKit это `handslot.r`, у Sidekick таких нет вовсе — там
+        /// берём саму кисть `hand_r`. До 02.09.2026 искали только первую,
+        /// и у нашего героя оружие не появлялось никогда: в журнале честно
+        /// висело «нет костей handslot.r и handslot.l».
+        /// </summary>
+        [Header("Посадка в руке")]
+        [Tooltip("Смещение оружия относительно кости, метры. Ноль годится только для костей-держателей KayKit.")]
+        [SerializeField] private Vector3 grip = new Vector3(-0.0904f, 0.0060f, 0.0259f);
+
+        [Tooltip("Доворот оружия в кости, градусы.")]
+        [SerializeField] private Vector3 gripAngles = new Vector3(-96.5f, -93.2f, -1.7f);
+
+        private static readonly string[] RightSlotBones = { "handslot.r", "prop_r", "hand_r" };
+        private static readonly string[] LeftSlotBones = { "handslot.l", "prop_l", "hand_l" };
 
         [SerializeField] private Equipment equipment;
 
@@ -49,8 +64,8 @@ namespace IsoRPG.Items
         {
             if (equipment == null) equipment = GetComponent<Equipment>();
 
-            rightSlot = FindBone(RightSlotBone);
-            leftSlot = FindBone(LeftSlotBone);
+            rightSlot = FindAnyBone(RightSlotBones);
+            leftSlot = FindAnyBone(LeftSlotBones);
 
             // Молчать тут нельзя: без кости оружие просто не появится, и
             // снаружи это неотличимо от «модель не назначена» или «предмет
@@ -58,8 +73,8 @@ namespace IsoRPG.Items
             // отладки.
             if (rightSlot == null && leftSlot == null)
             {
-                Debug.LogWarning($"[IsoRPG] У «{name}» нет костей {RightSlotBone} и {LeftSlotBone} — " +
-                                 "оружие показать некуда. Модель не из набора KayKit?");
+                Debug.LogWarning($"[IsoRPG] У «{name}» нет ни одной кости-держателя " +
+                                 $"({string.Join(", ", RightSlotBones)}) — оружие показать некуда.");
             }
         }
 
@@ -97,8 +112,21 @@ namespace IsoRPG.Items
 
             current = Instantiate(stack.Item.worldModel, bone);
             current.name = "Weapon_" + slot;
-            current.transform.localPosition = Vector3.zero;
-            current.transform.localRotation = Quaternion.identity;
+
+            // Посадка в руке.
+            //
+            // Нули стояли под кости-держатели KayKit: у них своя ось уже
+            // развёрнута под оружие, и доворот не нужен. У Sidekick мы цепляем
+            // за саму кисть `hand_r`, а у неё ось идёт вдоль пальцев — клинок
+            // с нулями торчит поперёк ладони.
+            //
+            // Числа сняты примеркой в Blender (соседний чат, 02.09.2026,
+            // память проекта `dagger-grip-fit`) и пересчитаны под Unity: у
+            // Blender вертикаль Z, у нас Y, поэтому оси переставлены.
+            // Подбираются глазом на боевой анимации, а не в позе покоя:
+            // в покое кисть висит иначе.
+            current.transform.localPosition = grip;
+            current.transform.localRotation = Quaternion.Euler(gripAngles);
             current.transform.localScale = Vector3.one;
 
             // Коллайдеры у оружия снимаем: клик по земле рядом с персонажем
@@ -119,6 +147,18 @@ namespace IsoRPG.Items
         {
             foreach (var t in GetComponentsInChildren<Transform>(true))
                 if (t.name == boneName) return t;
+
+            return null;
+        }
+
+        /// <summary>Первая найденная кость из списка: наборы называют её по-разному.</summary>
+        private Transform FindAnyBone(string[] names)
+        {
+            foreach (var boneName in names)
+            {
+                var bone = FindBone(boneName);
+                if (bone != null) return bone;
+            }
 
             return null;
         }

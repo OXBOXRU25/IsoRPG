@@ -22,6 +22,20 @@ namespace IsoRPG.Combat
         private static readonly Color AllyHealthColor = new Color32(0x4E, 0xA8, 0x3C, 0xFF);
         private static readonly Color AllyHealthBack = new Color32(0x16, 0x24, 0x12, 0xFF);
         private static readonly Color HealthColor = new Color32(0xB8, 0x3A, 0x32, 0xFF);
+
+        /// <summary>
+        /// Тонировка полоски врага.
+        ///
+        /// Красим ЖЁЛТУЮ картинку, а не зелёную. Павлон 01.09.2026: «цвет хп
+        /// какой-то тёмный, а не красный» — так и вышло: в зелёной заливке
+        /// красного канала почти нет, и умножение на красный давало бурый.
+        /// В жёлтой красный канал полный, под этой тонировкой она становится
+        /// чистым красным и сохраняет стеклянный блик.
+        /// </summary>
+        private static readonly Color EnemyFill = new Color32(0xFF, 0x46, 0x38, 0xFF);
+
+        /// <summary>Чем залито гнездо портрета, когда портрета нет.</summary>
+        private static readonly Color PortraitEmpty = new Color32(0x1A, 0x18, 0x15, 0xFF);
         private static readonly Color HealthBack = new Color32(0x2A, 0x14, 0x12, 0xFF);
         private static readonly Color PortraitColor = new Color32(0x4A, 0x42, 0x36, 0xFF);
         private static readonly Color EnergyColor = new Color32(0xE8, 0xC3, 0x5A, 0xFF);
@@ -72,17 +86,75 @@ namespace IsoRPG.Combat
         private const float PortraitDiameter = 0.236f;   // от ширины рамки
 
         /// <summary>
-        /// Во сколько раз каменная рамка портрета больше самого портрета.
+        /// Насколько рамка выступает за портрет — ровно на свою кромку с
+        /// каждой стороны, в долях ширины панели.
         ///
-        /// У картинки `inventory-slot-small 1` кромка занимает по 26 точек с
-        /// каждой стороны при холсте 188 — это 28% ширины. Чтобы портрет
-        /// внутри остался прежнего размера, рамка должна быть примерно на
-        /// треть крупнее его.
+        /// Держим в долях, потому что от этого числа считается, где начинаются
+        /// полоски: рамка станет тоньше — полоски подойдут ближе сами.
         /// </summary>
-        private const float PortraitFrameScale = 1.32f;
+        private const float PortraitFrameOut = PortraitWall / PanelWidth;
 
         /// <summary>Зазор между рамкой портрета и полосками, в долях ширины панели.</summary>
         private const float PortraitGap = 0.028f;
+
+        /// <summary>
+        /// Три блока справа от портрета — имя, здоровье, выносливость —
+        /// стоят единым столбцом ровно по высоте рамки портрета.
+        ///
+        /// Павлон 01.09.2026: «надо, чтобы три бара справа были равны по
+        /// ширине, с одинаковыми небольшими отступами, и параллельны верху и
+        /// низу рамки с портретом». Раньше высоты и отступы стояли числами
+        /// порознь, и столбец не совпадал с рамкой ни сверху, ни снизу.
+        ///
+        /// Считаем от самой рамки: она занимает по вертикали половину своего
+        /// размера в каждую сторону от центра портрета. Поменяется портрет —
+        /// столбец подстроится сам.
+        /// </summary>
+        private const float PortraitFrameHalf =
+            (PanelWidth * PortraitDiameter * 0.5f + PortraitWall) / PanelHeight;
+
+        private const float BlockTop = PortraitCenterY - PortraitFrameHalf;
+        private const float BlockBottom = PortraitCenterY + PortraitFrameHalf;
+
+        /// <summary>Зазор между блоками — четыре точки, одинаковый для обоих.</summary>
+        private const float BlockGap = 4f / PanelHeight;
+
+        private const float BlockHeight = (BlockBottom - BlockTop - BlockGap * 2f) / 3f;
+
+        private const float NamePlateFrom = BlockTop;
+        private const float NamePlateTo = BlockTop + BlockHeight;
+
+        /// <summary>Имя героя. Задал Павлон 01.09.2026.</summary>
+        private const string HeroName = "Шико";
+
+        /// <summary>
+        /// Цвет имени — вовский жёлтый, один на героя, мобов и мирных.
+        ///
+        /// Один цвет на всех намеренно: жёлтый здесь означает «имя», а не
+        /// отношение к игроку. Кто свой, кто чужой, говорит цвет полоски.
+        /// </summary>
+        private static readonly Color NameColor = new Color32(0xFF, 0xD2, 0x4A, 0xFF);
+
+        /// <summary>
+        /// Толщина каменной кромки рамки портрета на экране.
+        ///
+        /// В картинке она 26 точек, а рисуется ужатой втрое (как у автора
+        /// набора) — отсюда девять. По этому числу портрет разворачивается во
+        /// всё внутреннее окно рамки: Павлон 01.09.2026 «рамки большие, больше
+        /// портретов» — портрет сидел в своём прежнем размере и оставлял
+        /// вокруг себя пустое поле.
+        /// </summary>
+        private const float PortraitWall = 26f / PortraitSlice;
+
+        /// <summary>
+        /// Во сколько раз ужата рамка портрета. Больше, чем у гнёзд приёмов:
+        /// Павлон 01.09.2026 «немного не дотянул рамку, надо ещё уже».
+        /// При четырёх кромка выходит в шесть с половиной точек.
+        /// </summary>
+        private const float PortraitSlice = 4f;
+
+        /// <summary>Насколько портрет крупнее своего гнезда, чтобы прилегать к кромке рамки.</summary>
+        private const float PortraitInner = 1.05f;
 
         /// <summary>
         /// Полоски начинаются ЗА рамкой портрета, а не поверх неё.
@@ -94,13 +166,23 @@ namespace IsoRPG.Combat
         /// портрета — полоски отойдут сами.
         /// </summary>
         private const float BarsFrom =
-            PortraitCenterX + PortraitDiameter * PortraitFrameScale * 0.5f + PortraitGap;
+            PortraitCenterX + PortraitDiameter * 0.5f + PortraitFrameOut + PortraitGap;
 
         private const float BarsTo = 0.980f;
-        private const float TopBarFrom = 0.225f;
-        private const float TopBarTo = 0.420f;
-        private const float LowBarFrom = 0.598f;
-        private const float LowBarTo = 0.800f;
+        /// <summary>
+        /// Полоски героя: здоровье сверху, выносливость под ним.
+        ///
+        /// Между ними зазор в четыре сотых высоты — примерно пять точек.
+        /// Было восемнадцать: полоски стояли по краям панели, которой больше
+        /// нет, и висели порознь. Павлон 01.09.2026: «бары хп и стамины
+        /// сдвинь ближе друг к другу» — вдвоём они читаются как один блок
+        /// рядом с портретом.
+        /// </summary>
+        /// Полоски — второй и третий блоки того же столбца, что и имя.
+        private const float TopBarFrom = NamePlateTo + BlockGap;
+        private const float TopBarTo = TopBarFrom + BlockHeight;
+        private const float LowBarFrom = TopBarTo + BlockGap;
+        private const float LowBarTo = LowBarFrom + BlockHeight;
 
         /// <summary>Панель цели: полоса одна, лежит правее портрета.</summary>
         private const float EnemyPanelWidth = PanelWidth;
@@ -121,18 +203,39 @@ namespace IsoRPG.Combat
         private const float NeutralPortraitDiameter = 0.228f;
 
         private const float NeutralPlateFrom =
-            NeutralPortraitCenterX + NeutralPortraitDiameter * PortraitFrameScale * 0.5f + PortraitGap;
+            NeutralPortraitCenterX + NeutralPortraitDiameter * 0.5f + PortraitFrameOut + PortraitGap;
 
         private const float NeutralPlateTo = 0.980f;
         private const float NeutralPlateTop = 0.330f;
         private const float NeutralPlateBottom = 0.640f;
 
         private const float EnemyBarFrom =
-            EnemyPortraitCenterX + EnemyPortraitDiameter * PortraitFrameScale * 0.5f + PortraitGap;
+            EnemyPortraitCenterX + EnemyPortraitDiameter * 0.5f + PortraitFrameOut + PortraitGap;
 
         private const float EnemyBarTo = 0.980f;
-        private const float EnemyBarTop = 0.363f;
-        private const float EnemyBarBottom = 0.605f;
+
+        /// <summary>
+        /// Столбец у цели устроен как у героя: три блока по высоте рамки
+        /// портрета. Только третий занят не выносливостью, а комбо.
+        ///
+        /// Павлон 01.09.2026: «блок с именем и хп должны быть такого же
+        /// размера, как у героя, и выровнены по верху рамки моба, а под ними
+        /// вместо бара со стаминой — комбо-поинты».
+        /// </summary>
+        private const float EnemyFrameHalf =
+            (PanelWidth * EnemyPortraitDiameter * 0.5f + PortraitWall) / PanelHeight;
+
+        private const float EnemyBlockTop = EnemyPortraitCenterY - EnemyFrameHalf;
+
+        private const float EnemyNameFrom = EnemyBlockTop;
+        private const float EnemyNameTo = EnemyBlockTop + BlockHeight;
+
+        /// <summary>Комбо — третий блок столбца, там же, где у героя выносливость.</summary>
+        private const float EnemyComboFrom = EnemyNameTo + BlockGap * 2f + BlockHeight;
+        private const float EnemyComboTo = EnemyComboFrom + BlockHeight;
+        /// <summary>Полоска цели — второй блок столбца.</summary>
+        private const float EnemyBarTop = EnemyNameTo + BlockGap;
+        private const float EnemyBarBottom = EnemyBarTop + BlockHeight;
         private const float PanelGap = 12f;
         private const float BarHeight = 20f;      // толще: в WoW полоска — главный элемент панели
         private const float BarGap = 4f;
@@ -147,8 +250,30 @@ namespace IsoRPG.Combat
         /// <summary>Общая плашка под иконками способностей.</summary>
         private static readonly Color SlotPlate = new Color32(0x2E, 0x2A, 0x22, 0xF0);
 
-        private const float SlotSize = 48f;
+        /// <summary>
+        /// Гнездо приёма. Пятьдесят восемь вместо сорока восьми.
+        ///
+        /// Павлон 01.09.2026: «рамки широкие и маленькие». Так и выходило:
+        /// у каменной оправы кромка 26 точек с каждой стороны, а гнездо было
+        /// 48 — углы почти смыкались, и от рисунка внутри не оставалось
+        /// ничего. Гнездо крупнее, а сама оправа ужата множителем (см.
+        /// <see cref="SlotSlice"/>), и кромка выходит примерно в девять точек.
+        /// </summary>
+        private const float SlotSize = 58f;
         private const float SlotGap = 6f;
+
+        /// <summary>Во сколько раз ужата каменная оправа гнезда. В нормативе Synty множители 1.5–3.</summary>
+        private const float SlotSlice = 3f;
+
+        /// <summary>
+        /// На сколько подложка гнезда меньше самого гнезда.
+        ///
+        /// У подложки скруглённые углы чуть шире, чем внутреннее окно рамки,
+        /// и в четырёх углах она вылезала наружу тёмными язычками. Павлон
+        /// 01.09.2026: «подложку уменьшить буквально на 2%». Два процента от
+        /// 58 — чуть больше точки с каждой стороны.
+        /// </summary>
+        private const float SlotBackInset = SlotSize * 0.02f;
 
         private static readonly Color ComboEmpty = new Color32(0x2E, 0x2A, 0x22, 0xFF);
         private static readonly Color ComboFull = new Color32(0xE8, 0xC3, 0x5A, 0xFF);
@@ -445,6 +570,16 @@ namespace IsoRPG.Combat
                 playerPortrait.enabled = true;
             }
 
+            // Имя героя на своей плашке — по образцу WoW.
+            //
+            // Павлон 01.09.2026: «у героя ника вообще нет, должен быть Шико».
+            // Раньше имя не показывали намеренно: игрок и так знает, кем
+            // играет. Но рядом с панелью цели, где имя есть, пустое место
+            // читается как недоделка, а не как решение.
+            playerNameText = CreateNamePlate(player, PanelWidth, PanelHeight,
+                                             BarsFrom, BarsTo, NamePlateFrom, NamePlateTo);
+            playerNameText.text = HeroName;
+
             // Имени героя над панелью нет намеренно.
             //
             // Оно висело отдельной строкой НАД рамкой, ни к чему не привязанной
@@ -464,9 +599,14 @@ namespace IsoRPG.Combat
             playerEnergyFill = energyBar.fill;
             playerEnergyText = energyBar.label;
 
-            // Цифры на энергии тёмные: полоска жёлтая, светлый текст на ней
-            // не читается вовсе.
-            playerEnergyText.color = new Color32(0x3A, 0x30, 0x14, 0xFF);
+            // Цифры на энергии белые, как и на здоровье.
+            //
+            // Тёмными они стояли под плоскую жёлтую заливку: на ней светлый
+            // текст пропадал. У стеклянной картинки середина насыщенная и
+            // тёмная по краям, и белый на ней читается — а два разных цвета
+            // цифр на соседних полосках выглядели как ошибка. Павлон
+            // 01.09.2026: «где бар стамины, сделай цифры тоже белого цвета».
+            playerEnergyText.color = TextColor;
 
             // --- Панель цели: справа от панели игрока, скрыта без цели ---
             var target = CreateFramedPanel(root, "TargetPanel", "UI/Frame_Enemy",
@@ -478,20 +618,32 @@ namespace IsoRPG.Combat
                                                 EnemyPortraitCenterX, EnemyPortraitCenterY,
                                                 EnemyPortraitDiameter);
 
-            targetNameText = CreateText(target, "Name", "", 13, TextColor,
-                new Vector2(EnemyPanelWidth * EnemyBarFrom, 2f),
-                new Vector2(EnemyPanelWidth * (EnemyBarTo - EnemyBarFrom), 16f));
+            // Имя цели — на такой же плашке, как у героя, прямо над полоской.
+            // Раньше висело в воздухе над панелью, которой больше нет.
+            targetNameText = CreateNamePlate(target, EnemyPanelWidth, EnemyPanelHeight,
+                                             EnemyBarFrom, EnemyBarTo,
+                                             EnemyNameFrom, EnemyNameTo);
 
-            var targetBar = CreateGrooveBar(target, "Health", HealthColor,
+            // Полоска цели — та же картинка, что у героя, покрашенная в
+            // красный. Решение Павлона 01.09.2026: «пока подумаем, как
+            // перекрасить нормально в красный, не теряя текстуру». Плоский
+            // прямоугольник рядом со стеклянной полоской героя выглядел
+            // заглушкой, так что временно лучше тонировка.
+            var targetBar = CreateGrooveBar(target, "Health", EnemyFill,
                                             EnemyBarTop, EnemyBarBottom,
-                                            EnemyBarFrom, EnemyBarTo);
+                                            EnemyBarFrom, EnemyBarTo,
+                                            fillSprite: "UI/Bar_Fill_Stamina",
+                                            keepTint: true);
             targetHealthFill = targetBar.fill;
             targetHealthText = targetBar.label;
 
-            // Точки комбо — под рамкой: внутри неё места нет, полоса одна.
-            BuildComboDots(target, new Vector2(EnemyPanelWidth * EnemyBarFrom,
-                                               -EnemyPanelHeight - 4f),
-                           EnemyPanelWidth * (EnemyBarTo - EnemyBarFrom));
+            // Комбо — третий блок столбца, ровно там, где у героя стоит
+            // выносливость. Точки центрируются по высоте блока.
+            BuildComboDots(target,
+                           new Vector2(EnemyPanelWidth * EnemyBarFrom,
+                                       -EnemyPanelHeight * (EnemyComboFrom + EnemyComboTo) * 0.5f),
+                           EnemyPanelWidth * (EnemyBarTo - EnemyBarFrom),
+                           EnemyPanelHeight * (EnemyComboTo - EnemyComboFrom));
 
             targetPanel.SetActive(false);
 
@@ -508,15 +660,11 @@ namespace IsoRPG.Combat
 
             // Имя внутри таблички, а не над рамкой: у мирного нет полосы,
             // и табличка существует ровно ради имени.
-            neutralNameText = CreateText(neutral, "Name", "", 14, TextColor,
-                Vector2.zero, Vector2.zero);
-
-            var neutralNameRect = (RectTransform)neutralNameText.transform;
-            neutralNameRect.anchorMin = new Vector2(NeutralPlateFrom, 1f - NeutralPlateBottom);
-            neutralNameRect.anchorMax = new Vector2(NeutralPlateTo, 1f - NeutralPlateTop);
-            neutralNameRect.offsetMin = Vector2.zero;
-            neutralNameRect.offsetMax = Vector2.zero;
-            neutralNameText.alignment = TextAnchor.MiddleCenter;
+            // У мирного полоски нет, поэтому плашка с именем стоит одна — на
+            // той же высоте, где у бойцов начинается полоска здоровья.
+            neutralNameText = CreateNamePlate(neutral, NeutralPanelWidth, NeutralPanelHeight,
+                                              NeutralPlateFrom, NeutralPlateTo,
+                                              NeutralPlateTop, NeutralPlateBottom);
 
             neutralPanel.SetActive(false);
 
@@ -643,13 +791,21 @@ namespace IsoRPG.Combat
         /// и место на экране должно об этом напоминать. Переключился — точки
         /// погасли вместе со сменой имени над ними.
         /// </summary>
-        private void BuildComboDots(RectTransform parent, Vector2 position, float width)
+        private void BuildComboDots(RectTransform parent, Vector2 position, float width,
+                                    float blockHeight = 0f)
         {
             comboDots.Clear();
 
+            // Вдвое крупнее прежних одиннадцати точек — решение Павлона
+            // 01.09.2026. Комбо читается на бегу и с дальней камеры, а в
+            // одиннадцать точек оно превращалось в пунктир под панелью.
             int count = combo != null ? combo.MaxPoints : 5;
-            float size = 11f;
-            float gap = 5f;
+
+            // Точка занимает высоту блока целиком, если блок задан: комбо —
+            // такой же блок столбца, как имя и полоска, и должно заполнять
+            // свою строку, а не болтаться в ней.
+            float size = blockHeight > 1f ? blockHeight : 22f;
+            float gap = 6f;
             float totalWidth = count * size + (count - 1) * gap;
             float startX = position.x + (width - totalWidth) * 0.5f;
 
@@ -661,7 +817,10 @@ namespace IsoRPG.Combat
                 rect.anchorMin = new Vector2(0f, 1f);
                 rect.anchorMax = new Vector2(0f, 1f);
                 rect.pivot = new Vector2(0f, 1f);
-                rect.anchoredPosition = new Vector2(startX + i * (size + gap), position.y);
+                // Позиция задаёт ЦЕНТР строки комбо, поэтому поднимаем точку
+                // на половину её высоты: у RectTransform опорная точка сверху.
+                rect.anchoredPosition = new Vector2(startX + i * (size + gap),
+                                                    position.y + size * 0.5f);
                 rect.sizeDelta = new Vector2(size, size);
 
                 var image = go.GetComponent<Image>();
@@ -871,7 +1030,8 @@ namespace IsoRPG.Combat
             if (backing != null)
             {
                 for (int i = 0; i < BarSlots; i++)
-                    AddSlotArt(barRect, i * (SlotSize + SlotGap), backing, "SlotBack" + (i + 1));
+                    AddSlotArt(barRect, i * (SlotSize + SlotGap), backing, "SlotBack" + (i + 1),
+                               SlotBackInset);
             }
 
             for (int i = 0; i < BarSlots; i++)
@@ -1019,7 +1179,8 @@ namespace IsoRPG.Combat
         /// Указатель не ловит: клики должны доставаться самой кнопке приёма,
         /// иначе панель перестанет нажиматься, а причина будет невидимой.
         /// </summary>
-        private static void AddSlotArt(RectTransform bar, float x, Sprite sprite, string name)
+        private static void AddSlotArt(RectTransform bar, float x, Sprite sprite, string name,
+                                       float inset = 0f)
         {
             var go = new GameObject(name, typeof(Image));
             var rect = (RectTransform)go.transform;
@@ -1028,12 +1189,13 @@ namespace IsoRPG.Combat
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.zero;
             rect.pivot = Vector2.zero;
-            rect.anchoredPosition = new Vector2(x, 0f);
-            rect.sizeDelta = new Vector2(SlotSize, SlotSize);
+            rect.anchoredPosition = new Vector2(x + inset, inset);
+            rect.sizeDelta = new Vector2(SlotSize - inset * 2f, SlotSize - inset * 2f);
 
             var image = go.GetComponent<Image>();
             image.sprite = sprite;
             image.type = Image.Type.Sliced;
+            image.pixelsPerUnitMultiplier = SlotSlice;
             image.raycastTarget = false;
         }
 
@@ -1180,7 +1342,14 @@ namespace IsoRPG.Combat
                 var frameRect = (RectTransform)frameGo.transform;
                 frameRect.SetParent(panel, false);
 
-                float frameSize = width * diameter * PortraitFrameScale;
+                // Рамка ровно по портрету: его сторона плюс две кромки.
+                //
+                // Павлон 01.09.2026: «нет, не портрет больше, а рамку меньше».
+                // Так и правильнее — у 9-slice нет собственного размера, она
+                // тянется на что угодно, лишь бы сторона была не меньше двух
+                // кромок. У нас кромка девять точек, портрет семьдесят два —
+                // запас громадный.
+                float frameSize = width * diameter + PortraitWall * 2f;
 
                 frameRect.anchorMin = new Vector2(0f, 1f);
                 frameRect.anchorMax = new Vector2(0f, 1f);
@@ -1188,9 +1357,39 @@ namespace IsoRPG.Combat
                 frameRect.anchoredPosition = new Vector2(width * centerX, -height * centerY);
                 frameRect.sizeDelta = new Vector2(frameSize, frameSize);
 
+                // Тёмное поле — оно же фон, когда портрета нет.
+                //
+                // Павлон 01.09.2026: «если портрета нет, залей рамку просто
+                // тёмным». Пустая рамка показывала мир насквозь и читалась
+                // как дыра в интерфейсе, а не как «лица нет».
+                //
+                // Лежит ПОД рамкой и ровно её размера, без отступа. Сначала
+                // я отодвигал его внутрь на границу 9-slice — и между полем и
+                // камнем остался просвет: видимая кромка тоньше этой границы,
+                // и подгонять её числом значит гадать. Под рамкой подгонять
+                // нечего: камень сам закрывает края поля.
+                var fillGo = new GameObject("PortraitBack", typeof(Image));
+                var fillRect = (RectTransform)fillGo.transform;
+                fillRect.SetParent(panel, false);
+
+                fillRect.anchorMin = new Vector2(0f, 1f);
+                fillRect.anchorMax = new Vector2(0f, 1f);
+                fillRect.pivot = new Vector2(0.5f, 0.5f);
+                fillRect.anchoredPosition = new Vector2(width * centerX, -height * centerY);
+                fillRect.sizeDelta = new Vector2(frameSize, frameSize);
+
+                var fillImage = fillGo.GetComponent<Image>();
+                fillImage.color = PortraitEmpty;
+                fillImage.raycastTarget = false;
+
+                // Раньше рамки в иерархии — значит рисуется под ней.
+                fillRect.SetSiblingIndex(frameRect.GetSiblingIndex());
+
                 var frameImage = frameGo.GetComponent<Image>();
                 frameImage.sprite = frameArt;
                 frameImage.type = Image.Type.Sliced;
+
+                frameImage.pixelsPerUnitMultiplier = PortraitSlice;
                 frameImage.raycastTarget = false;
             }
 
@@ -1204,7 +1403,14 @@ namespace IsoRPG.Combat
             maskRect.SetParent(panel, false);
 
             var maskImage = maskGo.GetComponent<Image>();
-            maskImage.sprite = CircleSprite();
+
+            // Квадратное окно, если портрет стоит в каменной рамке.
+            //
+            // Павлон 01.09.2026: «портрет сделай квадратным и нормальную
+            // рамку». Круг был нужен под золотое кольцо прежней покупной
+            // панели; в квадратной каменной оправе он оставляет по углам
+            // четыре пустых треугольника, и портрет выглядит вклеенным.
+            maskImage.sprite = frameArt != null ? null : CircleSprite();
             maskImage.raycastTarget = false;
 
             var mask = maskGo.GetComponent<Mask>();
@@ -1214,7 +1420,11 @@ namespace IsoRPG.Combat
             var rect = (RectTransform)go.transform;
             rect.SetParent(maskRect, false);
 
-            float size = width * diameter;
+            // Портрет на пять процентов крупнее гнезда: Павлон 01.09.2026
+            // «портрет так и не прилегает к рамке, сделай больше на 5%».
+            // Рамка при этом считается от базового размера, поэтому портрет
+            // заходит под её кромку, а не отодвигает её.
+            float size = width * diameter * PortraitInner;
 
             // Окно стоит в гнезде, портрет заполняет его целиком.
             maskRect.anchorMin = new Vector2(0f, 1f);
@@ -1265,9 +1475,63 @@ namespace IsoRPG.Combat
             return Mathf.Max(1f, sprite.rect.height / height);
         }
 
+        /// <summary>
+        /// Плашка с именем над полосками — тот же каменный жёлоб, что под
+        /// ними, только пустой.
+        ///
+        /// Образец — панель WoW, который прислал Павлон 01.09.2026: имя лежит
+        /// на своей подложке ровно по ширине полосок, а не висит в воздухе
+        /// над панелью. Цифр на полосках там нет вовсе, и это правильно: на
+        /// расстоянии читается длина полосы, а не число.
+        /// </summary>
+        private Text CreateNamePlate(RectTransform panel, float width, float height,
+                                     float fromX, float toX, float fromY, float toY)
+        {
+            var host = new GameObject("NamePlate", typeof(RectTransform), typeof(Image));
+            var hostRect = (RectTransform)host.transform;
+            hostRect.SetParent(panel, false);
+
+            hostRect.anchorMin = new Vector2(fromX, 1f - toY);
+            hostRect.anchorMax = new Vector2(toX, 1f - fromY);
+            hostRect.offsetMin = Vector2.zero;
+            hostRect.offsetMax = Vector2.zero;
+
+            var socket = Resources.Load<Sprite>("UI/Bar_Socket");
+            var image = host.GetComponent<Image>();
+
+            if (socket != null)
+            {
+                image.sprite = socket;
+                image.type = Image.Type.Sliced;
+                image.pixelsPerUnitMultiplier = SliceFit(socket, height * Mathf.Abs(toY - fromY));
+            }
+            else image.color = PanelColor;
+
+            image.raycastTarget = false;
+
+            var label = CreateText(hostRect, "Value", "", 13, NameColor,
+                                   Vector2.zero, Vector2.zero);
+            var labelRect = (RectTransform)label.transform;
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+            label.alignment = TextAnchor.MiddleCenter;
+
+            // Тень в одну точку, вполсилы. Павлон 01.09.2026: «совсем
+            // небольшая, не ярко выраженная». Она нужна не ради вида, а ради
+            // чтения: жёлтые буквы на светлой части камня теряют край.
+            var shadow = label.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.55f);
+            shadow.effectDistance = new Vector2(1f, -1f);
+
+            return label;
+        }
+
         private (RectTransform fill, Text label) CreateGrooveBar(
             RectTransform panel, string name, Color color, float fromY, float toY,
-            float fromX = -1f, float toX = -1f, string fillSprite = null)
+            float fromX = -1f, float toX = -1f, string fillSprite = null,
+            bool keepTint = false)
         {
             if (fromX < 0f) fromX = BarsFrom;
             if (toX < 0f) toX = BarsTo;
@@ -1334,7 +1598,11 @@ namespace IsoRPG.Combat
                     // Картинка уже нужного цвета — тонировку снимаем. Зелёная
                     // заливка, умноженная на наш зелёный, уходит в болото и
                     // теряет блик, ради которого её и брали.
-                    fillImage.color = Color.white;
+                    //
+                    // Кроме случая, когда тонировка и нужна: у врага картинка
+                    // та же, а цвет обязан быть красным — это язык, по
+                    // которому игрок отличает свою полоску от чужой.
+                    if (!keepTint) fillImage.color = Color.white;
                 }
             }
 
@@ -1346,8 +1614,16 @@ namespace IsoRPG.Combat
                 fillRect.offsetMax = new Vector2(-BarInset, -BarInset);
             }
 
+            // Цифры на полоске есть в разметке, но выключены.
+            //
+            // Павлон 01.09.2026 по образцу WoW: «цифры вообще там не нужны».
+            // На дистанции игрок читает длину полосы, а число только шумит.
+            // Держим объект живым, чтобы код обновления не менялся: он пишет
+            // в текст, которого никто не видит, и это дешевле, чем разводить
+            // две ветки на каждое изменение здоровья.
             var label = CreateText(hostRect, "Value", "", 11, TextColor,
                                    Vector2.zero, Vector2.zero);
+            label.enabled = false;
             var labelRect = (RectTransform)label.transform;
             labelRect.anchorMin = Vector2.zero;
             labelRect.anchorMax = Vector2.one;
@@ -1548,13 +1824,18 @@ namespace IsoRPG.Combat
         }
 
         /// <summary>
-        /// Показать уровень рядом с именем. Отдельно от события: при
-        /// старте подпись нужна, а праздновать там нечего — прямой вызов
-        /// обработчика играл джингл повышения при каждом запуске игры.
+        /// Имя героя на плашке. Без уровня.
+        ///
+        /// Павлон 01.09.2026: «замени „Разбойник ур. 4“ на „Шико“, уровень
+        /// будем чуть позже выводить отдельно». В WoW уровень стоит кружком у
+        /// портрета, а не в строке имени, — туда и пойдёт.
+        ///
+        /// Метод оставлен под уровень: он подписан на событие роста, и когда
+        /// кружок появится, менять придётся только эту строку.
         /// </summary>
         private void ShowPlayerLevel(int level)
         {
-            if (playerNameText != null) playerNameText.text = Loc.F("Разбойник  ур. {0}", level);
+            if (playerNameText != null) playerNameText.text = HeroName;
         }
 
         /// <summary>Перерисовать имя героя — например, после смены языка.</summary>

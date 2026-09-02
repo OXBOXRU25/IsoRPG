@@ -58,6 +58,9 @@ namespace IsoRPG.Combat
         [Tooltip("Рычит ли этот монстр при виде врага. Обычно только главарь.")]
         [SerializeField] private bool roars;
 
+        [Tooltip("Чей голос: 0 главарь, 1 волк, 2 кабан. Ставится сборщиком по виду зверя.")]
+        [SerializeField] private int voiceKind;
+
         [Tooltip("Сколько секунд молчит после рыка.")]
         [SerializeField] private float roarCooldown = 12f;
 
@@ -67,6 +70,21 @@ namespace IsoRPG.Combat
         public void GiveVoice(float cooldown = 12f)
         {
             roars = true;
+            roarCooldown = cooldown;
+        }
+
+        /// <summary>
+        /// Голос по виду зверя: 0 главарь, 1 волк, 2 кабан.
+        ///
+        /// Павлон 02.09.2026 спросил, есть ли у мелких кабанов, волков и
+        /// гриба свои звуки. Своих не было ни у кого: молчали все, кроме
+        /// главаря и скелетов. Голоса он к тому времени уже нагенерил —
+        /// оставалось раздать.
+        /// </summary>
+        public void GiveVoice(int kind, float cooldown)
+        {
+            roars = true;
+            voiceKind = kind;
             roarCooldown = cooldown;
         }
 
@@ -189,7 +207,13 @@ namespace IsoRPG.Combat
             if (Time.time < nextRoar) return;
 
             nextRoar = Time.time + roarCooldown;
-            IsoRPG.Audio.Sfx.BossRoar(transform.position);
+
+            switch (voiceKind)
+            {
+                case 1: IsoRPG.Audio.Sfx.WolfSnarl(transform.position); break;
+                case 2: IsoRPG.Audio.Sfx.BoarGrunt(transform.position); break;
+                default: IsoRPG.Audio.Sfx.BossRoar(transform.position); break;
+            }
         }
 
         private Targetable FindNearestEnemy()

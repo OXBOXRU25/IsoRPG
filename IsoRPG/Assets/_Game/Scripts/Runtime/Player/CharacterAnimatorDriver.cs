@@ -55,6 +55,13 @@ namespace IsoRPG.Player
         // зверей — так его называет задание combat-anims.
         private static readonly int FlinchStateHash = Animator.StringToHash("GetHit");
 
+        // Богатые наборы (босс-кабан, гриб) умеют больше обычного зверя:
+        // сторона вздрагивания, боевая стойка, боковое смещение. У кого таких
+        // параметров нет — вызовы уходят в пустоту, это проверяет Has.
+        private static readonly int HitDirHash = Animator.StringToHash("HitDir");
+        private static readonly int InCombatHash = Animator.StringToHash("InCombat");
+        private static readonly int StrafeHash = Animator.StringToHash("Strafe");
+
         // Состояния удара: у зверей одно «Attack», у героя серия «Attack_1»…
         // «Attack_6» (их заводит то же задание).
         private static readonly int[] AttackStateHashes =
@@ -104,6 +111,13 @@ namespace IsoRPG.Player
         private float smoothedSpeed;
         private KeyboardMove keys;
 
+        // Есть ли у этого аниматора богатые параметры. Считаем ОДИН раз при
+        // включении: проверять список параметров каждый кадр у каждого
+        // существа — это ММО, так делать нельзя.
+        private IsoRPG.Combat.TargetSelector targets;
+        private bool hasCombatFlag;
+        private bool hasStrafe;
+
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
@@ -123,6 +137,11 @@ namespace IsoRPG.Player
         private void OnEnable()
         {
             if (health != null) health.Damaged += OnDamaged;
+
+            // Один раз узнаём, что умеет этот аниматор: у босса-кабана есть
+            // боевая стойка и боковое смещение, у рядового зверя — нет.
+            hasCombatFlag = Has(InCombatHash, AnimatorControllerParameterType.Bool);
+            hasStrafe = Has(StrafeHash, AnimatorControllerParameterType.Float);
 
             // Скрытность меняет саму походку, поэтому слушаем её здесь же.
             if (stealth == null) stealth = GetComponent<IsoRPG.Combat.StealthState>();
@@ -146,7 +165,41 @@ namespace IsoRPG.Player
             // судорога, а не как удар.
             if (health != null && !health.IsAlive) return;
 
+            AimFlinch(source);
             PlayHit();
+        }
+
+        /// <summary>
+        /// С какой стороны прилетело: 0 спереди, 1 сзади, 2 слева, 3 справа.
+        ///
+        /// У босса-кабана на каждую сторону свой клип — набор их рисовал, а мы
+        /// до 02.09.2026 не пользовались вовсе. У кого таких клипов нет,
+        /// параметра тоже нет, и вызов уходит в пустоту без вреда.
+        /// </summary>
+        private void AimFlinch(GameObject source)
+        {
+            if (animator == null || source == null) return;
+            if (!Has(HitDirHash, AnimatorControllerParameterType.Int)) return;
+
+            Vector3 from = source.transform.position - transform.position;
+            from.y = 0f;
+
+            if (from.sqrMagnitude < 0.01f) return;
+
+            from.Normalize();
+
+            float ahead = Vector3.Dot(transform.forward, from);
+            float side = Vector3.Dot(transform.right, from);
+
+            int direction;
+
+            // Спереди и сзади считаем по продольной оси, и только если удар
+            // пришёл ближе к оси, чем к борту: иначе зверь вздрагивал бы
+            // «назад» от удара сбоку-сзади, а это читается как промах.
+            if (Mathf.Abs(ahead) >= Mathf.Abs(side)) direction = ahead > 0f ? 0 : 1;
+            else direction = side < 0f ? 2 : 3;
+
+            animator.SetInteger(HitDirHash, direction);
         }
 
         private void Update()
@@ -188,6 +241,43 @@ namespace IsoRPG.Player
             // нельзя — пропадает разгибание. Ускоряем: обе фазы на месте,
             // просто проходят вдвое быстрее.
             animator.SetFloat(LandSpeedHash, smoothedSpeed > 0.15f ? 2f : 1f);
+
+            FeedRichAnimator();
+        }
+
+        /// <summary>
+        /// Кормит параметры, которые понимают только богатые наборы.
+        ///
+        /// Боевая стойка и боковое смещение есть у босса-кабана — набор их
+        /// рисовал, а мы до 02.09.2026 не пользовались. Павлон: «что-то и у
+        /// кабана не увидел новых анимаций» — так и было: контроллер их умел,
+        /// а игра ему об этом не сообщала.
+        ///
+        /// У кого таких параметров нет — проверка `Has` возвращает false, и
+        /// весь метод стоит одного сравнения на кадр.
+        /// </summary>
+        private void FeedRichAnimator()
+        {
+            if (hasCombatFlag)
+            {
+                if (targets == null) targets = GetComponent<IsoRPG.Combat.TargetSelector>();
+
+                bool fighting = targets != null && targets.Current != null;
+                animator.SetBool(InCombatHash, fighting);
+            }
+
+            if (!hasStrafe) return;
+
+            // Боковая доля скорости: положительная — идёт вправо от себя.
+            // Из неё контроллер выбирает наклон в беге и кружение вокруг цели.
+            Vector3 velocity = agent != null && agent.isActiveAndEnabled ? agent.velocity : Vector3.zero;
+            velocity.y = 0f;
+
+            float side = velocity.sqrMagnitude > 0.01f
+                ? Vector3.Dot(transform.right, velocity)
+                : 0f;
+
+            animator.SetFloat(StrafeHash, side);
         }
 
         /// <summary>

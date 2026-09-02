@@ -74,6 +74,9 @@ namespace IsoRPG.EditorTools
             // играет, проверка на null там уже есть.
             bank.voiceVillager = new AudioClip[0];
             bank.bossRoar = Load("boss_roar");
+            bank.wolfSnarl = Load("wolf_snarl");
+            bank.wolfHowl = Load("wolf_howl");
+            bank.boarGrunt = Load("boar_grunt");
 
             bank.ambience = Load("forest_birds");
 

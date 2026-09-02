@@ -1864,6 +1864,46 @@ namespace IsoRPG.EditorTools
                     break;
                 }
 
+                case "mushroom-boss":
+                    MushroomBossPack.Build();
+                    break;
+
+                case "mipcover-veg":
+                    MipCoverVeg.Apply();
+                    break;
+
+                case "voice-kit":
+                    VoiceKit.Apply();
+                    break;
+
+                case "wind-kit":
+                    WindKit.Apply();
+                    break;
+
+                case "lod-compare":
+                    LodCompare.Run();
+                    break;
+
+                case "lod-keep":
+                    LodKeep.Apply();
+                    break;
+
+                case "idle-kit":
+                    IdleKit.Apply();
+                    break;
+
+                case "anim-log":
+                    AnimLog.On();
+                    break;
+
+                case "anim-log-off":
+                    AnimLog.Off();
+                    break;
+
+                case "mob-anim-probe":
+                    MobAnimProbe.Run();
+                    break;
+
                 case "boar-boss":
                     BoarBossPack.Build();
 

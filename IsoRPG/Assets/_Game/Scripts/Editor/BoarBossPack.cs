@@ -122,8 +122,8 @@ namespace IsoRPG.EditorTools
             agent.speed = 2.6f;
             agent.angularSpeed = 480f;
             agent.acceleration = 8f;
-            agent.radius = 0.85f;
-            agent.height = 1.8f;
+            agent.radius = 0.5f;    // по сетке навигации (0.5), а не по туше: агент шире сетки прыгает назад
+            agent.height = 2f;
             agent.stoppingDistance = 0.1f;
             agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
             agent.avoidancePriority = 40;   // ниже число — выше приоритет: босс не уступает дорогу рядовым

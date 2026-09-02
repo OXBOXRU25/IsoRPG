@@ -63,14 +63,14 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static readonly Vector3[] Deltas =
         {
-            new Vector3(   0f,   0f,   0f),
-            new Vector3(   0f,   0f,  90f),
-            new Vector3(   0f,   0f, -90f),
-            new Vector3(   0f,   0f, 180f),
-            new Vector3(  90f,   0f,   0f),
-            new Vector3( -90f,   0f,   0f),
-            new Vector3(   0f,  90f,   0f),
+            new Vector3(   0f,   0f,   0f),   // как посчитано по костям
+            new Vector3(   0f,  90f,   0f),   // прокрутка вокруг оси клинка
             new Vector3(   0f, 180f,   0f),
+            new Vector3(   0f, 270f,   0f),
+            new Vector3( 180f,   0f,   0f),   // клинок в другую сторону — обратный хват
+            new Vector3( 180f,  90f,   0f),
+            new Vector3(   0f,   0f, 180f),
+            new Vector3(   0f,   0f,  90f),
         };
 
         /// <summary>Боевой клип: на нём и надо смотреть, а не на стойке.</summary>
@@ -163,19 +163,20 @@ namespace IsoRPG.EditorTools
                 blade.transform.localRotation = Quaternion.Euler(angles);
                 blade.transform.localScale = Vector3.one;
 
-                // Второй клинок — в левую, отражением. Герой дерётся парой, и
-                // судить надо обе руки разом: правая может лечь верно, а левая
-                // при тех же числах — боком.
+                // Второй клинок — в левую, СВОИМИ числами, а не отражением.
+                //
+                // Кисти у Sidekick не зеркальны: щуп намерил расхождение
+                // отражённой правой и левой в 204° по трём осям. Левая рука
+                // считается по своим костям тем же правилом — Павлон увидел
+                // это на кадре раньше, чем щуп намерил.
                 var leftBone = FindAnyBone(hero, LeftSlotBones);
 
                 if (leftBone != null)
                 {
-                    var q = Quaternion.Euler(angles);
-                    var mirrored = new Quaternion(q.x, -q.y, -q.z, q.w);
-
                     var second = (GameObject)PrefabUtility.InstantiatePrefab(daggerPrefab, leftBone);
-                    second.transform.localPosition = new Vector3(-Grip.x, Grip.y, Grip.z);
-                    second.transform.localRotation = mirrored;
+                    second.transform.localPosition = GripFit.GripLeft;
+                    second.transform.localRotation =
+                        Quaternion.Euler(GripFit.FittedLeft) * Quaternion.Euler(Deltas[i]);
                     second.transform.localScale = Vector3.one;
                 }
 

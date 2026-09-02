@@ -82,9 +82,24 @@ namespace IsoRPG.Items
         private GameObject rightModel;
         private GameObject leftModel;
 
+        /// <summary>
+        /// Слой сжатой кисти. Ставит его задание `hand-pose`, а включаем его
+        /// мы: пальцы должны обхватывать рукоять, но только когда она есть.
+        ///
+        /// Ищется один раз при включении. Вес ставится при смене экипировки, а
+        /// не в кадре: это ММО, и лишних вычислений на игрока быть не должно.
+        /// </summary>
+        private Animator animator;
+        private int fistLayer = -1;
+
         private void Awake()
         {
             if (equipment == null) equipment = GetComponent<Equipment>();
+
+            animator = GetComponentInChildren<Animator>(true);
+
+            if (animator != null && animator.runtimeAnimatorController != null)
+                fistLayer = animator.GetLayerIndex("Кисть");
 
             rightSlot = FindAnyBone(RightSlotBones);
             leftSlot = FindAnyBone(LeftSlotBones);
@@ -120,6 +135,12 @@ namespace IsoRPG.Items
             // получали одно и то же — второй кинжал был повёрнут не так, как
             // первый, хотя выглядело это как «оба кривые».
             Show(EquipSlot.OffHand, leftSlot, ref leftModel, gripLeft, gripAnglesLeft);
+
+            // Пальцы сжимаем только когда в руке что-то есть. Иначе герой
+            // ходил бы с вечно стиснутыми кулаками — Павлон 02.09.2026:
+            // «пальцы должны сжать рукоять, они вообще не согнуты».
+            if (animator != null && fistLayer > 0)
+                animator.SetLayerWeight(fistLayer, rightModel != null || leftModel != null ? 1f : 0f);
         }
 
         private void Show(EquipSlot slot, Transform bone, ref GameObject current,

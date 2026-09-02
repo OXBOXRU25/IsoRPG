@@ -6,24 +6,38 @@ using UnityEngine;
 namespace IsoRPG.EditorTools
 {
     /// <summary>
-    /// Считает доворот кинжала в руке по замерам из Blender — и не через углы.
+    /// Считает посадку оружия в руке ПО КОСТЯМ КИСТИ, а не по числам из Blender.
     ///
-    /// Числа примерки пришли из соседнего чата (02.09.2026): матрица кинжала
-    /// в системе кости `hand_r`. Прошлый перенос делался покомпонентной
-    /// перестановкой углов Эйлера, и именно он дал «повёрнут не в ту сторону»:
-    /// у Blender вертикаль Z и порядок осей XYZ, у Unity вертикаль Y и ZXY —
-    /// перестановка компонент НЕ равна повороту.
+    /// История вопроса. Числа примерки приезжали из соседнего чата — сперва
+    /// углами Эйлера, потом матрицей, — и оба раза кинжал ложился мимо. Причин
+    /// оказалось три, и ни одну нельзя было увидеть в Blender:
     ///
-    /// Здесь берём из матрицы не углы, а два направления: куда смотрит клинок
-    /// и куда смотрит гарда — оба в системе кости. Направление переносится
-    /// перестановкой честно, это просто вектор. А оси самой модели меряем уже
-    /// в Unity, по её мешу: тогда разница между импортёрами Blender и Unity в
-    /// расчёт вообще не входит.
+    ///   1. **мерили от `hand_r`, а вешается на `prop_r`.** У скелета Sidekick
+    ///      есть отдельная кость-держатель, смещённая на 7.5 см вперёд от
+    ///      кисти, и `WeaponVisual` находит её первой. Все довороты применялись
+    ///      к другой кости — отсюда «кинжал проходит сквозь начало кисти»;
+    ///   2. **кисти у Sidekick не зеркальны** — щуп намерил расхождение
+    ///      отражённой правой и левой в 204° по трём осям. Отражение, которым
+    ///      мы получали левую руку, врало по построению;
+    ///   3. **числа Blender сняты на конвертированном скелете** (`fbx2gltf`),
+    ///      а не на том, что в движке.
     ///
-    /// Остаётся один допуск: что кость `hand_r` в Unity и в Blender развёрнута
-    /// одинаково. Если нет — доворот уедет на прямой угол, и это видно на
-    /// первом же кадре щупа `grip-probe`, который ставит рядом соседние
-    /// варианты.
+    /// Поэтому считаем прямо здесь, по костям, и для каждой руки по её
+    /// собственным — не отражением. Всё выводится, ничего не подбирается:
+    ///
+    ///   - **ось рукояти** — линия оснований пальцев: у сжатого кулака рукоять
+    ///     лежит вдоль неё. Направление клинка — от мизинца к указательному и
+    ///     дальше, наружу;
+    ///   - **точка хвата** — середина этой линии, сдвинутая к кончикам пальцев
+    ///     на толщину рукояти: рукоять лежит в ложбине между согнутыми
+    ///     пальцами и ладонью, а не на самих косточках;
+    ///   - **разворот лезвия** — плашмя к ладони: нормаль к плоскости
+    ///     «рукоять × пальцы».
+    ///
+    /// Что НЕ решается отсюда: пальцы. Их держит анимация, и в безоружной
+    /// стойке Synty ладонь раскрыта — рукоять она не обхватит, как её ни
+    /// клади. Это отдельная задача (слой с маской на кисть либо вооружённый
+    /// набор стоек ExplosiveLLC).
     /// </summary>
     public static class GripFit
     {
@@ -31,94 +45,154 @@ namespace IsoRPG.EditorTools
         public const string DaggerPath =
             "Assets/Synty/PolygonFantasyKingdom/Prefabs/Weapons/SM_Wep_Dagger_02.prefab";
 
+        private const string Hero = "Human-Custom2";
         private const string Arena = "Assets/_Game/Scenes/ArenaAuthor.unity";
 
+        /// <summary>Кости-держатели по порядку поиска — тот же список, что в WeaponVisual.</summary>
+        private static readonly string[] RightSlotBones = { "handslot.r", "prop_r", "hand_r" };
+        private static readonly string[] LeftSlotBones = { "handslot.l", "prop_l", "hand_l" };
+
         /// <summary>
-        /// Смещение кинжала в кости, метры.
+        /// На сколько отодвинуть рукоять от косточек к кончикам пальцев, метры.
         ///
-        /// Blender даёт (-0.090375, 0.025936, 0.006005) в своей системе; у него
-        /// вертикаль Z, у нас Y, поэтому вторая и третья координаты меняются
-        /// местами. Для точки перестановка законна — это просто три числа.
+        /// Половина толщины рукояти: она лежит в ложбине сжатого кулака, а не
+        /// на самих суставах. Единственное подбираемое число во всём расчёте.
         /// </summary>
-        public static readonly Vector3 Grip = new Vector3(-0.090375f, 0.006005f, 0.025936f);
+        private const float HandleLift = 0.012f;
 
-        /// <summary>
-        /// Куда смотрит клинок, в системе кости. Взято из матрицы Blender:
-        /// это её второй столбец — образ локальной оси Y модели, а клинок у
-        /// кинжалов Synty идёт как раз вдоль Y (габарит 0.712 м против 0.186
-        /// у гарды и 0.049 у толщины).
-        /// </summary>
-        private static readonly Vector3 BladeInBone = ToUnity(new Vector3(-0.1109f, 0.0349f, -0.9932f));
-
-        /// <summary>Куда смотрит гарда — третий столбец той же матрицы, образ оси Z модели.</summary>
-        private static readonly Vector3 GuardInBone = ToUnity(new Vector3(0.9923f, -0.0520f, -0.1127f));
-
-        /// <summary>Посчитанный доворот. Читает щуп, чтобы поставить его серединой ряда.</summary>
-        public static Vector3 Fitted { get; private set; } = new Vector3(-96.5f, -93.2f, -1.7f);
-
-        /// <summary>То же для левой руки — герой дерётся парой клинков.</summary>
+        /// <summary>Посчитанное. Читает щуп, чтобы поставить это серединой ряда.</summary>
+        public static Vector3 Grip { get; private set; } = new Vector3(-0.0904f, 0.0060f, 0.0259f);
+        public static Vector3 Fitted { get; private set; } = new Vector3(6.47f, 93.00f, 178.34f);
         public static Vector3 GripLeft { get; private set; }
-
         public static Vector3 FittedLeft { get; private set; }
 
-        [MenuItem("Tools/IsoRPG/Оружие: пересчитать хват из Blender", priority = 46)]
+        [MenuItem("Tools/IsoRPG/Оружие: пересчитать хват по костям", priority = 46)]
         public static void Apply()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(DaggerPath);
+            var heroPrefab = FindPrefab(Hero);
 
-            if (prefab == null)
+            if (prefab == null || heroPrefab == null)
             {
-                Debug.LogError("[IsoRPG] Не найден кинжал " + DaggerPath);
+                Debug.LogError("[IsoRPG] Нет кинжала или героя для расчёта хвата.");
                 return;
             }
 
-            // --- оси модели, померенные в Unity -----------------------------
             if (!ModelAxes(prefab, out var bladeLocal, out var guardLocal, out var size))
             {
                 Debug.LogError("[IsoRPG] У кинжала не нашлось меша — оси не померить.");
                 return;
             }
 
-            // --- поворот, переводящий оси модели в направления из Blender ----
-            //
-            // Через две пары «вперёд + вверх», а не через углы: так порядок
-            // осей вообще не участвует, и ошибиться в нём негде.
-            var from = Quaternion.LookRotation(bladeLocal, guardLocal);
-            var to = Quaternion.LookRotation(BladeInBone, GuardInBone);
+            var hero = (GameObject)PrefabUtility.InstantiatePrefab(heroPrefab);
 
-            var rotation = to * Quaternion.Inverse(from);
+            bool okRight = Fit(hero, "r", RightSlotBones, bladeLocal, guardLocal,
+                               out var gripR, out var anglesR, out string logR);
 
-            Fitted = rotation.eulerAngles;
+            bool okLeft = Fit(hero, "l", LeftSlotBones, bladeLocal, guardLocal,
+                              out var gripL, out var anglesL, out string logL);
 
-            // --- левая рука --------------------------------------------------
-            //
-            // Герой дерётся парой клинков — второй виден ровно столько же.
-            // Простым копированием локального трансформа зеркалить нельзя:
-            // в Blender так кинжал уезжал на 23 см вверх. Нужно ОТРАЖЕНИЕ:
-            // MIRROR @ local @ MIRROR, где MIRROR = diag(-1, 1, 1).
-            //
-            // Для точки это смена знака у X. Для поворота — отражение оси
-            // вращения: у кватерниона (x, y, z, w) меняются знаки y и z.
-            // Отражение дважды даёт снова честный поворот, а не зеркало, —
-            // поэтому модель клинка остаётся той же, не зеркальной.
-            GripLeft = new Vector3(-Grip.x, Grip.y, Grip.z);
+            Object.DestroyImmediate(hero);
 
-            var mirrored = new Quaternion(rotation.x, -rotation.y, -rotation.z, rotation.w);
-            FittedLeft = mirrored.eulerAngles;
+            if (!okRight)
+            {
+                Debug.LogError("[IsoRPG] Правая рука не посчиталась — оставляю прежние числа.");
+                return;
+            }
 
-            Debug.Log($"[IsoRPG] Хват пересчитан по матрице Blender.\n" +
-                      $"  модель: {System.IO.Path.GetFileNameWithoutExtension(DaggerPath)}, " +
-                      $"габарит {size.x:0.000} x {size.y:0.000} x {size.z:0.000} м\n" +
-                      $"  клинок в модели: {bladeLocal}, гарда: {guardLocal}\n" +
-                      $"  клинок в кости (Unity): {BladeInBone}, гарда: {GuardInBone}\n" +
-                      $"  ДОВОРОТ правой: {Fitted.x:0.0} / {Fitted.y:0.0} / {Fitted.z:0.0}\n" +
-                      $"  СМЕЩЕНИЕ правой: {Grip.x:0.0000} / {Grip.y:0.0000} / {Grip.z:0.0000}\n" +
-                      $"  ДОВОРОТ левой: {FittedLeft.x:0.0} / {FittedLeft.y:0.0} / {FittedLeft.z:0.0}\n" +
-                      $"  СМЕЩЕНИЕ левой: {GripLeft.x:0.0000} / {GripLeft.y:0.0000} / {GripLeft.z:0.0000}\n" +
-                      $"  было: -96.5 / -93.2 / -1.7 на обе руки (перенос перестановкой углов — он и врал)");
+            Grip = gripR;
+            Fitted = anglesR;
+
+            if (okLeft) { GripLeft = gripL; FittedLeft = anglesL; }
+            else { GripLeft = gripR; FittedLeft = anglesR; }
+
+            Debug.Log($"[IsoRPG] Хват посчитан по костям кисти.\n" +
+                      $"  кинжал: {System.IO.Path.GetFileNameWithoutExtension(DaggerPath)}, " +
+                      $"габарит {size.x:0.000} x {size.y:0.000} x {size.z:0.000} м, " +
+                      $"клинок в модели {bladeLocal}, гарда {guardLocal}\n" +
+                      logR + "\n" + logL + "\n" +
+                      $"  ПРАВАЯ: смещение {Grip.x:0.0000} / {Grip.y:0.0000} / {Grip.z:0.0000}, " +
+                      $"доворот {Fitted.x:0.0} / {Fitted.y:0.0} / {Fitted.z:0.0}\n" +
+                      $"  ЛЕВАЯ:  смещение {GripLeft.x:0.0000} / {GripLeft.y:0.0000} / {GripLeft.z:0.0000}, " +
+                      $"доворот {FittedLeft.x:0.0} / {FittedLeft.y:0.0} / {FittedLeft.z:0.0}");
 
             ApplyToScene();
             ApplyToItems(prefab);
+        }
+
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Посадка для одной руки: где рукоять и как повёрнут клинок.
+        ///
+        /// Считается в системе кости-держателя — той самой, куда оружие потом
+        /// и вложится. Кости пальцев при этом берутся у кисти: держатель у
+        /// Sidekick сидит внутри неё.
+        /// </summary>
+        private static bool Fit(GameObject hero, string side, string[] slotNames,
+                                Vector3 bladeLocal, Vector3 guardLocal,
+                                out Vector3 grip, out Vector3 angles, out string log)
+        {
+            grip = Vector3.zero;
+            angles = Vector3.zero;
+            log = "  " + side + ": не посчиталось";
+
+            var all = hero.GetComponentsInChildren<Transform>(true);
+
+            var slot = slotNames.Select(n => all.FirstOrDefault(t => t.name == n))
+                                .FirstOrDefault(t => t != null);
+
+            var index = all.FirstOrDefault(t => t.name == "index_01_" + side);
+            var pinky = all.FirstOrDefault(t => t.name == "pinky_01_" + side);
+            var middle = all.FirstOrDefault(t => t.name == "middle_01_" + side);
+            var ring = all.FirstOrDefault(t => t.name == "ring_01_" + side);
+            var tip = all.FirstOrDefault(t => t.name == "index_03_" + side);
+
+            if (slot == null || index == null || pinky == null || middle == null ||
+                ring == null || tip == null)
+            {
+                return false;
+            }
+
+            // --- ось рукояти: линия оснований пальцев -----------------------
+            //
+            // От мизинца к указательному: клинок выходит из кулака со стороны
+            // указательного, это и есть прямой хват.
+            var blade = (index.position - pinky.position).normalized;
+
+            // --- куда смотрят пальцы ----------------------------------------
+            var fingers = (tip.position - index.position).normalized;
+
+            // --- плашмя к ладони ---------------------------------------------
+            //
+            // Гарда стоит поперёк клинка в плоскости лезвия, а лезвие лежит
+            // плашмя вдоль ладони — значит гарда смотрит туда же, куда пальцы.
+            var guard = Vector3.ProjectOnPlane(fingers, blade).normalized;
+
+            if (guard.sqrMagnitude < 0.01f) return false;
+
+            // --- точка хвата -------------------------------------------------
+            //
+            // Середина линии оснований, отодвинутая к кончикам на толщину
+            // рукояти: она лежит в ложбине сжатого кулака, а не на суставах.
+            var knuckles = (index.position + middle.position + ring.position + pinky.position) * 0.25f;
+            var handle = knuckles + fingers * HandleLift;
+
+            // --- в систему кости-держателя -----------------------------------
+            grip = slot.InverseTransformPoint(handle);
+
+            var bladeInSlot = slot.InverseTransformDirection(blade);
+            var guardInSlot = slot.InverseTransformDirection(guard);
+
+            var from = Quaternion.LookRotation(bladeLocal, guardLocal);
+            var to = Quaternion.LookRotation(bladeInSlot, guardInSlot);
+
+            angles = (to * Quaternion.Inverse(from)).eulerAngles;
+
+            log = $"  {side}: держатель «{slot.name}», косточки {knuckles - slot.position}, " +
+                  $"клинок в держателе {bladeInSlot}, гарда {guardInSlot}";
+
+            return true;
         }
 
         /// <summary>
@@ -151,10 +225,10 @@ namespace IsoRPG.EditorTools
         /// <summary>
         /// Перевести кинжалы в каталоге на утверждённую модель.
         ///
-        /// В игре стоял `SM_Wep_Dagger_01` — он был в первом сравнительном
-        /// ряду и остался значением по умолчанию. Примеряли и утверждали
-        /// `_02`, и числа хвата сняты с него: у моделей разная опора, и под
-        /// чужую они не сядут никогда, сколько ни крути углы.
+        /// В каталоге стоял `SM_Prop_Dagger_01` из набора персонажей, а
+        /// `ItemsBuilder` по умолчанию отдаёт `SM_Wep_Dagger_01` из набора
+        /// оружия. Примеряли и утверждали `_02`. Три модели с разной опорой —
+        /// под чужую числа не сядут, сколько ни крути.
         /// </summary>
         private static void ApplyToItems(GameObject dagger)
         {
@@ -167,10 +241,8 @@ namespace IsoRPG.EditorTools
 
                 if (item == null || item.worldModel == null) continue;
 
-                // По слову «Dagger» в имени модели, а не по конкретному
-                // файлу: в каталоге лежало ТРЕТЬЕ имя — `SM_Prop_Dagger_01`
-                // из набора персонажей, не из набора оружия. Отбор по одному
-                // known-имени его бы и дальше не замечал.
+                // По слову «Dagger» в имени модели, а не по одному известному
+                // имени: третье имя мы так и не замечали.
                 if (!item.worldModel.name.Contains("Dagger")) continue;
                 if (item.worldModel == dagger) continue;
 
@@ -190,12 +262,7 @@ namespace IsoRPG.EditorTools
 
         /// <summary>
         /// Оси модели по её же мешу: самый длинный габарит — клинок, второй —
-        /// гарда.
-        ///
-        /// Меряем в Unity, а не берём из Blender, ровно затем, чтобы разница
-        /// между импортёрами не попала в расчёт. Знак берём по тому, в какую
-        /// сторону от опоры меш уходит дальше: опора у кинжалов Synty стоит в
-        /// точке хвата, то есть внутри длины, и клинок торчит в одну сторону.
+        /// гарда. Знак — в какую сторону от опоры меш уходит дальше.
         /// </summary>
         private static bool ModelAxes(GameObject prefab, out Vector3 blade, out Vector3 guard,
                                       out Vector3 size)
@@ -217,8 +284,6 @@ namespace IsoRPG.EditorTools
             {
                 var local = filter.sharedMesh.bounds;
 
-                // В систему корня префаба: у Synty меш обычно лежит прямо на
-                // корне, но проверять это на глаз не надо.
                 var toRoot = prefab.transform.worldToLocalMatrix * filter.transform.localToWorldMatrix;
                 var centre = toRoot.MultiplyPoint3x4(local.center);
                 var extent = toRoot.MultiplyVector(local.extents);
@@ -258,11 +323,8 @@ namespace IsoRPG.EditorTools
             return best;
         }
 
-        /// <summary>В какую сторону от опоры меш уходит дальше.</summary>
-        private static float Sign(Bounds box, int axis)
-        {
-            return Mathf.Abs(box.max[axis]) >= Mathf.Abs(box.min[axis]) ? 1f : -1f;
-        }
+        private static float Sign(Bounds box, int axis) =>
+            Mathf.Abs(box.max[axis]) >= Mathf.Abs(box.min[axis]) ? 1f : -1f;
 
         private static Vector3 Axis(int index, float sign)
         {
@@ -271,11 +333,13 @@ namespace IsoRPG.EditorTools
             return v;
         }
 
-        /// <summary>
-        /// Направление из системы Blender в нашу: у него вертикаль Z, у нас Y.
-        /// Для направления это законная перестановка — в отличие от углов.
-        /// </summary>
-        private static Vector3 ToUnity(Vector3 blender) =>
-            new Vector3(blender.x, blender.z, blender.y).normalized;
+        private static GameObject FindPrefab(string prefabName)
+        {
+            var guid = AssetDatabase.FindAssets(prefabName + " t:Prefab").FirstOrDefault();
+
+            return guid == null
+                ? null
+                : AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+        }
     }
 }

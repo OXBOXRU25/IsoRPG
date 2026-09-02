@@ -3645,6 +3645,14 @@ namespace IsoRPG.EditorTools
 
                 // Пересчёт хвата по матрице из Blender. Ставить ПЕРЕД щупом:
                 // щуп строит ряд вокруг посчитанного числа.
+                case "hand-probe":
+                    HandProbe.Run();
+                    break;
+
+                case "hand-pose":
+                    HandPose.Apply();
+                    break;
+
                 case "grip-fit":
                     GripFit.Apply();
                     break;

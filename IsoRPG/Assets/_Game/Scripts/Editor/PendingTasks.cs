@@ -2574,6 +2574,146 @@ namespace IsoRPG.EditorTools
 
 
 
+                case "hero-mat-probe":
+                {
+                    // Чем покрашен герой и умеет ли это прозрачность.
+                    //
+                    // Растворение при близкой камере я написал по правилам URP
+                    // Lit: _Surface, _Blend, ключевое слово прозрачности. У
+                    // героя же материалы на собственном Shader Graph от Synty,
+                    // и таких свойств у него может не быть вовсе — тогда мои
+                    // SetFloat молча ничего не делают, а персонаж исчезает
+                    // рывком, что Павлон и увидел 03.09.2026.
+                    //
+                    // Печатаем ровно то, что есть: имя шейдера и его свойства.
+                    // По списку и решим, чем растворять — альфой, обрезкой по
+                    // порогу или узором.
+                    var hero = GameObject.FindGameObjectWithTag("Player")
+                               ?? UnityEngine.Object.FindObjectsByType<IsoRPG.Player.PlayerMotor>(
+                                      FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+                                  .Select(m => m.gameObject).FirstOrDefault();
+
+                    if (hero == null)
+                    {
+                        Debug.LogError("[IsoRPG] Героя в сцене не нашёл — смотреть нечего.");
+                        break;
+                    }
+
+                    var seenShaders = new HashSet<string>();
+
+                    foreach (var r in hero.GetComponentsInChildren<Renderer>(true))
+                    {
+                        foreach (var m in r.sharedMaterials)
+                        {
+                            if (m == null || m.shader == null) continue;
+                            if (!seenShaders.Add(m.shader.name)) continue;
+
+                            var props = new List<string>();
+
+                            for (int i = 0; i < m.shader.GetPropertyCount(); i++)
+                                props.Add(m.shader.GetPropertyName(i));
+
+                            Debug.Log("[IsoRPG] герой: материал «" + m.name + "», шейдер «" +
+                                      m.shader.name + "», свойств " + props.Count);
+
+                            Debug.Log("[IsoRPG] свойства: " + string.Join(", ", props));
+                        }
+                    }
+
+                    Debug.Log("[IsoRPG] Материалы героя: разных шейдеров " + seenShaders.Count + ".");
+                    break;
+                }
+
+                case "water-depth-author":
+                case "water-depth-ours":
+                {
+                    // Глубина воды: у автора и у нас.
+                    //
+                    // Павлон 03.09.2026 про наш пруд: «цвет её меняется ближе
+                    // к островку на более тёмный, это что-то типа тени, надо
+                    // посмотреть как у автора». Тени там нет: авторский шейдер
+                    // красит воду по ГЛУБИНЕ — сколько её под точкой, столько
+                    // и темноты. Значит вопрос не к шейдеру, а к чаше, и
+                    // отвечается он замером, а не рассуждением.
+                    //
+                    // Меряем сеткой лучей вниз от самой глади: где дно, там и
+                    // глубина. Ровно тот же щуп по обеим сценам — иначе числа
+                    // не сравнить.
+                    bool author = lowered == "water-depth-author";
+
+                    if (author)
+                    {
+                        const string demo = "Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Scene/Demo.unity";
+
+                        if (!System.IO.File.Exists(demo))
+                        {
+                            Debug.LogError("[IsoRPG] Демо-сцены автора нет: " + demo);
+                            break;
+                        }
+
+                        UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                            demo, UnityEditor.SceneManagement.OpenSceneMode.Single);
+                    }
+
+                    int ponds = 0;
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+                                 FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                    {
+                        if (r == null || r.sharedMaterial == null) continue;
+
+                        var sh = r.sharedMaterial.shader;
+                        bool isWater = sh != null &&
+                            sh.name.IndexOf("WaterShader", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                        if (!isWater) continue;
+
+                        var b = r.bounds;
+
+                        // Мелкие звенья ручья пропускаем: интересует водоём.
+                        if (b.size.x < 8f && b.size.z < 8f) continue;
+
+                        float deepest = 0f, sum = 0f;
+                        int hits = 0;
+
+                        // Сетка пять на пять по глади. Пускаем от самой
+                        // поверхности вниз и не считаем промахи: за краем
+                        // прямоугольника воды может не быть вовсе.
+                        for (int ix = 1; ix <= 5; ix++)
+                        for (int iz = 1; iz <= 5; iz++)
+                        {
+                            var from = new Vector3(
+                                Mathf.Lerp(b.min.x, b.max.x, ix / 6f),
+                                b.max.y - 0.05f,
+                                Mathf.Lerp(b.min.z, b.max.z, iz / 6f));
+
+                            if (!Physics.Raycast(from, Vector3.down, out var hit, 60f,
+                                                 ~0, QueryTriggerInteraction.Ignore))
+                                continue;
+
+                            float depth = from.y - hit.point.y;
+                            if (depth <= 0.01f) continue;
+
+                            hits++;
+                            sum += depth;
+                            if (depth > deepest) deepest = depth;
+                        }
+
+                        ponds++;
+
+                        Debug.Log("[IsoRPG] водоём «" + r.gameObject.name + "» " +
+                                  b.size.x.ToString("0") + " x " + b.size.z.ToString("0") + " м: " +
+                                  (hits > 0
+                                      ? "средняя глубина " + (sum / hits).ToString("0.00") +
+                                        " м, наибольшая " + deepest.ToString("0.00") + " м, замеров " + hits
+                                      : "дна под гладью не нашлось"));
+                    }
+
+                    Debug.Log("[IsoRPG] Глубина воды (" + (author ? "сцена АВТОРА" : "наш мир") +
+                              "): водоёмов измерено " + ponds + ".");
+                    break;
+                }
+
                 case "portraits-import":
                 {
                     // Настроить импорт нарисованных портретов.

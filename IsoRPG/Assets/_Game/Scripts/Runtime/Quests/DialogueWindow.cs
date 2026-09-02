@@ -32,6 +32,8 @@ namespace IsoRPG.Quests
         // текст лип к кнопкам, а разделов в нём не читалось вовсе.
         private const float Width = 480f;
         private const float Pad = 18f;
+        /// <summary>Сторона портрета собеседника в окне разговора, точек.</summary>
+        private const float FaceSize = 56f;
         private const float ButtonHeight = 30f;
 
         /// <summary>Половина высоты экрана при нашем эталоне 1920 x 1080 — та же доля, что у образца.</summary>
@@ -41,6 +43,7 @@ namespace IsoRPG.Quests
 
         private Font font;
         private GameObject window;
+        private Image face;
         private Text title;
         private Text body;
         private RectTransform content;
@@ -127,6 +130,16 @@ namespace IsoRPG.Quests
             // Шапка — собеседник, а не задание: в образце вверху стоит имя
             // того, с кем говоришь.
             LocalizedText.Bind(title, current.DisplayName);
+
+            // Лицо собеседника. Сначала своё, назначенное этому существу,
+            // потом общее по имени — тот же порядок, что в окне цели.
+            var own = current.GetComponent<IsoRPG.Combat.Targetable>();
+
+            var art = (own != null ? own.Portrait : null)
+                      ?? IsoRPG.Combat.Portraits.For(current.DisplayName);
+
+            face.sprite = art;
+            face.enabled = art != null;
 
             bool offering = current.State == QuestState.Available;
             bool turningIn = current.State == QuestState.ReadyToTurnIn;
@@ -360,13 +373,35 @@ namespace IsoRPG.Quests
             // Шапка — имя собеседника, по центру: так в образце, и так сразу
             // понятно, с кем говоришь. Название задания уехало внутрь, к
             // тексту, и стало там самым крупным.
+            // Лицо собеседника.
+            //
+            // Портрета в разговоре не было вовсе — Павлон 03.09.2026: «у НПС
+            // вообще нет портрета». В окне цели он есть, а в диалоге, то есть
+            // ровно там, где на человека и смотрят, — не было.
+            //
+            // Слева от имени: имя остаётся по центру оставшейся ширины, и
+            // раскладка ниже сдвигается на высоту портрета, чтобы текст
+            // задания не наезжал на картинку.
+            var faceGo = new GameObject("Face", typeof(Image));
+            face = faceGo.GetComponent<Image>();
+
+            var faceRect = face.rectTransform;
+            faceRect.SetParent(rect, false);
+            faceRect.anchorMin = new Vector2(0f, 1f);
+            faceRect.anchorMax = new Vector2(0f, 1f);
+            faceRect.pivot = new Vector2(0f, 1f);
+            faceRect.anchoredPosition = new Vector2(Pad, -Pad);
+            faceRect.sizeDelta = new Vector2(FaceSize, FaceSize);
+            face.preserveAspect = true;
+            face.enabled = false;
+
             title = MakeText(rect, "Title", "", 15, TextColor);
             var titleRect = (RectTransform)title.transform;
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);
             titleRect.pivot = new Vector2(0f, 1f);
-            titleRect.anchoredPosition = new Vector2(Pad, -Pad);
-            titleRect.sizeDelta = new Vector2(-Pad * 2f, 22f);
+            titleRect.anchoredPosition = new Vector2(Pad + FaceSize + 8f, -Pad);
+            titleRect.sizeDelta = new Vector2(-(Pad * 2f + FaceSize + 8f), 22f);
             title.alignment = TextAnchor.MiddleCenter;
 
             // Разделы колонкой, как в образце: название задания, описание,
@@ -379,7 +414,7 @@ namespace IsoRPG.Quests
             content.anchorMin = Vector2.zero;
             content.anchorMax = Vector2.one;
             content.offsetMin = new Vector2(Pad, Pad + ButtonsArea);
-            content.offsetMax = new Vector2(-Pad, -(Pad + 30f));
+            content.offsetMax = new Vector2(-Pad, -(Pad + FaceSize + 6f));
 
             var layout = contentGo.GetComponent<VerticalLayoutGroup>();
             layout.childAlignment = TextAnchor.UpperLeft;

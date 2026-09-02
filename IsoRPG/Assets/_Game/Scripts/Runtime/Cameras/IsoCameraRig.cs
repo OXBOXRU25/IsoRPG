@@ -168,6 +168,21 @@ namespace IsoRPG.Cameras
         /// </summary>
         private const float FadeFrom = 2.5f;
 
+        /// <summary>
+        /// Насколько камера держится выше грунта, метры.
+        ///
+        /// Здесь стояло 0.35 — «чтобы не резать землю ближней плоскостью», и
+        /// для голой земли этого хватало. Но трава у нас по пояс герою, и
+        /// камера на такой высоте оказывалась ВНУТРИ неё: Павлон 03.09.2026
+        /// увёл камеру вниз и увидел травинки в полэкрана, прочитав это как
+        /// «смотрю из-под земли». Замер из игры подтвердил числом: камера на
+        /// -2.14 при поле 0.60, то есть ровно на разрешённой высоте.
+        ///
+        /// Метр двадцать — выше нашей травы и всё ещё низко: герой сверху
+        /// остаётся в кадре.
+        /// </summary>
+        private const float OverGround = 1.2f;
+
         /// <summary>Текущая прозрачность героя. Отрицательная — ещё не считали.</summary>
         private float heroAlpha = -1f;
 
@@ -512,9 +527,7 @@ namespace IsoRPG.Cameras
             {
                 float soil = under.SampleHeight(place) + under.transform.position.y;
 
-                // Тридцать пять сантиметров над травой: ниже камера начинает
-                // резать землю ближней плоскостью отсечения.
-                floor = Mathf.Min(floor, soil + 0.35f);
+                floor = Mathf.Min(floor, soil + OverGround);
             }
 
             // Пол считаем и по ФИЗИКЕ, а не только по рельефу.
@@ -531,7 +544,7 @@ namespace IsoRPG.Cameras
             if (Physics.Raycast(place + Vector3.up * 6f, Vector3.down, out var below,
                                 12f, Blockers, QueryTriggerInteraction.Ignore))
             {
-                floor = Mathf.Max(floor, below.point.y + 0.35f);
+                floor = Mathf.Max(floor, below.point.y + OverGround);
             }
 
             // Замер: пишем в журнал, когда камера всё-таки оказалась ниже

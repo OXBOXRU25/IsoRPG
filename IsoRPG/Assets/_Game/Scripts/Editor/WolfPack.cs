@@ -296,6 +296,25 @@ namespace IsoRPG.EditorTools
                 var targetable = wolf.AddComponent<Targetable>();
                 targetable.Setup("Волк", Faction.Hostile);
 
+                // Лицо по масти.
+                //
+                // Имя у всех волков одно, «Волк», поэтому таблица портретов
+                // по имени выдаёт им общее серое лицо — Павлон 03.09.2026
+                // увидел серую морду у белого волка. Масть же известна прямо
+                // здесь, из имени модели, и назначить портрет проще, чем
+                // разводить зверей по именам: «Белый волк» в интерфейсе
+                // потребовал бы и своей строки перевода, и своей записи в
+                // каждом задании на охоту.
+                bool white = spotInfo.Prefab.IndexOf("White",
+                                 System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+                var face = AssetDatabase.LoadAssetAtPath<Sprite>(
+                    "Assets/_Game/Resources/UI/Portraits/" +
+                    (white ? "Wolf_White" : "Wolf_Grey") + ".png");
+
+                if (face != null) targetable.SetPortrait(face);
+                else Debug.LogWarning("[IsoRPG] Портрета волка нет — масть останется без лица.");
+
                 var health = wolf.AddComponent<Health>();
                 health.Setup(Hp);
 

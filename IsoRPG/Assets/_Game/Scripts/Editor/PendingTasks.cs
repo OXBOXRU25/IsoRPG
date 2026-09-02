@@ -2574,6 +2574,77 @@ namespace IsoRPG.EditorTools
 
 
 
+                case "portraits-import":
+                {
+                    // Настроить импорт нарисованных портретов.
+                    //
+                    // Павлон 03.09.2026 отдал девять новых портретов — герой,
+                    // НПС, звери, конь. Исходники по 2048x2048 и пять
+                    // мегабайт: для картинки, которая рисуется в интерфейсе
+                    // на 60–120 точек, это в шестнадцать раз больше, чем
+                    // нужно. Девять таких съели бы под сорок мегабайт памяти
+                    // ради того, чего не видно.
+                    //
+                    // Мипмапы интерфейсу тоже не нужны: спрайт всегда рисуется
+                    // в плоскости экрана, а уменьшенные копии его только
+                    // мылят.
+                    const string folder = "Assets/_Game/Resources/UI/Portraits";
+                    const int cap = 512;
+
+                    int touched = 0, seen = 0;
+
+                    foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { folder }))
+                    {
+                        string path = AssetDatabase.GUIDToAssetPath(guid);
+                        var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+
+                        if (importer == null) continue;
+
+                        seen++;
+                        bool dirty = false;
+
+                        if (importer.textureType != TextureImporterType.Sprite)
+                        {
+                            importer.textureType = TextureImporterType.Sprite;
+                            dirty = true;
+                        }
+
+                        if (importer.spriteImportMode != SpriteImportMode.Single)
+                        {
+                            importer.spriteImportMode = SpriteImportMode.Single;
+                            dirty = true;
+                        }
+
+                        if (!importer.alphaIsTransparency)
+                        {
+                            importer.alphaIsTransparency = true;
+                            dirty = true;
+                        }
+
+                        if (importer.mipmapEnabled)
+                        {
+                            importer.mipmapEnabled = false;
+                            dirty = true;
+                        }
+
+                        if (importer.maxTextureSize > cap)
+                        {
+                            importer.maxTextureSize = cap;
+                            dirty = true;
+                        }
+
+                        if (!dirty) continue;
+
+                        importer.SaveAndReimport();
+                        touched++;
+                    }
+
+                    Debug.Log("[IsoRPG] Портреты: просмотрено " + seen +
+                              ", поправлен импорт у " + touched + " (потолок " + cap +
+                              ", мипмапы сняты).");
+                    break;
+                }
+
                 case "rock-probe":
                 {
                     // Видит ли камера скалы, в которые проваливается.

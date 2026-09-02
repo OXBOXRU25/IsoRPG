@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace IsoRPG.Cameras
@@ -156,6 +157,35 @@ namespace IsoRPG.Cameras
         /// герою и после, и разъехаться им нельзя.
         /// </summary>
         private const float FirstPersonAt = 1.5f;
+
+        /// <summary>
+        /// С какой дистанции герой начинает таять, метры.
+        ///
+        /// Два с половиной — заметно раньше, чем модель закроет обзор.
+        /// Растворение обязано УСПЕТЬ пройти: начатое вплотную читается как
+        /// мигание, а не как в WoW, где персонаж тает плавно, пока камера
+        /// опускается.
+        /// </summary>
+        private const float FadeFrom = 2.5f;
+
+        /// <summary>Текущая прозрачность героя. Отрицательная — ещё не считали.</summary>
+        private float heroAlpha = -1f;
+
+        private MaterialPropertyBlock heroBlock;
+
+        /// <summary>Родные материалы рендереров героя и их прозрачные копии.</summary>
+        private Dictionary<Renderer, Material[]> solidMaterials;
+        private Dictionary<Renderer, Material[]> fadeMaterials;
+
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int SurfaceId = Shader.PropertyToID("_Surface");
+        private static readonly int BlendId = Shader.PropertyToID("_Blend");
+        private static readonly int ZWriteId = Shader.PropertyToID("_ZWrite");
+        private static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
+        private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
+
+        /// <summary>Когда снова можно доложить, что камера ушла ниже пола.</summary>
+        private float nextFloorReport;
 
         private static int blockers = -1;
 
@@ -429,7 +459,8 @@ namespace IsoRPG.Cameras
             if (nowFirstPerson != firstPerson)
             {
                 firstPerson = nowFirstPerson;
-                ShowHero(!firstPerson);
+                // Видимость ведёт FadeHero: он растворяет героя плавно,
+                // а не выключает разом. Флаг оставлен — по нему считается пол.
             }
 
             Quaternion rotation = Quaternion.Euler(lookDown, yaw, 0f);
@@ -503,6 +534,27 @@ namespace IsoRPG.Cameras
                 floor = Mathf.Max(floor, below.point.y + 0.35f);
             }
 
+            // Замер: пишем в журнал, когда камера всё-таки оказалась ниже
+            // пола. Павлон 03.09.2026 на горе (-96, 49) приблизил камеру и
+            // смотрел на героя снизу, сквозь землю, — то есть защита не
+            // сработала, а причин у этого три и они равновероятны: луч
+            // стартовал внутри коллайдера и потому его не увидел; пол взят
+            // по террейну, а стоит герой на камне; защита выключена целиком,
+            // потому что камера сочлась первым лицом. Числа скажут, какая.
+            if (place.y < floor - 0.2f && Time.time > nextFloorReport)
+            {
+                nextFloorReport = Time.time + 2f;
+
+                Debug.Log("[IsoRPG] камера ниже пола: камера Y " + place.y.ToString("0.00") +
+                          ", пол " + floor.ToString("0.00") +
+                          ", герой Y " + lookAt.y.ToString("0.00") +
+                          ", дистанция " + reach.ToString("0.00") +
+                          ", первое лицо " + firstPerson +
+                          ", луч вниз " + (Physics.Raycast(place + Vector3.up * 6f, Vector3.down,
+                                              12f, Blockers, QueryTriggerInteraction.Ignore)
+                                           ? "попал" : "НЕ попал"));
+            }
+
             if (place.y < floor && !firstPerson)
             {
                 // Камера не поднимается над своей дугой, а ПОДЪЕЗЖАЕТ к герою.
@@ -547,13 +599,7 @@ namespace IsoRPG.Cameras
                 // полуметре от спины: без этой строки экран закрывает
                 // затылок, и это именно то, из-за чего в WoW персонаж на
                 // близкой камере растворяется.
-                bool tooClose = reach < FirstPersonAt;
-
-                if (tooClose != firstPerson)
-                {
-                    firstPerson = tooClose;
-                    ShowHero(!firstPerson);
-                }
+                firstPerson = reach < FirstPersonAt;
             }
 
             // Камера упирается в мир и придвигается к герою.
@@ -616,6 +662,12 @@ namespace IsoRPG.Cameras
             // Плюс десять проверок физики в каждом кадре у каждого игрока.
             // Причина оказалась в точке старта луча, и лечится она выше.
 
+            // Растворение считаем от ИТОГОВОЙ дистанции — после подъезда к
+            // герою и после обхода препятствий. Считать по желаемой значило
+            // бы растворять героя тогда, когда камера до него ещё не
+            // добралась, и держать плотным, когда она уже упёрлась в спину.
+            FadeHero(Vector3.Distance(place, lookAt));
+
             transform.SetPositionAndRotation(place, rotation);
         }
 
@@ -643,6 +695,125 @@ namespace IsoRPG.Cameras
 
                 renderer.enabled = visible;
             }
+        }
+
+        /// <summary>
+        /// Растворить героя по мере приближения камеры.
+        ///
+        /// Павлон 03.09.2026 показал кадрами из WoW: камера, опускаясь, не
+        /// упирается в спину персонажа — тот постепенно становится
+        /// прозрачным, и сквозь него видно мир. Резкое «выключить модель»,
+        /// которое было у нас, читается как рывок и оставляет промежуток,
+        /// где затылок занимает весь экран.
+        ///
+        /// Прозрачные копии материалов делаем ОДИН раз и держим: у героя
+        /// материалы непрозрачные, а прозрачность в URP — это режим
+        /// шейдера, а не одно число, и переключать его каждый кадр значило
+        /// бы пересобирать материал по сорок раз в секунду.
+        ///
+        /// Саму же альфу гоняем блоком свойств: он не создаёт новых
+        /// материалов вовсе и потому дёшев — это ММО, у каждого игрока своя
+        /// камера и свой герой.
+        /// </summary>
+        private void FadeHero(float distance)
+        {
+            if (target == null) return;
+
+            if (heroRenderers == null || heroRenderers.Length == 0)
+                heroRenderers = target.GetComponentsInChildren<Renderer>(true);
+
+            heroBlock ??= new MaterialPropertyBlock();
+
+            // Ближе MinReach — героя нет вовсе, дальше FadeFrom — он целый.
+            float alpha = Mathf.Clamp01((distance - MinReach) / (FadeFrom - MinReach));
+
+            if (Mathf.Abs(alpha - heroAlpha) < 0.01f) return;
+
+            heroAlpha = alpha;
+
+            bool solid = alpha > 0.99f;
+
+            foreach (var renderer in heroRenderers)
+            {
+                if (renderer == null || renderer is SpriteRenderer) continue;
+
+                // Совсем прозрачного не рисуем: пустая отрисовка стоит
+                // столько же, сколько полная.
+                renderer.enabled = alpha > 0.01f;
+
+                if (!renderer.enabled) continue;
+
+                SetFadeMode(renderer, solid);
+
+                if (solid) continue;
+
+                renderer.GetPropertyBlock(heroBlock);
+                heroBlock.SetColor(BaseColorId, new Color(1f, 1f, 1f, alpha));
+                renderer.SetPropertyBlock(heroBlock);
+            }
+        }
+
+        /// <summary>
+        /// Переключить рендерер между родными материалами и прозрачными.
+        ///
+        /// Копии заводятся при первом затухании и живут дальше: создавать их
+        /// в Awake значило бы платить за то, чем большинство игроков ни разу
+        /// не воспользуется.
+        /// </summary>
+        private void SetFadeMode(Renderer renderer, bool solid)
+        {
+            if (solidMaterials == null)
+                solidMaterials = new Dictionary<Renderer, Material[]>();
+
+            if (!solidMaterials.TryGetValue(renderer, out var original))
+            {
+                original = renderer.sharedMaterials;
+                solidMaterials[renderer] = original;
+            }
+
+            if (solid)
+            {
+                if (renderer.sharedMaterials != original)
+                {
+                    renderer.sharedMaterials = original;
+                    renderer.SetPropertyBlock(null);
+                }
+
+                return;
+            }
+
+            if (fadeMaterials == null)
+                fadeMaterials = new Dictionary<Renderer, Material[]>();
+
+            if (!fadeMaterials.TryGetValue(renderer, out var faded))
+            {
+                faded = new Material[original.Length];
+
+                for (int i = 0; i < original.Length; i++)
+                {
+                    if (original[i] == null) continue;
+
+                    var copy = new Material(original[i]);
+
+                    // Полный набор переключателей прозрачного режима URP.
+                    // Одного _Surface мало: без ключевого слова и очереди
+                    // материал остаётся непрозрачным, и альфа не действует
+                    // вовсе — это выглядит как «затухание не работает».
+                    copy.SetFloat(SurfaceId, 1f);                 // Transparent
+                    copy.SetFloat(BlendId, 0f);                   // Alpha
+                    copy.SetFloat(ZWriteId, 0f);
+                    copy.SetFloat(SrcBlendId, (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    copy.SetFloat(DstBlendId, (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    copy.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    copy.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+                    faded[i] = copy;
+                }
+
+                fadeMaterials[renderer] = faded;
+            }
+
+            if (renderer.sharedMaterials != faded) renderer.sharedMaterials = faded;
         }
 
 #if UNITY_EDITOR

@@ -47,6 +47,12 @@ namespace IsoRPG.Combat
                 { "Лесной стрелок", "Forest_Archer" },
                 { "Атаман Кривой Клык", "Bandit_Chief" },
 
+                { "Кабан", "Boar" },
+                { "Вожак кабанов", "Boar_Chief" },
+                { "Волк", "Wolf" },
+                { "Гриб-исполин", "Mushroom" },
+                { "Талин Кини", "Quest_Giver" },
+
                 { "Торговец Кувалда", "Merchant" },
                 { "Торговец", "Merchant" },
             };

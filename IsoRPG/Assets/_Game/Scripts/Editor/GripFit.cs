@@ -85,6 +85,17 @@ namespace IsoRPG.EditorTools
         private const float Roll = 45f;
 
         /// <summary>
+        /// Знак проворота для левой руки.
+        ///
+        /// Проворот задаётся в системе самой модели, а базисы рук зеркальны
+        /// по смыслу: клинок у правой выходит со стороны указательного вправо,
+        /// у левой — влево. Один и тот же угол крутит их в ПРОТИВОПОЛОЖНЫЕ
+        /// стороны относительно тела. Павлон 02.09.2026 увидел это сразу:
+        /// «только левый кинжал повернулся, надо так же правый».
+        /// </summary>
+        private const float LeftRollSign = -1f;
+
+        /// <summary>
         /// Доводка глубины сверх расчёта, метры. Ноль — чистый расчёт по
         /// костям. Правится только по кадру от Павлона: «немного сильнее в
         /// глубь ладони».
@@ -139,10 +150,10 @@ namespace IsoRPG.EditorTools
                                  "по раскрытой ладони и снова соврёт.");
             }
 
-            bool okRight = Fit(hero, "r", RightSlotBones, bladeLocal, guardLocal,
+            bool okRight = Fit(hero, "r", RightSlotBones, bladeLocal, guardLocal, Roll,
                                out var gripR, out var anglesR, out var depthR, out string logR);
 
-            bool okLeft = Fit(hero, "l", LeftSlotBones, bladeLocal, guardLocal,
+            bool okLeft = Fit(hero, "l", LeftSlotBones, bladeLocal, guardLocal, Roll * LeftRollSign,
                               out var gripL, out var anglesL, out var depthL, out string logL);
 
             Object.DestroyImmediate(hero);
@@ -184,7 +195,7 @@ namespace IsoRPG.EditorTools
         /// Sidekick сидит внутри неё.
         /// </summary>
         private static bool Fit(GameObject hero, string side, string[] slotNames,
-                                Vector3 bladeLocal, Vector3 guardLocal,
+                                Vector3 bladeLocal, Vector3 guardLocal, float roll,
                                 out Vector3 grip, out Vector3 angles, out Vector3 depth, out string log)
         {
             grip = Vector3.zero;
@@ -261,7 +272,7 @@ namespace IsoRPG.EditorTools
             var to = Quaternion.LookRotation(bladeInSlot, guardInSlot);
 
             // Прокрутка вокруг клинка и доводка глубины — уже поверх расчёта.
-            var fitted = to * Quaternion.Inverse(from) * Quaternion.Euler(0f, Roll, 0f);
+            var fitted = to * Quaternion.Inverse(from) * Quaternion.Euler(0f, roll, 0f);
 
             angles = fitted.eulerAngles;
             depth = slot.InverseTransformDirection(fingers);

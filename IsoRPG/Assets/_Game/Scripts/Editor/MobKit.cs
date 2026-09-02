@@ -140,12 +140,22 @@ namespace IsoRPG.EditorTools
                 // возникает только к тому, кого бьют.
                 if (target.Faction == Faction.Hostile)
                 {
-                    if (go.GetComponent<OverheadHealthBar>() == null)
+                    var bar = go.GetComponent<OverheadHealthBar>();
+
+                    if (bar == null)
                     {
-                        go.AddComponent<OverheadHealthBar>();
+                        bar = go.AddComponent<OverheadHealthBar>();
                         bars++;
                         changed = true;
                     }
+
+                    // Размеры проставляем ВСЕГДА, а не только новой полоске:
+                    // у расставленных в сцене лежат прежние числа, и правка
+                    // умолчания в коде их не догоняет. Полоска вдвое тоньше
+                    // прежней плюс ряд комбо-очков под ней (Павлон, 02.09.2026).
+                    bar.SetSize(1.1f, 0.065f, 0.032f, 0.012f);
+                    EditorUtility.SetDirty(bar);
+                    changed = true;
                 }
                 else
                 {

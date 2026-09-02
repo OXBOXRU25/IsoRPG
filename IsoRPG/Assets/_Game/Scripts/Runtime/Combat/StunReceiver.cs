@@ -17,11 +17,17 @@ namespace IsoRPG.Combat
         [Tooltip("Насколько поднять метку над головой, чтобы значок оглушения не налезал на полоску здоровья.")]
         [SerializeField] private float markerLift = 0.45f;
 
+        private static readonly int StunnedHash = Animator.StringToHash("Stunned");
+
         private MeleeCombatant combat;
         private MonsterBrain brain;
         private NavMeshAgent agent;
         private Targetable self;
         private GameObject marker;
+
+        /// <summary>Аниматор цели — у кого набор принёс позу оглушения.</summary>
+        private Animator animator;
+        private bool hasStunnedFlag;
 
         private float stunUntil;
         private bool applied;
@@ -38,6 +44,20 @@ namespace IsoRPG.Combat
             brain = GetComponent<MonsterBrain>();
             agent = GetComponent<NavMeshAgent>();
             self = GetComponent<Targetable>();
+
+            // Поза оглушения. У босса-кабана она в наборе есть, состояние в
+            // контроллере стояло с 02.09.2026 — и не играло ни разу: флаг
+            // никто не поднимал, оглушённый босс просто замирал в шаге.
+            // Проверяем один раз: перебирать параметры в бою нельзя.
+            animator = GetComponentInChildren<Animator>(true);
+
+            if (animator != null && animator.runtimeAnimatorController != null)
+                foreach (var p in animator.parameters)
+                    if (p.nameHash == StunnedHash && p.type == AnimatorControllerParameterType.Bool)
+                    {
+                        hasStunnedFlag = true;
+                        break;
+                    }
         }
 
         /// <summary>Оглушить на указанное время. Повторное оглушение продлевает, а не складывается.</summary>
@@ -70,6 +90,8 @@ namespace IsoRPG.Combat
                 agent.isStopped = true;
             }
 
+            if (hasStunnedFlag) animator.SetBool(StunnedHash, true);
+
             ShowMarker(true);
             StunChanged?.Invoke(true);
         }
@@ -82,6 +104,8 @@ namespace IsoRPG.Combat
             if (brain != null) brain.enabled = true;
 
             if (agent != null && agent.isOnNavMesh) agent.isStopped = false;
+
+            if (hasStunnedFlag) animator.SetBool(StunnedHash, false);
 
             ShowMarker(false);
             StunChanged?.Invoke(false);

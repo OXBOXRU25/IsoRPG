@@ -78,6 +78,22 @@ namespace IsoRPG.EditorTools
             bank.wolfHowl = Load("wolf_howl");
             bank.boarGrunt = Load("boar_grunt");
 
+            // Урон и смерть зверей. Файлов пока нет — промты в
+            // `Войс/sound-list.md`, генерит Павлон.
+            bank.wolfHurt = Load("wolf_hurt");
+            bank.wolfDeath = Load("wolf_death");
+            bank.boarHurt = Load("boar_hurt");
+            bank.boarDeath = Load("boar_death");
+
+            // Гриб. Файлов пока нет — Load честно ругнётся в лог, и это
+            // правильно: молчащий гриб должен быть виден в журнале, а не
+            // выясняться в игре.
+            bank.mushroomWake = Load("mush_wake");
+            bank.mushroomAttack = Load("mush_attack");
+            bank.mushroomHurt = Load("mush_hurt");
+            bank.mushroomDeath = Load("mush_death");
+            bank.mushroomIdle = Load("mush_idle");
+
             bank.ambience = Load("forest_birds");
 
             bank.music = LoadMusic();

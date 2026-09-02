@@ -30,7 +30,29 @@ namespace IsoRPG.Items
         [SerializeField] private Vector3 grip = new Vector3(-0.0904f, 0.0060f, 0.0259f);
 
         [Tooltip("Доворот оружия в кости, градусы.")]
-        [SerializeField] private Vector3 gripAngles = new Vector3(-96.5f, -93.2f, -1.7f);
+        [SerializeField] private Vector3 gripAngles = new Vector3(6.47f, 93.00f, 178.34f);
+
+        [Tooltip("То же для левой руки. Не копия правой: копия уводит клинок на 23 см вверх, нужно отражение.")]
+        [SerializeField] private Vector3 gripLeft = new Vector3(0.0904f, 0.0060f, 0.0259f);
+
+        [SerializeField] private Vector3 gripAnglesLeft = new Vector3(6.47f, 267.00f, 181.66f);
+
+        /// <summary>
+        /// Поставить хват числами из задания `grip-fit`.
+        ///
+        /// Задание считает доворот по матрице из Blender, а не по углам:
+        /// покомпонентная перестановка углов между Blender и Unity не равна
+        /// повороту, и именно она дала «кинжал повёрнут не в ту сторону».
+        /// Ставить надо и в сцене тоже: значение, заданное и в коде, и в
+        /// сцене, работает из сцены.
+        /// </summary>
+        public void SetGrip(Vector3 offset, Vector3 angles, Vector3 leftOffset, Vector3 leftAngles)
+        {
+            grip = offset;
+            gripAngles = angles;
+            gripLeft = leftOffset;
+            gripAnglesLeft = leftAngles;
+        }
 
         private static readonly string[] RightSlotBones = { "handslot.r", "prop_r", "hand_r" };
         private static readonly string[] LeftSlotBones = { "handslot.l", "prop_l", "hand_l" };
@@ -91,11 +113,17 @@ namespace IsoRPG.Items
 
         private void Refresh()
         {
-            Show(EquipSlot.MainHand, rightSlot, ref rightModel);
-            Show(EquipSlot.OffHand, leftSlot, ref leftModel);
+            Show(EquipSlot.MainHand, rightSlot, ref rightModel, grip, gripAngles);
+
+            // У левой руки свои числа: кисти зеркальны, и тот же локальный
+            // трансформ кладёт в неё клинок иначе. До 02.09.2026 обе руки
+            // получали одно и то же — второй кинжал был повёрнут не так, как
+            // первый, хотя выглядело это как «оба кривые».
+            Show(EquipSlot.OffHand, leftSlot, ref leftModel, gripLeft, gripAnglesLeft);
         }
 
-        private void Show(EquipSlot slot, Transform bone, ref GameObject current)
+        private void Show(EquipSlot slot, Transform bone, ref GameObject current,
+                          Vector3 offset, Vector3 angles)
         {
             // Старую модель снимаем всегда, даже если новой не будет: иначе
             // снятый кинжал останется висеть в руке.
@@ -121,12 +149,15 @@ namespace IsoRPG.Items
             // с нулями торчит поперёк ладони.
             //
             // Числа сняты примеркой в Blender (соседний чат, 02.09.2026,
-            // память проекта `dagger-grip-fit`) и пересчитаны под Unity: у
-            // Blender вертикаль Z, у нас Y, поэтому оси переставлены.
-            // Подбираются глазом на боевой анимации, а не в позе покоя:
+            // память проекта `dagger-grip-fit`) и пересчитаны заданием
+            // `grip-fit` — по матрице, а не по углам. Прежний перенос
+            // переставлял компоненты углов Эйлера, и это и было «кинжал
+            // повёрнут не в ту сторону»: у Blender вертикаль Z и порядок
+            // XYZ, у нас Y и ZXY, перестановка компонент повороту не равна.
+            // Смотреть результат надо на боевой анимации, а не в покое:
             // в покое кисть висит иначе.
-            current.transform.localPosition = grip;
-            current.transform.localRotation = Quaternion.Euler(gripAngles);
+            current.transform.localPosition = offset;
+            current.transform.localRotation = Quaternion.Euler(angles);
             current.transform.localScale = Vector3.one;
 
             // Коллайдеры у оружия снимаем: клик по земле рядом с персонажем

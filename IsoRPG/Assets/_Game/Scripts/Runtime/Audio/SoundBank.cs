@@ -79,6 +79,34 @@ namespace IsoRPG.Audio
         [Tooltip("Хрюканье кабана. Рядовой зверь, звучит тише и чаще рыка главаря.")]
         public AudioClip[] boarGrunt;
 
+        [Tooltip("Визг раненого волка.")]
+        public AudioClip[] wolfHurt;
+
+        [Tooltip("Предсмертный скулёж волка.")]
+        public AudioClip[] wolfDeath;
+
+        [Tooltip("Визг раненого кабана.")]
+        public AudioClip[] boarHurt;
+
+        [Tooltip("Предсмертный хрип кабана.")]
+        public AudioClip[] boarDeath;
+
+        [Header("Гриб-исполин")]
+        [Tooltip("Пробуждение из засады: скрип, треск и утробный вдох. Событие, слышно далеко.")]
+        public AudioClip[] mushroomWake;
+
+        [Tooltip("Замах.")]
+        public AudioClip[] mushroomAttack;
+
+        [Tooltip("Получил урон: влажный шлепок и выдох спор.")]
+        public AudioClip[] mushroomHurt;
+
+        [Tooltip("Смерть: оседание, шипение выходящего воздуха.")]
+        public AudioClip[] mushroomDeath;
+
+        [Tooltip("Холостой звук рядом стоящего гриба: сопение, хлюпанье.")]
+        public AudioClip[] mushroomIdle;
+
         [Header("Окружение")]
         [Tooltip("Непрерывный фон места: птицы, ветер, вода. Играет петлёй.")]
         public AudioClip[] ambience;

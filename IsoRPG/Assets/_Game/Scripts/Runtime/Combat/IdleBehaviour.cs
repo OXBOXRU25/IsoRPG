@@ -28,8 +28,23 @@ namespace IsoRPG.Combat
         [Tooltip("Сколько длится занятие.")]
         [SerializeField] private Vector2 length = new Vector2(5f, 12f);
 
-        [Tooltip("Что умеет: 1 есть, 2 сидеть, 3 спать. Пустой список — только еда.")]
-        [SerializeField] private int[] kinds = { 1, 2, 3 };
+        /// <summary>Потолок числа занятий. У кабана их четыре, у волка тоже.</summary>
+        private const int MaxKinds = 6;
+
+        [Tooltip("Что умеет: 1 есть, 2 сидеть, 3 спать, 4 своё. Пусто — спросим у контроллера сами.")]
+        [SerializeField] private int[] kinds;
+
+        /// <summary>
+        /// Занятие началось. Номер тот же, что и в `Rest`.
+        ///
+        /// Нужен голосу: волчий вой — это не звук сам по себе, а занятие
+        /// «повыть», у которого в наборе есть свой клип. Слушает
+        /// <see cref="IsoRPG.Audio.RestVoice"/>.
+        /// </summary>
+        public event System.Action<int> RestBegan;
+
+        /// <summary>Список занятий от задания сборки. Оно знает его точно, из кода контроллера.</summary>
+        public void SetKinds(int[] value) => kinds = value;
 
         private Animator animator;
         private NavMeshAgent agent;
@@ -50,9 +65,45 @@ namespace IsoRPG.Combat
 
             able = animator != null && Has(RestHash);
 
+            if (able) Discover();
+
             // Первая пауза со случайным сдвигом: иначе стадо садится и встаёт
             // разом, как по команде, и это видно сразу.
             nextCheck = Time.time + Random.Range(pause.x, pause.y);
+        }
+
+        /// <summary>
+        /// Спросить у контроллера, какие занятия он умеет.
+        ///
+        /// Раньше список стоял числом в поле, и он всегда врал в одну сторону:
+        /// у босса-кабана было три занятия, у гриба ноль, а компонент всем
+        /// подряд слал 1, 2 и 3. Правило теперь по признаку класса: входное
+        /// состояние каждого занятия зовётся `Rest_N`, и кто его назвал —
+        /// тот его и умеет.
+        ///
+        /// Считается один раз при старте; в поле `kinds` можно вписать список
+        /// руками, и тогда опрос не делается вовсе.
+        /// </summary>
+        private void Discover()
+        {
+            if (kinds != null && kinds.Length > 0) return;
+
+            var found = new System.Collections.Generic.List<int>();
+
+            for (int i = 1; i <= MaxKinds; i++)
+                if (animator.HasState(0, Animator.StringToHash("Rest_" + i))) found.Add(i);
+
+            kinds = found.ToArray();
+
+            // Параметр есть, а занятий нет — значит контроллер собран
+            // наполовину. Молчать нельзя: снаружи это неотличимо от
+            // «зверь просто не успел проголодаться».
+            if (kinds.Length == 0)
+            {
+                able = false;
+                Debug.LogWarning($"[IsoRPG] У «{name}» есть параметр Rest, но нет ни одного " +
+                                 "состояния Rest_N — праздное поведение играть нечем.");
+            }
         }
 
         private void Update()
@@ -86,6 +137,8 @@ namespace IsoRPG.Combat
 
             until = Time.time + Random.Range(length.x, length.y);
             animator.SetInteger(RestHash, current);
+
+            RestBegan?.Invoke(current);
         }
 
         private void Stop()

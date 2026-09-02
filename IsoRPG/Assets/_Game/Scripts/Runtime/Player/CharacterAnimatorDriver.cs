@@ -62,18 +62,39 @@ namespace IsoRPG.Player
         private static readonly int InCombatHash = Animator.StringToHash("InCombat");
         private static readonly int StrafeHash = Animator.StringToHash("Strafe");
 
-        // Состояния удара: у зверей одно «Attack», у героя серия «Attack_1»…
-        // «Attack_6» (их заводит то же задание).
-        private static readonly int[] AttackStateHashes =
+        // Скорость разворота, градусы в секунду со знаком. Нужна зверям, у
+        // которых набор принёс повороты на месте: без неё кабан разворачивался
+        // голым скольжением — Павлон это видел («мелкие кабаны в бою
+        // разворачиваются»), и лечили мы тогда не то.
+        private static readonly int TurnHash = Animator.StringToHash("Turn");
+
+        // Какой смертью умирать, когда их у набора несколько. У гриба этот же
+        // параметр значит другое (2 — расплющивание тяжёлым), поэтому жеребьёвка
+        // включается только полем deathVariants, а не самим наличием параметра.
+        private static readonly int DeathVariantHash = Animator.StringToHash("DeathVariant");
+
+        /// <summary>
+        /// Потолок серии ударов. Больше, чем у самого богатого набора: у
+        /// босса-кабана семь, у гриба пять, у волка три. Список нужен и для
+        /// опознания «идёт свой замах», и для подсчёта, сколько вариантов
+        /// вообще есть у этого существа.
+        /// </summary>
+        private const int MaxAttackVariants = 12;
+
+        // Состояния удара: у простых зверей одно «Attack», у богатых наборов
+        // серия «Attack_1»… «Attack_N» (их заводит то же задание).
+        private static readonly int[] AttackStateHashes = BuildAttackHashes();
+
+        private static int[] BuildAttackHashes()
         {
-            Animator.StringToHash("Attack"),
-            Animator.StringToHash("Attack_1"),
-            Animator.StringToHash("Attack_2"),
-            Animator.StringToHash("Attack_3"),
-            Animator.StringToHash("Attack_4"),
-            Animator.StringToHash("Attack_5"),
-            Animator.StringToHash("Attack_6"),
-        };
+            var hashes = new int[MaxAttackVariants + 1];
+            hashes[0] = Animator.StringToHash("Attack");
+
+            for (int i = 1; i <= MaxAttackVariants; i++)
+                hashes[i] = Animator.StringToHash("Attack_" + i);
+
+            return hashes;
+        }
 
         /// <summary>
         /// Пауза между вздрагиваниями.
@@ -117,6 +138,36 @@ namespace IsoRPG.Player
         private IsoRPG.Combat.TargetSelector targets;
         private bool hasCombatFlag;
         private bool hasStrafe;
+        private bool hasTurn;
+
+        [Tooltip("Сколько равнозначных смертей у набора. 0 и 1 — жеребьёвки нет. У кабана Malbers их две.")]
+        [SerializeField] private int deathVariants;
+
+        /// <summary>Прошлый курс и сглаженная скорость разворота — для параметра Turn.</summary>
+        private float lastYaw;
+        private float turnRate;
+
+        /// <summary>
+        /// Сколько ударов в серии умеет ИМЕННО этот персонаж.
+        ///
+        /// Считаем по состояниям контроллера, а не константой в бою: у героя
+        /// шесть, у босса семь, у кабана четыре, у волка три. Раньше боевой код
+        /// слал номер от 1 до 6 всем подряд — у кабана с четырьмя ударами
+        /// номера 5 и 6 не совпадали ни с одним переходом, и зверь бил вообще
+        /// без анимации каждый третий раз.
+        ///
+        /// Ноль значит «серии нет»: контроллер обойдётся одним «Attack».
+        ///
+        /// Число ставит задание сборки — оно знает его точно, из своего же
+        /// кода. Если не поставлено, считаем сами по состояниям контроллера.
+        /// </summary>
+        [Tooltip("Сколько ударов в серии. 0 — посчитать самим по состояниям Attack_N.")]
+        [SerializeField] private int attackVariants;
+
+        public int AttackVariants => attackVariants;
+
+        /// <summary>Сколько ударов в серии. Ставит задание сборки контроллера.</summary>
+        public void SetAttackVariants(int count) => attackVariants = count;
 
         private void Awake()
         {
@@ -142,6 +193,11 @@ namespace IsoRPG.Player
             // боевая стойка и боковое смещение, у рядового зверя — нет.
             hasCombatFlag = Has(InCombatHash, AnimatorControllerParameterType.Bool);
             hasStrafe = Has(StrafeHash, AnimatorControllerParameterType.Float);
+            hasTurn = Has(TurnHash, AnimatorControllerParameterType.Float);
+
+            CountAttackVariants();
+
+            lastYaw = transform.eulerAngles.y;
 
             // Скрытность меняет саму походку, поэтому слушаем её здесь же.
             if (stealth == null) stealth = GetComponent<IsoRPG.Combat.StealthState>();
@@ -157,6 +213,29 @@ namespace IsoRPG.Player
         {
             if (health != null) health.Damaged -= OnDamaged;
             if (stealth != null) stealth.StealthChanged -= SetSneaking;
+        }
+
+        /// <summary>
+        /// Пересчитать серию ударов по состояниям контроллера. Один раз при
+        /// включении: спрашивать это в бою значило бы перебирать состояния на
+        /// каждом замахе у каждого зверя.
+        /// </summary>
+        private void CountAttackVariants()
+        {
+            // Задание уже сказало точное число — верим ему, а не опросу.
+            if (attackVariants > 0) return;
+
+            if (animator == null || animator.runtimeAnimatorController == null) return;
+            if (!Has(AttackVariantHash, AnimatorControllerParameterType.Int)) return;
+
+            // Считаем подряд с первого: дыра в нумерации значила бы, что
+            // задание собрало контроллер криво, и продолжать счёт за ней
+            // нельзя — номер всё равно попал бы в пустоту.
+            for (int i = 1; i <= MaxAttackVariants; i++)
+            {
+                if (!animator.HasState(0, AttackStateHashes[i])) break;
+                attackVariants = i;
+            }
         }
 
         private void OnDamaged(int amount, GameObject source)
@@ -264,6 +343,24 @@ namespace IsoRPG.Player
 
                 bool fighting = targets != null && targets.Current != null;
                 animator.SetBool(InCombatHash, fighting);
+            }
+
+            // Скорость разворота. Считается по собственному курсу, а не по
+            // агенту: зверь доворачивается и стоя на месте, а у агента при
+            // нулевой скорости и вектор нулевой.
+            if (hasTurn)
+            {
+                float yaw = transform.eulerAngles.y;
+                float delta = Mathf.DeltaAngle(lastYaw, yaw);
+                lastYaw = yaw;
+
+                float instant = Time.deltaTime > 0.0001f ? delta / Time.deltaTime : 0f;
+
+                // Сглаживаем: без этого параметр дёргается на каждом кадре, и
+                // поворот на месте мигает между левым и правым клипом.
+                turnRate = Mathf.Lerp(turnRate, instant, 1f - Mathf.Exp(-8f * Time.deltaTime));
+
+                animator.SetFloat(TurnHash, turnRate);
             }
 
             if (!hasStrafe) return;
@@ -456,11 +553,25 @@ namespace IsoRPG.Player
             if (animator != null) animator.SetTrigger(StealthKillHash);
         }
 
-        /// <summary>Смерть. Флаг, а не разовый сигнал: из этого состояния не выходят сами.</summary>
+        /// <summary>
+        /// Смерть. Флаг, а не разовый сигнал: из этого состояния не выходят сами.
+        ///
+        /// Если у набора несколько равнозначных падений — бросаем жребий. У
+        /// кабана Malbers их два, и одно и то же падение на десяти кабанах
+        /// подряд читается как повтор ролика, а не как смерть.
+        /// </summary>
         public void SetDead(bool dead)
         {
-            if (animator != null) animator.SetBool(DeadHash, dead);
+            if (animator == null) return;
+
+            if (dead && deathVariants > 1 && Has(DeathVariantHash, AnimatorControllerParameterType.Int))
+                animator.SetInteger(DeathVariantHash, Random.Range(1, deathVariants + 1));
+
+            animator.SetBool(DeadHash, dead);
         }
+
+        /// <summary>Сколько равнозначных смертей у этого набора. Ставит задание сборки.</summary>
+        public void SetDeathVariants(int count) => deathVariants = count;
 
         /// <summary>Прыжок. Разовый сигнал: состояние само возвращается в движение.</summary>
         public void PlayJump()

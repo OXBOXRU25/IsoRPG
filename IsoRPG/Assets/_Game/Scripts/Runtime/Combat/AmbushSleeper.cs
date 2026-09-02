@@ -39,6 +39,9 @@ namespace IsoRPG.Combat
         [Tooltip("Как часто проверяет, далеко ли игрок. Реже — дешевле.")]
         [SerializeField] private float checkEvery = 0.5f;
 
+        [Tooltip("Подавать голос при пробуждении. Тот самый момент, ради которого засада и делалась.")]
+        [SerializeField] private bool voiceOnWake = true;
+
         private Animator animator;
         private NavMeshAgent agent;
         private MonsterBrain brain;
@@ -106,6 +109,12 @@ namespace IsoRPG.Combat
             if (animator != null && Has(AsleepHash)) animator.SetBool(AsleepHash, false);
             if (agent != null) agent.enabled = true;
             if (brain != null) brain.enabled = true;
+
+            // Голос при пробуждении. Именно здесь, а не в мозге зверя: мозг
+            // подаёт голос при захвате цели, а это уже второе событие — к тому
+            // времени гриб успел встать, и «оказался живым» прозвучало бы
+            // после того, как это стало видно.
+            if (voiceOnWake) IsoRPG.Audio.Sfx.MushroomWake(transform.position);
         }
 
         private bool Has(int hash)

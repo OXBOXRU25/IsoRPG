@@ -1892,6 +1892,18 @@ namespace IsoRPG.EditorTools
                     IdleKit.Apply();
                     break;
 
+                // Полные наборы анимаций кабанам и волкам — без пересборки
+                // стай: пересборка вернула бы им уступание дороги, которое
+                // мы сняли заданием no-avoidance.
+                case "beast-anims":
+                    BeastAnims.Apply();
+                    break;
+
+                // Щуп: что за анимации у существ на сцене и сколько их.
+                case "beast-probe":
+                    BeastProbe.Run();
+                    break;
+
                 case "anim-log":
                     AnimLog.On();
                     break;
@@ -3631,9 +3643,22 @@ namespace IsoRPG.EditorTools
                     NavHoleProbe.Run();
                     break;
 
+                // Пересчёт хвата по матрице из Blender. Ставить ПЕРЕД щупом:
+                // щуп строит ряд вокруг посчитанного числа.
+                case "grip-fit":
+                    GripFit.Apply();
+                    break;
+
                 case "grip-probe":
                     GripProbe.Build();
-                    SceneEye.Shot("grip", new Vector3(0f, 1f, 0f), 5f, 10f, 40f);
+
+                    // Ряд целиком — чтобы выбрать вариант; и крупный план
+                    // посчитанного, с двух сторон: с одного ракурса клинок
+                    // закрывает кисть, и половина выводов делается о том, чего
+                    // не видно (урок примерки в Blender, память проекта).
+                    SceneEye.Shot("grip", GripProbe.Centre, 5.2f, 6f, 180f);
+                    SceneEye.Shot("grip-one", GripProbe.FirstHand, 0.85f, 8f, 180f);
+                    SceneEye.Shot("grip-one-side", GripProbe.FirstHand, 0.85f, 14f, 265f);
                     break;
 
                 case "heroes":

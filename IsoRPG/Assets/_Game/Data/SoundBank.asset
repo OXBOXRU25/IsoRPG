@@ -88,6 +88,15 @@ MonoBehaviour:
   - {fileID: 8300000, guid: e908bb02bd14c2c49aa3fc1b6d7c7157, type: 3}
   boarGrunt:
   - {fileID: 8300000, guid: 0906c92a99ac8dc4bae9748459af67a8, type: 3}
+  wolfHurt: []
+  wolfDeath: []
+  boarHurt: []
+  boarDeath: []
+  mushroomWake: []
+  mushroomAttack: []
+  mushroomHurt: []
+  mushroomDeath: []
+  mushroomIdle: []
   ambience:
   - {fileID: 8300000, guid: 24c61fbc7437c434eb630e9f5fafb237, type: 3}
   music:

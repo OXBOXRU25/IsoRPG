@@ -61,7 +61,12 @@ namespace IsoRPG.Combat
         private Targetable self;
         private WeaponStats weapon;
 
-        /// <summary>Сколько ударов в серии. Столько же состояний в контроллере героя.</summary>
+        /// <summary>
+        /// Запасное число ударов в серии — на случай, если водителя анимаций
+        /// нет вовсе. У кого он есть, серия берётся у него: она у каждого своя
+        /// (герой 6, босс-кабан 7, кабан 4, волк 3), и общая константа
+        /// отправляла кабану номера 5 и 6, которых у него нет.
+        /// </summary>
         private const int AttackVariants = 6;
 
         private int attackVariant;
@@ -287,9 +292,13 @@ namespace IsoRPG.Combat
             // же замах кадр в кадр превращает драку в метроном, и это первое,
             // что бросается в глаза со стороны.
             //
-            // У кого серии нет (звери), номер уходит в пустоту: их контроллер
-            // просто не знает такого параметра, и удар играется как раньше.
-            attackVariant = attackVariant % AttackVariants + 1;
+            // У кого серии нет, номер уходит в пустоту: их контроллер просто не
+            // знает такого параметра, и удар играется как раньше.
+            int variants = animDriver != null && animDriver.AttackVariants > 0
+                ? animDriver.AttackVariants
+                : AttackVariants;
+
+            attackVariant = attackVariant % variants + 1;
 
             if (animDriver != null) animDriver.PlayAttack(attackVariant);
 

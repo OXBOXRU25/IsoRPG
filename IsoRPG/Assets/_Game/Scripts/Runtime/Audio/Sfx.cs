@@ -140,16 +140,48 @@ namespace IsoRPG.Audio
         /// <summary>Рычание волка при захвате цели. Тише рыка главаря: он рядовой.</summary>
         public static void WolfSnarl(Vector3 at) => Play(bank?.wolfSnarl, at, 0.7f, 0.07f);
 
-        /// <summary>Волчий вой. Редкий и дальний — для настроения места.</summary>
-        public static void WolfHowl(Vector3 at) => Play(bank?.wolfHowl, at, 0.55f, 0.05f);
+        /// <summary>
+        /// Волчий вой. Редкий и дальний — для настроения места.
+        ///
+        /// Слышимость втрое больше обычной: вой на то и вой, что доносится
+        /// издалека. На общих восьми-двадцати восьми метрах он звучал бы
+        /// только когда волк уже виден, а тогда он не нужен.
+        /// </summary>
+        public static void WolfHowl(Vector3 at) => Play(bank?.wolfHowl, at, 0.55f, 0.05f, -1f, 90f);
 
         /// <summary>Хрюканье кабана.</summary>
         public static void BoarGrunt(Vector3 at) => Play(bank?.boarGrunt, at, 0.7f, 0.1f);
 
+        // --- Гриб-исполин -------------------------------------------------
+        //
+        // Своих звуков у набора InfinityPBR нет вовсе — ни одного файла на
+        // весь пакет, проверено. Генерит их Павлон, промты лежат в
+        // `Войс/sound-list.md`. Пока файлов нет, наборы пустые, и Play молча
+        // ничего не играет — игра от этого не ломается.
+
+        /// <summary>Пробуждение из засады: гриб оказался живым. Громче прочего — это событие.</summary>
+        public static void MushroomWake(Vector3 at) => Play(bank?.mushroomWake, at, 0.9f, 0.04f, -1f, 45f);
+
+        /// <summary>Замах гриба.</summary>
+        public static void MushroomAttack(Vector3 at) => Play(bank?.mushroomAttack, at, 0.75f, 0.07f);
+
+        /// <summary>Гриб получил урон.</summary>
+        public static void MushroomHurt(Vector3 at) => Play(bank?.mushroomHurt, at, 0.7f, 0.08f);
+
+        /// <summary>Гриб умирает.</summary>
+        public static void MushroomDeath(Vector3 at) => Play(bank?.mushroomDeath, at, 0.85f, 0.05f);
+
+        /// <summary>Холостой звук: сопение и хлюпанье, пока гриб просто стоит рядом.</summary>
+        public static void MushroomIdle(Vector3 at) => Play(bank?.mushroomIdle, at, 0.55f, 0.09f);
+
         // ------------------------------------------------------------------
 
+        /// <summary>Слышимость по умолчанию: полная громкость и полная тишина, метры.</summary>
+        private const float NearRange = 8f, FarRange = 28f;
+
         public static void Play(AudioClip[] set, Vector3 at, float volume = 1f,
-                                float pitchSpread = 0.08f, float channel = -1f)
+                                float pitchSpread = 0.08f, float channel = -1f,
+                                float range = -1f)
         {
             var clip = SoundBank.Pick(set);
             if (clip == null) return;
@@ -163,6 +195,13 @@ namespace IsoRPG.Audio
             source.spatialBlend = 1f;   // объёмный: слышно, откуда
             source.volume = volume * masterVolume * channel;
             source.pitch = RandomPitch(pitchSpread);
+
+            // Дальность задаём КАЖДЫЙ раз: источники живут в пуле и достаются
+            // по кругу, а один дальний звук иначе оставил бы свою слышимость
+            // следующему — и удар кинжалом было бы слышно через полкарты.
+            source.maxDistance = range > 0f ? range : FarRange;
+            source.minDistance = range > 0f ? Mathf.Min(NearRange, range * 0.25f) : NearRange;
+
             source.clip = clip;
             source.Play();
         }

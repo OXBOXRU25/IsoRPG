@@ -29,5 +29,7 @@ MonoBehaviour:
   strength: 0
   agility: 0
   stamina: 0
-  worldModel: {fileID: 182892, guid: a72fcdd51f52f5146b54b8faccf63756, type: 3}
+  healAmount: 0
+  healDuration: 0
+  worldModel: {fileID: 1734629432676856, guid: be4857adbcd32de43aae6cd49a1a3245, type: 3}
   vendorPrice: 4

@@ -84,6 +84,15 @@ namespace IsoRPG.EditorTools
             new Spot(-15f,  75f, "Polygonal Wolf Black"),
         };
 
+        /// <summary>
+        /// С какой скоростью волк гонится, метры в секунду.
+        ///
+        /// Числом здесь, а не прямо в агенте, потому что его читает и сборщик
+        /// анимаций: клип бега у набора идёт всего 2.47 м/с, и без поправки
+        /// волк ехал бы быстрее, чем перебирает лапами.
+        /// </summary>
+        public const float ChaseSpeed = 3.6f;
+
         private const int Hp = 45;
         private const int Level = 2;
         private const int Armor = 2;
@@ -294,7 +303,7 @@ namespace IsoRPG.EditorTools
                 defense.Setup(Level, Armor);
 
                 var agent = wolf.AddComponent<NavMeshAgent>();
-                agent.speed = 3.6f;
+                agent.speed = ChaseSpeed;
                 agent.angularSpeed = 720f;
                 agent.acceleration = 12f;
                 agent.radius = 0.45f * spotInfo.Scale;

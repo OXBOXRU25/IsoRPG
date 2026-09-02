@@ -152,9 +152,9 @@ namespace IsoRPG.EditorTools
             //
             // `Rest`: 1 — ест, 2 — сидит, 3 — спит. Возврат по нулю, поэтому
             // зверь встаёт сразу, как его потревожили.
-            AddRest(peace, machine, "Eat", Clip("BoarBoss_Eat.fbx"), 1);
-            AddRest(peace, machine, "Sit", Clip("BoarBoss_Sit.fbx"), 2);
-            AddRest(peace, machine, "Sleep", Clip("BoarBoss_Sleep.fbx"), 3);
+            AddRest(peace, machine, "Rest_1", Clip("BoarBoss_Eat.fbx"), 1);
+            AddRest(peace, machine, "Rest_2", Clip("BoarBoss_Sit.fbx"), 2);
+            AddRest(peace, machine, "Rest_3", Clip("BoarBoss_Sleep.fbx"), 3);
 
             // --- смерть и возвращение ---
             var death = machine.AddState("Death");

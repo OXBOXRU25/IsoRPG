@@ -211,6 +211,19 @@ namespace IsoRPG.EditorTools
                 any.duration = 0.25f;
                 any.canTransitionToSelf = false;
 
+                // Жест играется ОДИН раз и НПС возвращается в спокойную
+                // стойку, оставаясь в разговоре.
+                //
+                // Павлон 02.09.2026: «они не должны идти циклически одна за
+                // другой, выглядит странно, особенно учитывая что у нас нет
+                // анимации мимики». Верно: без лица непрерывная жестикуляция
+                // читается как тик, а не как речь. Новый жест — при следующем
+                // открытии окна.
+                var done = state.AddTransition(stand);
+                done.hasExitTime = true;
+                done.exitTime = 0.92f;
+                done.duration = 0.35f;
+
                 var back = state.AddTransition(stand);
                 back.hasExitTime = false;
                 back.duration = 0.3f;

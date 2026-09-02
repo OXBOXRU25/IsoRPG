@@ -12,9 +12,11 @@ namespace IsoRPG.World
     ///
     /// Разделение тут не косметическое. Приветствие — событие: оно должно
     /// случиться ОДИН раз, при первой встрече, иначе НПС машет каждому проходу
-    /// мимо и превращается в заводную игрушку. Жестикуляция — состояние: она
-    /// держится ровно пока открыто окно разговора. А переминание — это
-    /// занятие, и его ведёт общий механизм праздного поведения
+    /// мимо и превращается в заводную игрушку. Жест разговора — тоже событие, и
+    /// тоже одно: непрерывная жестикуляция без мимики читается как тик, а не
+    /// как речь (правка Павлона по первому же показу). Новый жест выпадает при
+    /// следующем открытии окна. А переминание — занятие,
+    /// его ведёт общий механизм праздного поведения
     /// (<see cref="IsoRPG.Combat.IdleBehaviour"/>), тот же, что у зверей.
     ///
     /// Цена в кадре: пока не поздоровался — одно сравнение расстояний раз в
@@ -33,9 +35,6 @@ namespace IsoRPG.World
         [Tooltip("Как часто проверяет, подошёл ли игрок. Реже — дешевле.")]
         [SerializeField] private float checkEvery = 0.5f;
 
-        [Tooltip("Через сколько секунд менять жест в разговоре, от и до.")]
-        [SerializeField] private Vector2 gestureEvery = new Vector2(2.5f, 4.5f);
-
         [Tooltip("Сколько разных жестов разговора есть в контроллере.")]
         [SerializeField] private int gestureCount = 54;
 
@@ -44,7 +43,6 @@ namespace IsoRPG.World
         private Transform player;
 
         private float nextCheck;
-        private float nextGesture;
         private bool greeted;
         private bool talking;
 
@@ -81,14 +79,7 @@ namespace IsoRPG.World
         {
             if (animator == null) return;
 
-            if (talking)
-            {
-                if (Time.time < nextGesture) return;
-
-                nextGesture = Time.time + Random.Range(gestureEvery.x, gestureEvery.y);
-                animator.SetInteger(TalkVariantHash, Random.Range(1, gestureCount + 1));
-                return;
-            }
+            if (talking) return;
 
             // Поздоровался — больше здесь делать нечего вовсе.
             if (greeted || player == null) return;
@@ -109,12 +100,12 @@ namespace IsoRPG.World
 
             talking = true;
 
-            // Жест ставим сразу, а не через паузу: иначе первые секунды
-            // разговора собеседник стоит молча, и это самое заметное место.
+            // Чистая случайность, без защиты от повтора: решение Павлона —
+            // «не страшно если будут повторения, шанс выпадения одинаковых
+            // должен остаться». При полусотне жестов совпадение подряд редко
+            // и читается как случайность, а не как поломка.
             animator.SetInteger(TalkVariantHash, Random.Range(1, gestureCount + 1));
             animator.SetBool(TalkingHash, true);
-
-            nextGesture = Time.time + Random.Range(gestureEvery.x, gestureEvery.y);
         }
 
         private void OnTalkEnded(QuestGiver who)

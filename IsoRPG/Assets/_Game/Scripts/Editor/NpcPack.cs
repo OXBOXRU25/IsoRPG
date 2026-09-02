@@ -53,7 +53,7 @@ namespace IsoRPG.EditorTools
         /// разъедется молча, если лагерь когда-нибудь подвинут, — и дозорный
         /// останется смотреть в пустоту, что заметно сразу, а причина нет.
         /// </summary>
-        private static float FaceHearth(Vector3 from)
+        public static float FaceHearth(Vector3 from)
         {
             foreach (var mf in UnityEngine.Object.FindObjectsByType<MeshFilter>(
                      FindObjectsInactive.Include, FindObjectsSortMode.None))

@@ -3649,6 +3649,11 @@ namespace IsoRPG.EditorTools
                     HandProbe.Run();
                     break;
 
+                case "npc-poses":
+                    NpcPoseProbe.Build();
+                    SceneEye.Shot("npc-poses", NpcPoseProbe.Centre, 8.5f, 4f, 180f);
+                    break;
+
                 case "npc-move":
                     NpcMove.Apply();
                     SceneEye.Shot("npc-spot", new Vector3(53.3f, 1.2f, -30.0f), 7f, 14f, 140f);

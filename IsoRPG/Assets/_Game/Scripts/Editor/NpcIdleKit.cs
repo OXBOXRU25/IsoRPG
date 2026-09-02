@@ -41,14 +41,21 @@ namespace IsoRPG.EditorTools
         /// СОБЫТИЕ первой встречи, а не занятие. НПС, машущий рукой сам себе
         /// каждые полминуты, читается как заводная игрушка. В цикле остаётся
         /// то, что человек делает наедине с собой: переминается, утирает лоб,
-        /// думает. Махание и жестикуляцию ведёт
+        /// думает.
+        ///
+        /// Четвёртая стойка выброшена по кадру щупа: там персонаж поднимает
+        /// обе руки к небу, и на дозорном у котелка это читается как «сдаюсь»
+        /// — Павлон увидел сразу. Какая именно из пяти поз это была, из слов
+        /// не выводилось, поэтому щуп `npc-poses` ставит их в ряд одним
+        /// кадром: одна сборка вместо круга переписки.
+        ///
+        /// Махание и жестикуляцию ведёт
         /// <see cref="IsoRPG.World.NpcGesture"/>.
         /// </summary>
         private static readonly (string Folder, string Clip)[] Occupations =
         {
             ("Standing", "Standing_Idle_2"),
             ("Standing", "Standing_Idle_3"),
-            ("Standing", "Standing_Idle_4"),
             ("Wipe Forehead", "Wipe_Forehead"),
             ("Think", "Think_All"),
         };
@@ -127,6 +134,11 @@ namespace IsoRPG.EditorTools
                 gesture.SetGestures(builtGestures);
                 EditorUtility.SetDirty(gesture);
 
+                // Замок челюсти: клипы набора двигают кость `jaw`, и НПС стоял
+                // с открытым ртом.
+                if (giver.GetComponent<IsoRPG.World.JawLock>() == null)
+                    giver.gameObject.AddComponent<IsoRPG.World.JawLock>();
+
                 given++;
             }
 
@@ -140,8 +152,58 @@ namespace IsoRPG.EditorTools
 
         // ------------------------------------------------------------------
 
+        /// <summary>
+        /// Зациклить стойки в настройках импорта.
+        ///
+        /// Клипы приезжают из набора НЕзацикленными, и стойка ожидания играет
+        /// ровно один раз, замирая на последнем кадре. Снаружи это выглядит
+        /// так, будто НПС просто перещёлкивает позы — Павлон 02.09.2026:
+        /// «он меняет позы, но нет анимации ожидания». Ровно та же ловушка
+        /// настроек импорта, что была с вздрагиванием кабана, только наоборот.
+        ///
+        /// Зацикливаем только стойки. Разовые жесты — «утёр лоб», «задумался»,
+        /// приветствие, реплики диалога — должны отыграть и кончиться.
+        ///
+        /// Папка набора в `.gitignore`, поэтому правка живёт до переустановки:
+        /// значит она и сделана заданием, а не руками.
+        /// </summary>
+        private static void LoopIdles()
+        {
+            foreach (string name in new[]
+                     { "Standing_Idle_1", "Standing_Idle_2", "Standing_Idle_3", "Standing_Idle_4" })
+            {
+                string path = Pack + "/Standing/" + name + ".fbx";
+
+                var importer = AssetImporter.GetAtPath(path) as ModelImporter;
+                if (importer == null) continue;
+
+                var takes = importer.clipAnimations;
+                if (takes == null || takes.Length == 0) takes = importer.defaultClipAnimations;
+                if (takes.Length == 0) continue;
+
+                bool changed = false;
+
+                for (int i = 0; i < takes.Length; i++)
+                {
+                    if (takes[i].loopTime) continue;
+
+                    takes[i].loopTime = true;
+                    changed = true;
+                }
+
+                if (!changed) continue;
+
+                importer.clipAnimations = takes;
+                importer.SaveAndReimport();
+
+                Debug.Log("[IsoRPG] Зациклена стойка НПС: " + name);
+            }
+        }
+
         private static AnimatorController BuildController()
         {
+            LoopIdles();
+
             var idle = Clip(Base.Folder, Base.Clip);
 
             if (idle == null)

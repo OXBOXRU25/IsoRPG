@@ -100,7 +100,26 @@ namespace IsoRPG.EditorTools
         /// костям. Правится только по кадру от Павлона: «немного сильнее в
         /// глубь ладони».
         /// </summary>
-        private const float DepthNudge = 0.005f;
+        private const float DepthNudge = 0.009f;
+
+        /// <summary>
+        /// Левую руку получать ОТРАЖЕНИЕМ правой, а не считать по её костям.
+        ///
+        /// Расчёт по своим костям честнее, но даёт видимую разницу: считаем мы
+        /// в вооружённой стойке, а в ней руки согнуты по-разному, и точка
+        /// хвата выходит не та же. Павлон 02.09.2026: «вторую руку сделать зеркально
+        /// положение кинжала и угол наклона». Симметрия тут важнее точности:
+        /// две руки одного человека игрок сравнивает между собой, а не с
+        /// анатомией.
+        ///
+        /// Отражение: у точки меняет знак X, у кватерниона — знаки y и z.
+        ///
+        /// ОТКЛЮЧЕНО тем же вечером: узнав, что руки в стойке согнуты
+        /// по-разному, Павлон снял требование — «не надо тогда симметрию, я
+        /// не знал про руки». Расчёт по своим костям вернулся. Флаг оставлен:
+        /// он и есть запись о том, что этот путь пробовали и почему ушли.
+        /// </summary>
+        private const bool MirrorLeft = false;
 
         /// <summary>Посчитанное. Читает щуп, чтобы поставить это серединой ряда.</summary>
         public static Vector3 Grip { get; private set; } = new Vector3(-0.0904f, 0.0060f, 0.0259f);
@@ -168,7 +187,15 @@ namespace IsoRPG.EditorTools
             Fitted = anglesR;
             DepthRight = depthR;
 
-            if (okLeft) { GripLeft = gripL; FittedLeft = anglesL; DepthLeft = depthL; }
+            if (MirrorLeft)
+            {
+                var q = Quaternion.Euler(Fitted);
+
+                GripLeft = new Vector3(-Grip.x, Grip.y, Grip.z);
+                FittedLeft = new Quaternion(q.x, -q.y, -q.z, q.w).eulerAngles;
+                DepthLeft = okLeft ? depthL : depthR;
+            }
+            else if (okLeft) { GripLeft = gripL; FittedLeft = anglesL; DepthLeft = depthL; }
             else { GripLeft = gripR; FittedLeft = anglesR; DepthLeft = depthR; }
 
             Debug.Log($"[IsoRPG] Хват посчитан по костям кисти.\n" +

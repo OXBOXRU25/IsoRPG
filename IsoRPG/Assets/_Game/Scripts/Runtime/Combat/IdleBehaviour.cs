@@ -29,7 +29,7 @@ namespace IsoRPG.Combat
         [SerializeField] private Vector2 length = new Vector2(14f, 28f);
 
         /// <summary>Потолок числа занятий. У кабана их четыре, у волка тоже.</summary>
-        private const int MaxKinds = 6;
+        private const int MaxKinds = 8;
 
         [Tooltip("Что умеет: 1 есть, 2 сидеть, 3 спать, 4 своё. Пусто — спросим у контроллера сами.")]
         [SerializeField] private int[] kinds;

@@ -27,6 +27,7 @@ namespace IsoRPG.World
     {
         private static readonly int GreetHash = Animator.StringToHash("Greet");
         private static readonly int TalkingHash = Animator.StringToHash("Talking");
+        private static readonly int TalkHash = Animator.StringToHash("Talk");
         private static readonly int TalkVariantHash = Animator.StringToHash("TalkVariant");
 
         [Tooltip("С какого расстояния здоровается при первой встрече.")]
@@ -43,6 +44,7 @@ namespace IsoRPG.World
         private Transform player;
 
         private float nextCheck;
+        private bool wasFar;
         private bool greeted;
         private bool talking;
 
@@ -87,7 +89,23 @@ namespace IsoRPG.World
 
             nextCheck = Time.time + checkEvery;
 
-            if ((player.position - transform.position).sqrMagnitude > greetRange * greetRange) return;
+            bool near = (player.position - transform.position).sqrMagnitude <= greetRange * greetRange;
+
+            // Здороваться можно только с ПРИШЕДШИМ, а не с тем, кто уже
+            // стоит рядом при загрузке.
+            //
+            // Талин стоит ровно в той точке, где герой появляется по
+            // сохранению: расстояние около нуля, и приветствие отыгрывало в
+            // первые полсекунды после загрузки, пока экран ещё гаснет.
+            // Снаружи это выглядело как «перестал махать» — Павлон так и
+            // сказал.
+            if (!wasFar)
+            {
+                if (!near) wasFar = true;
+                return;
+            }
+
+            if (!near) return;
 
             greeted = true;
             animator.SetTrigger(GreetHash);
@@ -106,6 +124,12 @@ namespace IsoRPG.World
             // и читается как случайность, а не как поломка.
             animator.SetInteger(TalkVariantHash, Random.Range(1, gestureCount + 1));
             animator.SetBool(TalkingHash, true);
+
+            // Триггером, а не одним лишь флагом: по флагу переход из любого
+            // состояния верен всё время разговора, и жест, доиграв, входил
+            // сам в себя снова и снова. Триггер расходуется — жест играет
+            // ровно один раз.
+            animator.SetTrigger(TalkHash);
         }
 
         private void OnTalkEnded(QuestGiver who)

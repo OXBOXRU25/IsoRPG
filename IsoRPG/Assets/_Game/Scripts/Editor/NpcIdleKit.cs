@@ -31,7 +31,7 @@ namespace IsoRPG.EditorTools
         private const string ControllerPath =
             "Assets/_Game/Art/Animations/Controllers/AC_Npc_Idle.controller";
 
-        private const string Pack = "Assets/DoubleL/FBX_Animations/NPC";
+        private const string Pack = "Assets/DoubleL/FBX_Animations";
 
         /// <summary>
         /// Что чередует НПС. Первый — основная стойка, остальные заходят
@@ -54,17 +54,20 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static readonly (string Folder, string Clip)[] Occupations =
         {
-            ("Standing", "Standing_Idle_2"),
-            ("Standing", "Standing_Idle_3"),
-            ("Wipe Forehead", "Wipe_Forehead"),
-            ("Think", "Think_All"),
+            ("Base Move/Stand_Idle/Idle", "Stand_Idle_A_2"),
+            ("Base Move/Stand_Idle/Idle", "Stand_Idle_A_3"),
+            ("Base Move/Stand_Idle/Idle", "Stand_Idle_A_4"),
+            ("Base Move/Stand_Idle/Idle", "Stand_Idle_B_1"),
+            ("Base Move/Stand_Idle/Idle", "Stand_Idle_B_2"),
+            ("NPC/Wipe Forehead", "Wipe_Forehead"),
+            ("NPC/Think", "Think_All"),
         };
 
         /// <summary>Основная стойка: к ней НПС возвращается между занятиями.</summary>
-        private static readonly (string Folder, string Clip) Base = ("Standing", "Standing_Idle_1");
+        private static readonly (string Folder, string Clip) Base = ("Base Move/Stand_Idle/Idle", "Stand_Idle_A_1");
 
         /// <summary>Приветствие при первой встрече.</summary>
-        private static readonly (string Folder, string Clip) Greeting = ("Waving Hello", "Waving_Hello");
+        private static readonly (string Folder, string Clip) Greeting = ("NPC/Waving Hello", "Waving_Hello");
 
         /// <summary>
         /// Сколько жестов разговора завести. У набора их 54, берём все.
@@ -170,9 +173,10 @@ namespace IsoRPG.EditorTools
         private static void LoopIdles()
         {
             foreach (string name in new[]
-                     { "Standing_Idle_1", "Standing_Idle_2", "Standing_Idle_3", "Standing_Idle_4" })
+                     { "Stand_Idle_A_1", "Stand_Idle_A_2", "Stand_Idle_A_3", "Stand_Idle_A_4",
+                       "Stand_Idle_B_1", "Stand_Idle_B_2" })
             {
-                string path = Pack + "/Standing/" + name + ".fbx";
+                string path = Pack + "/Base Move/Stand_Idle/Idle/" + name + ".fbx";
 
                 var importer = AssetImporter.GetAtPath(path) as ModelImporter;
                 if (importer == null) continue;
@@ -219,6 +223,7 @@ namespace IsoRPG.EditorTools
             controller.AddParameter("Rest", AnimatorControllerParameterType.Int);
             controller.AddParameter("Greet", AnimatorControllerParameterType.Trigger);
             controller.AddParameter("Talking", AnimatorControllerParameterType.Bool);
+            controller.AddParameter("Talk", AnimatorControllerParameterType.Trigger);
             controller.AddParameter("TalkVariant", AnimatorControllerParameterType.Int);
 
             var machine = controller.layers[0].stateMachine;
@@ -261,14 +266,18 @@ namespace IsoRPG.EditorTools
             // жеребьёвка попадала бы в пустоту на каждой дыре.
             for (int i = 1; i <= Gestures; i++)
             {
-                var clip = Clip("Dialogue", "Dialogue_" + i, quiet: true);
+                var clip = Clip("NPC/Dialogue", "Dialogue_" + i, quiet: true);
                 if (clip == null) continue;
 
                 var state = machine.AddState("Talk_" + (talks + 1));
                 state.motion = clip;
 
                 var any = machine.AddAnyStateTransition(state);
-                any.AddCondition(AnimatorConditionMode.If, 0f, "Talking");
+                // По ТРИГГЕРУ, а не по флагу разговора: флаг верен всё время
+                // окна, и жест, доиграв, входил сам в себя снова — Павлон
+                // увидел это сразу: «при диалоге повторяет анимации
+                // нон-стоп циклично».
+                any.AddCondition(AnimatorConditionMode.If, 0f, "Talk");
                 any.AddCondition(AnimatorConditionMode.Equals, talks + 1, "TalkVariant");
                 any.duration = 0.25f;
                 any.canTransitionToSelf = false;

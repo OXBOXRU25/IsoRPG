@@ -341,6 +341,12 @@ namespace IsoRPG.Items
 
             BuildTakeAllButton(rect);
 
+            // Окно добычи рамку не носит, а потому ApplyFrame его минует —
+            // значит и обвязку зовём руками. Остальные окна получают её от
+            // рамки; окно, которое стоит на трупе и закрывает собой пол-угла
+            // экрана, обязано двигаться не меньше прочих.
+            IsoRPG.UI.WindowChrome.MakeDraggable(rect, TitleHeight);
+
             window = go;
             window.SetActive(false);
         }

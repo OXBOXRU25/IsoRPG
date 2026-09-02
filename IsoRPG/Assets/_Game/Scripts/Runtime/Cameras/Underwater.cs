@@ -95,11 +95,62 @@ namespace IsoRPG.Cameras
         /// </summary>
         private void Collect()
         {
-            water = FindObjectsByType<Renderer>(FindObjectsInactive.Exclude,
-                                                FindObjectsSortMode.None)
-                    .Where(r => r.sharedMaterial != null &&
-                                r.sharedMaterial.name.Contains(waterMaterial))
+            water = FindObjectsByType<MeshRenderer>(FindObjectsInactive.Exclude,
+                                                    FindObjectsSortMode.None)
+                    .Where(r => IsWater(r.sharedMaterial))
                     .ToArray();
+        }
+
+        /// <summary>
+        /// Вода это или нет.
+        ///
+        /// Главный признак — ШЕЙДЕР, а не имя. У автора вода трёх видов:
+        /// озеро, река и базовая, — и по имени «Water_Lake» ловилось только
+        /// озеро. Пока река была залита нашим материалом, это сходило с рук;
+        /// стоило вернуть автору его воду, и река перестала бы считаться
+        /// водой вовсе — то есть в ручье можно было бы утонуть без единого
+        /// признака погружения. Шейдер же у всей авторской воды один.
+        ///
+        /// Имя остаётся запасным путём: наш собственный материал воды сидит
+        /// на штатном URP-шейдере, по которому его не отличить от камня.
+        /// </summary>
+        private bool IsWater(Material material)
+        {
+            if (material == null) return false;
+
+            if (material.shader != null &&
+                material.shader.name.IndexOf("WaterShader", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+
+            return material.name.Contains(waterMaterial);
+        }
+
+        /// <summary>
+        /// Высота глади прямо над точкой — по плоскости самого объекта.
+        ///
+        /// Раньше здесь стоял верх габаритной коробки, и для пруда это было
+        /// верно: горизонтальная плоскость, верх коробки и есть уровень воды.
+        /// Ручей же уложен под наклон, и его коробка — 24.9 x 3.6 x 24.5 м:
+        /// «верх» у неё на 8.67 м, то есть на верхнем конце русла, тремя с
+        /// половиной метрами выше того места, где стоит герой. Камера на
+        /// берегу оказывалась ниже этой цифры, и экран заливало синим посуху.
+        ///
+        /// Гладь — плоскость, значит её высота в точке считается ровно: берём
+        /// нормаль (это «вверх» объекта) и решаем уравнение плоскости.
+        /// Почти горизонтальную проверку пропускаем: у вертикальной плоскости
+        /// «высота над точкой» смысла не имеет и делить было бы не на что.
+        /// </summary>
+        private static bool SurfaceHeight(Transform plane, Vector3 at, out float height)
+        {
+            Vector3 n = plane.up;
+            height = 0f;
+
+            if (Mathf.Abs(n.y) < 0.2f) return false;
+
+            Vector3 p = plane.position;
+            height = p.y - (n.x * (at.x - p.x) + n.z * (at.z - p.z)) / n.y;
+
+            return true;
         }
 
         private float nextLook;
@@ -132,14 +183,19 @@ namespace IsoRPG.Cameras
                 if (at.x < box.min.x || at.x > box.max.x) continue;
                 if (at.z < box.min.z || at.z > box.max.z) continue;
 
+                // Уровень воды — в этой точке, а не «верх коробки»: русло
+                // идёт под уклон, и разница доходит до трёх с половиной
+                // метров.
+                if (!SurfaceHeight(w.transform, at, out float surface)) continue;
+
                 // По высоте — с разными порогами на вход и выход (гистерезис):
                 // если уже под водой, остаёмся ею, пока не поднимемся
                 // заметно выше глади; если ещё на суше, ныряем только когда
                 // опустимся заметно ниже. Одна и та же линия для обоих
                 // направлений дребезжит на кромке пруда.
                 bool underThisOne = submerged
-                    ? at.y < box.max.y + surfaceThreshold
-                    : at.y < box.max.y - diveThreshold;
+                    ? at.y < surface + surfaceThreshold
+                    : at.y < surface - diveThreshold;
 
                 if (!underThisOne) continue;
 

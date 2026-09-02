@@ -2511,6 +2511,14 @@ namespace IsoRPG.EditorTools
                     foreach (var r in UnityEngine.Object.FindObjectsByType<Renderer>(
                                  FindObjectsInactive.Include, FindObjectsSortMode.None))
                     {
+                        // Частицы не красим никогда: у них материал — часть
+                        // самого эффекта. Брызги «FX_Water_Movement_01»
+                        // попадали сюда по слову Water в имени и становились
+                        // плоским пятном цвета глади. Исключение по ТИПУ
+                        // рендерера, а не по имени: имён у эффектов воды
+                        // много, а тип один.
+                        if (r is ParticleSystemRenderer) continue;
+
                         var mats = r.sharedMaterials;
                         bool touched = false;
 
@@ -2565,6 +2573,264 @@ namespace IsoRPG.EditorTools
                 }
 
 
+
+                case "water-restore":
+                {
+                    // Вернуть воде авторские материалы.
+                    //
+                    // Решение Павлона 03.09.2026 после замера: у автора вода
+                    // трёх видов — озеро, река и базовая, — а мы залили все
+                    // три материалом озера. Река потому и читалась как пруд,
+                    // растёкшийся по склону.
+                    //
+                    // Подменять было незачем: авторский шейдер
+                    // «SyntyStudios/WaterShader» несёт тег
+                    // RenderPipeline=UniversalPipeline, то есть работает в
+                    // нашем конвейере. Замена была лечением болезни, которой
+                    // не было, и стоила нам авторского течения.
+                    //
+                    // Возвращаем не по списку имён, а по расхождению с
+                    // префабом: что автор поставил, то и ставим обратно.
+                    // Ограничиваем водой, иначе откатится и намеренное
+                    // разнообразие травы с деревьями — там расхождений пять
+                    // тысяч, и они наша работа, а не порча.
+                    int back = 0;
+                    var kinds = new Dictionary<string, int>();
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (r == null) continue;
+
+                        var source = PrefabUtility.GetCorrespondingObjectFromSource(r);
+                        if (source == null) continue;
+
+                        var mine = r.sharedMaterials;
+                        var orig = source.sharedMaterials;
+
+                        bool touched = false;
+
+                        for (int i = 0; i < mine.Length && i < orig.Length; i++)
+                        {
+                            if (mine[i] == orig[i] || orig[i] == null) continue;
+
+                            // Только вода: у автора все её материалы названы
+                            // с этого слова, а трава и деревья — нет.
+                            if (orig[i].name.IndexOf("Water", StringComparison.OrdinalIgnoreCase) < 0)
+                                continue;
+
+                            string key = (mine[i] != null ? mine[i].name : "(пусто)") +
+                                         "  ->  " + orig[i].name;
+                            kinds.TryGetValue(key, out int had);
+                            kinds[key] = had + 1;
+
+                            mine[i] = orig[i];
+                            touched = true;
+                        }
+
+                        if (!touched) continue;
+
+                        r.sharedMaterials = mine;
+                        back++;
+                    }
+
+                    foreach (var pair in kinds)
+                        Debug.Log("[IsoRPG] вернул воде x" + pair.Value + ": " + pair.Key);
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Вода: авторский материал возвращён " + back +
+                              " объектам. Проверять в СОБРАННОЙ игре: шейдер набора " +
+                              "должен доехать до билда, иначе вода станет розовой.");
+                    break;
+                }
+
+                case "fx-restore":
+                {
+                    // Вернуть частицам их авторский материал.
+                    //
+                    // Частицы мы не красим НИКОГДА, и это правило для всего
+                    // класса, а не для найденных брызг. У частицы материал —
+                    // часть самого эффекта: аддитивный, полупрозрачный, с
+                    // вершинным цветом. Любой материал поверхности вместо
+                    // него превращает эффект в плоское пятно, и именно это
+                    // Павлон увидел у ручья: «текстура брызг стала закрашена
+                    // в цвет воды».
+                    //
+                    // Поймало их перекраской воды по куску имени: в
+                    // «FX_Water_Movement_01» есть слово Water. Отбор по имени
+                    // подводил уже трижды, поэтому и здесь мы не перечисляем
+                    // имена, а спрашиваем префаб: что автор поставил, то и
+                    // возвращаем.
+                    int back = 0, kinds = 0;
+                    var names = new HashSet<string>();
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<ParticleSystemRenderer>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (r == null) continue;
+
+                        var source = PrefabUtility.GetCorrespondingObjectFromSource(r);
+                        if (source == null) continue;
+
+                        var mine = r.sharedMaterials;
+                        var orig = source.sharedMaterials;
+
+                        bool touched = false;
+
+                        for (int i = 0; i < mine.Length && i < orig.Length; i++)
+                        {
+                            if (mine[i] == orig[i]) continue;
+
+                            if (names.Add(r.gameObject.name + ": " +
+                                          (mine[i] != null ? mine[i].name : "(пусто)") + " -> " +
+                                          (orig[i] != null ? orig[i].name : "(пусто)")))
+                                kinds++;
+
+                            mine[i] = orig[i];
+                            touched = true;
+                        }
+
+                        if (!touched) continue;
+
+                        r.sharedMaterials = mine;
+                        back++;
+                    }
+
+                    foreach (var n in names) Debug.Log("[IsoRPG] вернул частицам: " + n);
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Частицы: возвращён авторский материал у " + back +
+                              " эффектов, видов подмены " + kinds + ".");
+                    break;
+                }
+
+                case "mat-overrides":
+                {
+                    // Где наш материал лёг поверх авторского.
+                    //
+                    // Павлон 03.09.2026, увидев перекрашенные брызги: «а если
+                    // ты какие-то родные материалы затирал?» Вопрос честный, и
+                    // отвечать на него памятью нельзя: перекраска шла отбором
+                    // по куску имени, а он ловит не только то, что задумано.
+                    //
+                    // Спрашиваем не себя, а Unity: у объекта, поставленного из
+                    // префаба, есть источник, и разница между материалом
+                    // экземпляра и материалом источника — это ровно наша
+                    // правка, кем бы она ни была сделана. Список расхождений и
+                    // есть ответ.
+                    var swaps = new Dictionary<string, int>();
+                    int checkedCount = 0, changed = 0;
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<Renderer>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (r == null) continue;
+
+                        var source = PrefabUtility.GetCorrespondingObjectFromSource(r);
+                        if (source == null) continue;   // не из префаба, сравнивать не с чем
+
+                        checkedCount++;
+
+                        var mine = r.sharedMaterials;
+                        var orig = source.sharedMaterials;
+
+                        for (int i = 0; i < mine.Length && i < orig.Length; i++)
+                        {
+                            if (mine[i] == orig[i]) continue;
+
+                            string was = orig[i] != null ? orig[i].name : "(пусто)";
+                            string now = mine[i] != null ? mine[i].name : "(пусто)";
+
+                            string key = was + "  ->  " + now;
+                            swaps.TryGetValue(key, out int had);
+                            swaps[key] = had + 1;
+
+                            changed++;
+                        }
+                    }
+
+                    Debug.Log("[IsoRPG] Материалы: сверено с префабами " + checkedCount +
+                              " объектов, расходятся " + changed + ".");
+
+                    foreach (var pair in swaps.OrderByDescending(p => p.Value))
+                        Debug.Log("[IsoRPG] подмена x" + pair.Value + ": " + pair.Key);
+
+                    break;
+                }
+
+                case "water-probe":
+                {
+                    // Кого игра считает водой — и почему экран синеет на суше.
+                    //
+                    // Павлон 03.09.2026: у ручья пена закрашена цветом воды, а
+                    // при повороте камеры экран заливает синим, хотя герой
+                    // стоит на берегу. Обе жалобы проверяются числами, а не
+                    // рассуждением, поэтому печатаем ровно два факта: чем
+                    // покрашен каждый водный объект и какие из них накрывают
+                    // точку, где стоял герой.
+                    //
+                    // Подводный вид считает погружением попадание камеры в
+                    // габаритную КОРОБКУ рендерера. У наклонного ручья и у
+                    // плоской пены, лежащей на камнях, эта коробка не равна
+                    // воде: она прямоугольна, тянется вверх до истока и
+                    // накрывает берег. Если догадка верна, ниже будет видно
+                    // объект, чья коробка накрывает героя, стоящего посуху.
+                    var where = new Vector2(-2f, 126f);   // координаты с кадра Павлона
+
+                    int total = 0, caughtCount = 0, overHero = 0;
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<Renderer>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (r == null) continue;
+
+                        var mat = r.sharedMaterial;
+
+                        string matName = mat != null ? mat.name : "(нет материала)";
+                        string goName = r.gameObject.name;
+
+                        bool looksWater =
+                            matName.IndexOf("Water", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            goName.IndexOf("Water", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            goName.IndexOf("Foam", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            goName.IndexOf("Splash", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            goName.IndexOf("River", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                        if (!looksWater) continue;
+
+                        total++;
+
+                        // Ровно тот отбор, которым пользуется подводный вид.
+                        bool caught = mat != null && mat.name.Contains("Water_Lake");
+                        if (caught) caughtCount++;
+
+                        var b = r.bounds;
+
+                        bool covers = where.x >= b.min.x && where.x <= b.max.x &&
+                                      where.y >= b.min.z && where.y <= b.max.z;
+
+                        if (covers && caught) overHero++;
+
+                        // Печатаем всё, но помечаем виновных: список водных
+                        // объектов у автора длинный, а важны в нём двое —
+                        // покрашенные не тем и накрывающие сушу.
+                        Debug.Log("[IsoRPG] вода: «" + goName + "» материал «" + matName +
+                                  "» коробка " + b.size.x.ToString("0.0") + " x " +
+                                  b.size.y.ToString("0.0") + " x " + b.size.z.ToString("0.0") +
+                                  " м, верх Y " + b.max.y.ToString("0.00") +
+                                  (caught ? " | ЛОВИТ подводный вид" : "") +
+                                  (covers ? " | НАКРЫВАЕТ точку героя" : "") +
+                                  (r.gameObject.activeInHierarchy ? "" : " | выключен"));
+                    }
+
+                    Debug.Log("[IsoRPG] Вода, итог: похожих на воду объектов " + total +
+                              ", из них ловит подводный вид " + caughtCount +
+                              ", накрывают точку героя (" + where.x + ", " + where.y + ") — " +
+                              overHero + ".");
+                    break;
+                }
 
                 case "underwater":
                 {

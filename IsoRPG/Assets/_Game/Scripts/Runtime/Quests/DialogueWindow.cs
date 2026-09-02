@@ -135,8 +135,9 @@ namespace IsoRPG.Quests
             // потом общее по имени — тот же порядок, что в окне цели.
             var own = current.GetComponent<IsoRPG.Combat.Targetable>();
 
-            var art = (own != null ? own.Portrait : null)
-                      ?? IsoRPG.Combat.Portraits.For(current.DisplayName);
+            var art = IsoRPG.Combat.Portraits.ByKey(own != null ? own.PortraitKey : null)
+                      ?? IsoRPG.Combat.Portraits.For(current.DisplayName)
+                      ?? (own != null ? own.Portrait : null);
 
             face.sprite = art;
             face.enabled = art != null;

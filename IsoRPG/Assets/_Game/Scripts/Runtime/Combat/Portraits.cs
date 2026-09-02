@@ -94,6 +94,27 @@ namespace IsoRPG.Combat
             return sprite;
         }
 
+        /// <summary>
+        /// Портрет по имени файла, минуя таблицу имён.
+        ///
+        /// Для случаев, когда одно имя носят разные с виду существа: масти
+        /// волков, окрасы лошадей. Ключ ставится сборщиком на само существо.
+        /// </summary>
+        public static Sprite ByKey(string file)
+        {
+            if (string.IsNullOrEmpty(file)) return null;
+
+            if (loaded.TryGetValue(file, out var sprite)) return sprite;
+
+            sprite = Resources.Load<Sprite>(Folder + file);
+            loaded[file] = sprite;
+
+            if (sprite == null)
+                Debug.LogWarning("[IsoRPG] Нет портрета по ключу " + Folder + file + ".");
+
+            return sprite;
+        }
+
         /// <summary>Портрет собеседницы с квестом — она одна на игру.</summary>
         public static Sprite QuestGiver()
         {

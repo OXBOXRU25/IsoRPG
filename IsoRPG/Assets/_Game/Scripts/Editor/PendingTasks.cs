@@ -2574,6 +2574,66 @@ namespace IsoRPG.EditorTools
 
 
 
+                case "tree-collider-probe":
+                {
+                    // Чем закрыты деревья: стволом или кроной.
+                    //
+                    // От этого зависит, можно ли вернуть камере обход
+                    // препятствий. Павлон выключил его 01.09.2026 — «камера
+                    // прыгает на полный зум за деревьями», — и 03.09.2026,
+                    // разобрав кадры из WoW, понял механику: там камера
+                    // скользит по стволу, придвигаясь к герою. Значит дело
+                    // было не в механизме, а в том, ЧТО он находит: коллайдер
+                    // на всю крону ловит луч в нескольких метрах от ствола, и
+                    // камера дёргается посреди чистого места.
+                    //
+                    // Считаем по коллайдерам, а не по именам: у дерева важна
+                    // не порода, а то, какой формы у него физика и насколько
+                    // она шире ствола.
+                    var kinds = new Dictionary<string, int>();
+                    var widths = new List<float>();
+
+                    int trees = 0;
+
+                    foreach (var col in UnityEngine.Object.FindObjectsByType<Collider>(
+                                 FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                    {
+                        if (col == null) continue;
+
+                        string n = col.gameObject.name;
+
+                        if (n.IndexOf("Tree", StringComparison.OrdinalIgnoreCase) < 0 &&
+                            n.IndexOf("Bush", StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+                        trees++;
+
+                        string kind = col.GetType().Name;
+                        kinds.TryGetValue(kind, out int had);
+                        kinds[kind] = had + 1;
+
+                        var b = col.bounds;
+                        widths.Add(Mathf.Max(b.size.x, b.size.z));
+                    }
+
+                    widths.Sort();
+
+                    Debug.Log("[IsoRPG] Деревья и кусты с физикой: " + trees + ".");
+
+                    foreach (var pair in kinds.OrderByDescending(p => p.Value))
+                        Debug.Log("[IsoRPG] коллайдер " + pair.Key + ": " + pair.Value + " шт.");
+
+                    if (widths.Count > 0)
+                    {
+                        Debug.Log("[IsoRPG] Ширина физики, м: наименьшая " +
+                                  widths[0].ToString("0.0") + ", середина " +
+                                  widths[widths.Count / 2].ToString("0.0") + ", наибольшая " +
+                                  widths[widths.Count - 1].ToString("0.0") +
+                                  ". Ствол — это меньше метра; всё, что шире, есть крона.");
+                    }
+
+                    break;
+                }
+
                 case "hero-mat-probe":
                 {
                     // Чем покрашен герой и умеет ли это прозрачность.

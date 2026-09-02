@@ -308,12 +308,7 @@ namespace IsoRPG.EditorTools
                 bool white = spotInfo.Prefab.IndexOf("White",
                                  System.StringComparison.OrdinalIgnoreCase) >= 0;
 
-                var face = AssetDatabase.LoadAssetAtPath<Sprite>(
-                    "Assets/_Game/Resources/UI/Portraits/" +
-                    (white ? "Wolf_White" : "Wolf_Grey") + ".png");
-
-                if (face != null) targetable.SetPortrait(face);
-                else Debug.LogWarning("[IsoRPG] Портрета волка нет — масть останется без лица.");
+                targetable.SetPortraitKey(white ? "Wolf_White" : "Wolf_Grey");
 
                 var health = wolf.AddComponent<Health>();
                 health.Setup(Hp);

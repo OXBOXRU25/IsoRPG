@@ -3649,6 +3649,18 @@ namespace IsoRPG.EditorTools
                     HandProbe.Run();
                     break;
 
+                case "npc-idle":
+                    NpcIdleKit.Apply();
+                    break;
+
+                case "rpg-anim-probe":
+                    RpgAnimProbe.Run();
+                    break;
+
+                case "hero-anim-probe":
+                    HeroAnimProbe.Run();
+                    break;
+
                 case "hand-pose":
                     HandPose.Apply();
                     break;

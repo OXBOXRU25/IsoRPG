@@ -18,6 +18,7 @@
  *        --project <путь>   корень Unity-проекта (по умолчанию ./IsoRPG)
  *        --tmp <путь>       где распаковывать (по умолчанию D:/_unpack)
  *        --list             только показать, что внутри, ничего не класть
+ *        --depth=N          на сколько ступеней папок дробить список (по умолчанию 2)
  *        --skip-existing    не трогать уже лежащие файлы
  */
 
@@ -30,6 +31,7 @@ const packages = [];
 let project = 'D:/GAME Ai/IsoRPG';
 let tmpRoot = 'D:/_unpack';
 let listOnly = false;
+let listDepth = 2;
 let skipExisting = false;
 let only = null;
 
@@ -38,6 +40,7 @@ for (let i = 0; i < args.length; i++) {
   if (a === '--project') project = args[++i];
   else if (a === '--tmp') tmpRoot = args[++i];
   else if (a === '--list') listOnly = true;
+  else if (a.startsWith('--depth=')) listDepth = Math.max(2, parseInt(a.slice(8), 10) || 2);
   else if (a === '--skip-existing') skipExisting = true;
   else if (a === '--only') only = args[++i].toLowerCase();
   else packages.push(a);
@@ -103,7 +106,11 @@ for (const pkg of packages) {
         continue;
       }
 
-      const top = rel.split('/').slice(0, 2).join('/');
+      // Глубина опции --list: две ступени показывают только корень набора,
+      // а понять, ЧТО в нём лежит, можно лишь на третьей-четвёртой. Опись
+      // набора нужна до установки, иначе полтора гигабайта раскладываются
+      // ради ответа «а есть ли там кинжалы».
+      const top = rel.split('/').slice(0, listDepth).join('/');
       roots.set(top, (roots.get(top) || 0) + 1);
 
       if (listOnly) continue;

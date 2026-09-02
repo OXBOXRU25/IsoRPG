@@ -57,6 +57,19 @@ namespace IsoRPG.Quests
 
         public bool IsOpen => window != null && window.activeSelf;
 
+        /// <summary>
+        /// Разговор начался и кончился. Слушает жестикуляция НПС
+        /// (<see cref="IsoRPG.World.NpcGesture"/>): собеседник должен размахивать
+        /// руками, пока с ним говорят, а не стоять столбом.
+        ///
+        /// Статическое, потому что окно на клиенте одно. Иначе каждому НПС
+        /// пришлось бы самому мерить расстояние до игрока в кадре — а это ММО,
+        /// и такого мы себе не позволяем.
+        /// </summary>
+        public static event System.Action<QuestGiver> Started;
+
+        public static event System.Action<QuestGiver> Ended;
+
         private void Awake()
         {
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -88,13 +101,18 @@ namespace IsoRPG.Quests
             current = giver;
             window.SetActive(true);
 
+            Started?.Invoke(giver);
+
             IsoRPG.Audio.Sfx.OpenWindow();
             Refresh();
         }
 
         public void Close()
         {
+            var was = current;
             current = null;
+
+            if (was != null) Ended?.Invoke(was);
             if (window != null) window.SetActive(false);
         }
 

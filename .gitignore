@@ -176,6 +176,11 @@ unity-*.log
 
 # Наборы лошадей и живности — 600+ МБ, восстанавливаются из H:/2/Лошадь
 /IsoRPG/Assets/Malbers Animations/
+
+# RPG Animations Pack (DoubleL) — 6500 файлов анимаций, восстанавливается
+# из H:Большая анимация командой tools/import-unitypackage.mjs
+/IsoRPG/Assets/DoubleL/
+/IsoRPG/Assets/DoubleL.meta
 /IsoRPG/Assets/POLYGONHorse/
 
 # Листы иконок от генератора — исходники, в игру идут нарезанные

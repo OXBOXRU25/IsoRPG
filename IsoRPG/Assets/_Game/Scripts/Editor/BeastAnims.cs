@@ -188,11 +188,16 @@ namespace IsoRPG.EditorTools
             var idle = beast.GetComponent<IdleBehaviour>();
             if (idle == null) idle = beast.AddComponent<IdleBehaviour>();
 
-            if (kind.Rests != null && kind.Rests.Length > 0)
-            {
-                idle.SetKinds(kind.Rests);
-                EditorUtility.SetDirty(idle);
-            }
+            if (kind.Rests != null && kind.Rests.Length > 0) idle.SetKinds(kind.Rests);
+
+            // Длительность ставим числом здесь же: у уже расставленных
+            // компонентов в сцене лежат прежние 5–12 с, и правка умолчания в
+            // коде их не догонит. Двенадцати не хватало: цепочка «сесть —
+            // лечь — спать» и подъём съедают секунд шесть, и зверь буквально
+            // ложился на секунду и вставал (Павлон, 02.09.2026).
+            idle.SetTiming(new Vector2(10f, 24f), new Vector2(14f, 28f));
+
+            EditorUtility.SetDirty(idle);
 
             if (kind.HowlKind <= 0) return;
 

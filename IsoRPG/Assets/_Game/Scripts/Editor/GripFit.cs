@@ -28,16 +28,20 @@ namespace IsoRPG.EditorTools
     ///   - **ось рукояти** — линия оснований пальцев: у сжатого кулака рукоять
     ///     лежит вдоль неё. Направление клинка — от мизинца к указательному и
     ///     дальше, наружу;
-    ///   - **точка хвата** — середина этой линии, сдвинутая к кончикам пальцев
-    ///     на толщину рукояти: рукоять лежит в ложбине между согнутыми
-    ///     пальцами и ладонью, а не на самих косточках;
-    ///   - **разворот лезвия** — плашмя к ладони: нормаль к плоскости
-    ///     «рукоять × пальцы».
+    ///   - **точка хвата** — середина между основанием пальца и его кончиком,
+    ///     усреднённая по четырём пальцам, В СЖАТОМ КУЛАКЕ. Кончики там
+    ///     возвращаются к ладони, и эта середина попадает ровно внутрь
+    ///     захвата;
+    ///   - **разворот лезвия** — плашмя к ладони: гарда вдоль направления
+    ///     пальцев.
     ///
-    /// Что НЕ решается отсюда: пальцы. Их держит анимация, и в безоружной
-    /// стойке Synty ладонь раскрыта — рукоять она не обхватит, как её ни
-    /// клади. Это отдельная задача (слой с маской на кисть либо вооружённый
-    /// набор стоек ExplosiveLLC).
+    /// Мерить обязательно в сжатом кулаке. Первый заход мерил по раскрытой
+    /// ладони и добавлял догаданные 12 мм — Павлон сразу увидел итог:
+    /// «рукоять выходит за внешние пределы руки». У раскрытой ладони захвата
+    /// нет вовсе, и добавлять к ней нечего.
+    ///
+    /// Что НЕ решается отсюда: сами пальцы. Их держит анимация — этим
+    /// занимается задание `hand-pose`, слой с маской на кисть.
     /// </summary>
     public static class GripFit
     {
@@ -53,18 +57,31 @@ namespace IsoRPG.EditorTools
         private static readonly string[] LeftSlotBones = { "handslot.l", "prop_l", "hand_l" };
 
         /// <summary>
-        /// На сколько отодвинуть рукоять от косточек к кончикам пальцев, метры.
+        /// Клип, в котором кисть СЖАТА. Мерить надо в нём.
         ///
-        /// Половина толщины рукояти: она лежит в ложбине сжатого кулака, а не
-        /// на самих суставах. Единственное подбираемое число во всём расчёте.
+        /// Первый заход мерил по раскрытой ладони и добавлял подобранные 12 мм
+        /// «на толщину рукояти» — Павлон сразу увидел итог: «рукоять выходит за
+        /// внешние пределы руки, она не в сжатой ладони». Так и было: у
+        /// раскрытой ладони никакого захвата нет, и добавка была догадкой.
+        ///
+        /// В сжатом кулаке подбирать нечего: кончики пальцев возвращаются к
+        /// ладони, и между основанием и кончиком получается тот самый тоннель,
+        /// в котором лежит рукоять. Его середина — и есть точка хвата.
         /// </summary>
-        private const float HandleLift = 0.012f;
+        private const string FistClip =
+            "Assets/ExplosiveLLC/RPG Character Mecanim Animation Pack/Animations/" +
+            "Armed/RPG-Character@Armed-Idle.FBX";
 
         /// <summary>Посчитанное. Читает щуп, чтобы поставить это серединой ряда.</summary>
         public static Vector3 Grip { get; private set; } = new Vector3(-0.0904f, 0.0060f, 0.0259f);
         public static Vector3 Fitted { get; private set; } = new Vector3(6.47f, 93.00f, 178.34f);
         public static Vector3 GripLeft { get; private set; }
         public static Vector3 FittedLeft { get; private set; }
+
+        /// <summary>Куда «глубже в ладонь»: направление пальцев в системе держателя. Нужно щупу.</summary>
+        public static Vector3 DepthRight { get; private set; } = Vector3.forward;
+
+        public static Vector3 DepthLeft { get; private set; } = Vector3.forward;
 
         [MenuItem("Tools/IsoRPG/Оружие: пересчитать хват по костям", priority = 46)]
         public static void Apply()
@@ -86,11 +103,28 @@ namespace IsoRPG.EditorTools
 
             var hero = (GameObject)PrefabUtility.InstantiatePrefab(heroPrefab);
 
+            // Сжимаем кулак ДО замера: в раскрытой ладони мерить нечего.
+            var fist = AssetDatabase.LoadAllAssetsAtPath(FistClip)
+                                    .OfType<AnimationClip>()
+                                    .FirstOrDefault(c => !c.name.StartsWith("__preview"));
+
+            if (fist != null)
+            {
+                var keep = hero.transform.position;
+                fist.SampleAnimation(hero, 0f);
+                hero.transform.position = keep;
+            }
+            else
+            {
+                Debug.LogWarning("[IsoRPG] Клипа со сжатой кистью нет — замер пойдёт " +
+                                 "по раскрытой ладони и снова соврёт.");
+            }
+
             bool okRight = Fit(hero, "r", RightSlotBones, bladeLocal, guardLocal,
-                               out var gripR, out var anglesR, out string logR);
+                               out var gripR, out var anglesR, out var depthR, out string logR);
 
             bool okLeft = Fit(hero, "l", LeftSlotBones, bladeLocal, guardLocal,
-                              out var gripL, out var anglesL, out string logL);
+                              out var gripL, out var anglesL, out var depthL, out string logL);
 
             Object.DestroyImmediate(hero);
 
@@ -102,9 +136,10 @@ namespace IsoRPG.EditorTools
 
             Grip = gripR;
             Fitted = anglesR;
+            DepthRight = depthR;
 
-            if (okLeft) { GripLeft = gripL; FittedLeft = anglesL; }
-            else { GripLeft = gripR; FittedLeft = anglesR; }
+            if (okLeft) { GripLeft = gripL; FittedLeft = anglesL; DepthLeft = depthL; }
+            else { GripLeft = gripR; FittedLeft = anglesR; DepthLeft = depthR; }
 
             Debug.Log($"[IsoRPG] Хват посчитан по костям кисти.\n" +
                       $"  кинжал: {System.IO.Path.GetFileNameWithoutExtension(DaggerPath)}, " +
@@ -131,10 +166,11 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static bool Fit(GameObject hero, string side, string[] slotNames,
                                 Vector3 bladeLocal, Vector3 guardLocal,
-                                out Vector3 grip, out Vector3 angles, out string log)
+                                out Vector3 grip, out Vector3 angles, out Vector3 depth, out string log)
         {
             grip = Vector3.zero;
             angles = Vector3.zero;
+            depth = Vector3.forward;
             log = "  " + side + ": не посчиталось";
 
             var all = hero.GetComponentsInChildren<Transform>(true);
@@ -148,8 +184,14 @@ namespace IsoRPG.EditorTools
             var ring = all.FirstOrDefault(t => t.name == "ring_01_" + side);
             var tip = all.FirstOrDefault(t => t.name == "index_03_" + side);
 
+            // Кончики всех четырёх пальцев: в сжатом кулаке они возвращаются к
+            // ладони, и середина «основание — кончик» лежит внутри захвата.
+            var tips = new[] { "index", "middle", "ring", "pinky" }
+                .Select(f => all.FirstOrDefault(t => t.name == f + "_03_" + side))
+                .ToArray();
+
             if (slot == null || index == null || pinky == null || middle == null ||
-                ring == null || tip == null)
+                ring == null || tip == null || tips.Any(t => t == null))
             {
                 return false;
             }
@@ -173,10 +215,22 @@ namespace IsoRPG.EditorTools
 
             // --- точка хвата -------------------------------------------------
             //
-            // Середина линии оснований, отодвинутая к кончикам на толщину
-            // рукояти: она лежит в ложбине сжатого кулака, а не на суставах.
+            // Середина между основанием пальца и его кончиком, усреднённая по
+            // четырём пальцам. В сжатом кулаке кончики возвращаются к ладони,
+            // и эта середина попадает ровно внутрь захвата — там, где рукоять
+            // и лежит. Ничего подбирать не нужно: раньше здесь стояли
+            // догаданные 12 мм от косточек, и рукоять выходила за наружный
+            // край ладони.
+            var bases = new[] { index, middle, ring, pinky };
+
+            var handle = Vector3.zero;
+
+            for (int i = 0; i < 4; i++)
+                handle += (bases[i].position + tips[i].position) * 0.5f;
+
+            handle *= 0.25f;
+
             var knuckles = (index.position + middle.position + ring.position + pinky.position) * 0.25f;
-            var handle = knuckles + fingers * HandleLift;
 
             // --- в систему кости-держателя -----------------------------------
             grip = slot.InverseTransformPoint(handle);
@@ -188,6 +242,7 @@ namespace IsoRPG.EditorTools
             var to = Quaternion.LookRotation(bladeInSlot, guardInSlot);
 
             angles = (to * Quaternion.Inverse(from)).eulerAngles;
+            depth = slot.InverseTransformDirection(fingers);
 
             log = $"  {side}: держатель «{slot.name}», косточки {knuckles - slot.position}, " +
                   $"клинок в держателе {bladeInSlot}, гарда {guardInSlot}";

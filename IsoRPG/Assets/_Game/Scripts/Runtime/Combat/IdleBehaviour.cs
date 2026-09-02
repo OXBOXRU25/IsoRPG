@@ -23,10 +23,10 @@ namespace IsoRPG.Combat
         private static readonly int RestHash = Animator.StringToHash("Rest");
 
         [Tooltip("Через сколько секунд простоя начинает заниматься своим делом.")]
-        [SerializeField] private Vector2 pause = new Vector2(6f, 16f);
+        [SerializeField] private Vector2 pause = new Vector2(10f, 24f);
 
-        [Tooltip("Сколько длится занятие.")]
-        [SerializeField] private Vector2 length = new Vector2(5f, 12f);
+        [Tooltip("Сколько длится занятие. Цепочка «сесть — лечь — спать» и подъём съедают секунд шесть, поэтому не меньше десяти.")]
+        [SerializeField] private Vector2 length = new Vector2(14f, 28f);
 
         /// <summary>Потолок числа занятий. У кабана их четыре, у волка тоже.</summary>
         private const int MaxKinds = 6;
@@ -43,8 +43,24 @@ namespace IsoRPG.Combat
         /// </summary>
         public event System.Action<int> RestBegan;
 
+        /// <summary>Занят ли зверь своим делом. Мозг на это время не гоняет его гулять.</summary>
+        public bool Resting => current != 0;
+
         /// <summary>Список занятий от задания сборки. Оно знает его точно, из кода контроллера.</summary>
         public void SetKinds(int[] value) => kinds = value;
+
+        /// <summary>
+        /// Пауза между занятиями и длительность самого занятия, секунды.
+        ///
+        /// Ставится заданием, потому что значение в сцене перекрывает
+        /// умолчание в коде: уже расставленный компонент правку кода не
+        /// догоняет.
+        /// </summary>
+        public void SetTiming(Vector2 between, Vector2 howLong)
+        {
+            pause = between;
+            length = howLong;
+        }
 
         private Animator animator;
         private NavMeshAgent agent;
@@ -117,8 +133,8 @@ namespace IsoRPG.Combat
             bool moving = agent != null && agent.isActiveAndEnabled && agent.velocity.sqrMagnitude > 0.05f;
             bool alive = health == null || health.IsAlive;
 
-            // Мёртвый не ест, дерущийся не спит, идущий не сидит.
-            if (busy || moving || !alive)
+            // Мёртвый не ест, дерущийся не спит.
+            if (busy || !alive)
             {
                 Stop();
                 return;
@@ -130,6 +146,17 @@ namespace IsoRPG.Combat
                 return;
             }
 
+            // Движение мешает НАЧАТЬ занятие, но не обрывает начатое.
+            //
+            // Павлон 02.09.2026: «звери буквально ложатся на секунду и
+            // встают». Причина не в длине занятия — она и была 5–12 с, — а в
+            // том, что мозг зверя каждые полсекунды выдавал новую точку
+            // прогулки. Зверь трогался, проверка видела «идёт» и бросала
+            // занятие через полсекунды после начала. Прогулку на время покоя
+            // держит сам мозг (см. MonsterBrain.Patrol), а здесь достаточно
+            // не обрывать себя же.
+            if (moving) return;
+
             // Дошли до сюда — стоит, никого не видит, ничем не занят.
             current = kinds != null && kinds.Length > 0
                 ? kinds[Random.Range(0, kinds.Length)]
@@ -137,6 +164,10 @@ namespace IsoRPG.Combat
 
             until = Time.time + Random.Range(length.x, length.y);
             animator.SetInteger(RestHash, current);
+
+            // Путь сбрасываем сразу: у зверя мог остаться недойденный маршрут
+            // прогулки, и он бы поехал по нему лёжа.
+            if (agent != null && agent.isActiveAndEnabled && agent.isOnNavMesh) agent.ResetPath();
 
             RestBegan?.Invoke(current);
         }

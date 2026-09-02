@@ -61,25 +61,18 @@ namespace IsoRPG.EditorTools
         /// самого оружия, — так каждая проба поворачивает клинок вокруг его
         /// собственной оси, а не вокруг оси мира.
         /// </summary>
-        private static readonly Vector3[] Deltas =
+        private static readonly float[] Deltas =
         {
-            new Vector3(   0f,   0f,   0f),   // как посчитано по костям
-            new Vector3(   0f,  90f,   0f),   // прокрутка вокруг оси клинка
-            new Vector3(   0f, 180f,   0f),
-            new Vector3(   0f, 270f,   0f),
-            new Vector3( 180f,   0f,   0f),   // клинок в другую сторону — обратный хват
-            new Vector3( 180f,  90f,   0f),
-            new Vector3(   0f,   0f, 180f),
-            new Vector3(   0f,   0f,  90f),
+            -0.012f, -0.008f, -0.004f, 0f, 0.004f, 0.008f, 0.012f, 0.016f,
         };
 
         /// <summary>Боевой клип: на нём и надо смотреть, а не на стойке.</summary>
         private const string AttackClip =
             "Assets/ExplosiveLLC/RPG Character Mecanim Animation Pack/Animations/" +
-            "1Hand-Dagger/RPG-Character@Dagger-Attack-R1.FBX";
+            "Armed/RPG-Character@Armed-Idle.FBX";
 
         /// <summary>Доля клипа, на которой замах раскрыт и клинок весь виден.</summary>
-        private const float AttackAt = 0.45f;
+        private const float AttackAt = 0f;
 
         /// <summary>Куда смотреть камере: середина ряда и кулак первого варианта.</summary>
         public static Vector3 Centre { get; private set; } = new Vector3(0f, 1.35f, 0f);
@@ -112,15 +105,17 @@ namespace IsoRPG.EditorTools
             var sun = new GameObject("Солнце").AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.transform.rotation = Quaternion.Euler(45f, 25f, 0f);
-            sun.intensity = 1.3f;
+            sun.intensity = 1.6f;
 
-            RenderSettings.ambientLight = new Color(0.45f, 0.45f, 0.5f);
+            RenderSettings.ambientLight = new Color(0.62f, 0.62f, 0.66f);
 
             var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
             ground.name = "Земля";
             ground.transform.localScale = Vector3.one * 4f;
 
-            float step = 0.85f;
+            // Шире метра: у соседей клинки торчат в стороны и перекрывают друг
+            // друга — ряд становится нечитаемым ровно там, где его смотрят.
+            float step = 1.5f;
 
             // Герои стоят лицом к камере: судить хват со спины нельзя, кисть
             // закрыта телом. Камера снимает с юга (yaw 180), значит герой
@@ -129,10 +124,14 @@ namespace IsoRPG.EditorTools
 
             for (int i = 0; i < Deltas.Length; i++)
             {
-                var angles = (Quaternion.Euler(Current) * Quaternion.Euler(Deltas[i])).eulerAngles;
+                // Ряд идёт по ГЛУБИНЕ посадки: Павлон 02.09.2026 назвал ровно
+                // это — «рукоять выходит за внешние пределы руки, надо сажать
+                // глубже в ладонь». Доворот при этом один на весь ряд.
+                var deeper = Grip + GripFit.DepthRight * Deltas[i];
+                var deeperLeft = GripFit.GripLeft + GripFit.DepthLeft * Deltas[i];
 
                 var hero = (GameObject)PrefabUtility.InstantiatePrefab(heroPrefab);
-                hero.name = (i + 1) + ". доворот " + Deltas[i];
+                hero.name = (i + 1) + ". глубже на " + (Deltas[i] * 1000f).ToString("0") + " мм";
                 hero.transform.position = new Vector3((i - (Deltas.Length - 1) * 0.5f) * step, 0f, 0f);
                 hero.transform.rotation = facing;
 
@@ -159,8 +158,8 @@ namespace IsoRPG.EditorTools
                 }
 
                 var blade = (GameObject)PrefabUtility.InstantiatePrefab(daggerPrefab, bone);
-                blade.transform.localPosition = Grip;
-                blade.transform.localRotation = Quaternion.Euler(angles);
+                blade.transform.localPosition = deeper;
+                blade.transform.localRotation = Quaternion.Euler(Current);
                 blade.transform.localScale = Vector3.one;
 
                 // Второй клинок — в левую, СВОИМИ числами, а не отражением.
@@ -174,9 +173,8 @@ namespace IsoRPG.EditorTools
                 if (leftBone != null)
                 {
                     var second = (GameObject)PrefabUtility.InstantiatePrefab(daggerPrefab, leftBone);
-                    second.transform.localPosition = GripFit.GripLeft;
-                    second.transform.localRotation =
-                        Quaternion.Euler(GripFit.FittedLeft) * Quaternion.Euler(Deltas[i]);
+                    second.transform.localPosition = deeperLeft;
+                    second.transform.localRotation = Quaternion.Euler(GripFit.FittedLeft);
                     second.transform.localScale = Vector3.one;
                 }
 
@@ -190,8 +188,8 @@ namespace IsoRPG.EditorTools
             EditorSceneManager.SaveScene(scene, "Assets/_Game/Scenes/GripProbe.unity");
 
             Debug.Log("[IsoRPG] Щуп хвата: " + Deltas.Length + " вариантов слева направо, " +
-                      "основа " + Current + ", довороты — " +
-                      string.Join(" | ", Deltas.Select(d => d.ToString())) +
+                      "доворот " + Current + ", глубина — " +
+                      string.Join(" | ", Deltas.Select(d => (d * 1000f).ToString("0") + " мм")) +
                       ". Кость: " + string.Join("/", RightSlotBones) +
                       ", кинжал " + System.IO.Path.GetFileNameWithoutExtension(Dagger) +
                       ", поза — середина замаха, кулак на высоте " + FirstHand.y.ToString("0.00") + " м.");

@@ -47,6 +47,7 @@ namespace IsoRPG.Combat
         // по-разному, но выбирают цель одинаково.
         private ICombatant combat;
         private Targetable self;
+        private IdleBehaviour idle;
 
         private Vector3 homePosition;
         private float chaseSpeed;
@@ -102,6 +103,11 @@ namespace IsoRPG.Combat
             agent = GetComponent<NavMeshAgent>();
             combat = GetComponent<ICombatant>();
             self = GetComponent<Targetable>();
+
+            // Праздное поведение: пока зверь занят своим делом, прогулку
+            // держим. Ссылку берём один раз — это ММО, GetComponent в кадре
+            // нам не по карману.
+            idle = GetComponent<IdleBehaviour>();
 
             homePosition = transform.position;
 
@@ -274,6 +280,13 @@ namespace IsoRPG.Combat
         private void Patrol()
         {
             if (agent == null || !agent.isOnNavMesh || patrolRadius <= 0.01f) return;
+
+            // Занят своим делом — не гоняем гулять.
+            //
+            // Без этого прогулка обрывала покой через полсекунды после
+            // начала: зверь ложился и тут же вставал, потому что получал
+            // новую точку маршрута. Павлон 02.09.2026 увидел это первым.
+            if (idle != null && idle.Resting) return;
 
             // Путь ещё считается или ещё идём — не мешаем.
             if (agent.pathPending) return;

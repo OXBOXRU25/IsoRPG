@@ -3664,7 +3664,7 @@ namespace IsoRPG.EditorTools
                     // посчитанного, с двух сторон: с одного ракурса клинок
                     // закрывает кисть, и половина выводов делается о том, чего
                     // не видно (урок примерки в Blender, память проекта).
-                    SceneEye.Shot("grip", GripProbe.Centre, 5.2f, 6f, 180f);
+                    SceneEye.Shot("grip", GripProbe.Centre, 7.2f, 4f, 180f);
                     SceneEye.Shot("grip-one", GripProbe.FirstHand, 0.85f, 8f, 180f);
                     SceneEye.Shot("grip-one-side", GripProbe.FirstHand, 0.85f, 14f, 265f);
                     break;

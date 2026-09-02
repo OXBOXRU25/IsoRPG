@@ -63,7 +63,7 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static readonly float[] Deltas =
         {
-            -0.012f, -0.008f, -0.004f, 0f, 0.004f, 0.008f, 0.012f, 0.016f,
+            -90f, -45f, -22f, 0f, 22f, 45f,
         };
 
         /// <summary>Боевой клип: на нём и надо смотреть, а не на стойке.</summary>
@@ -127,11 +127,17 @@ namespace IsoRPG.EditorTools
                 // Ряд идёт по ГЛУБИНЕ посадки: Павлон 02.09.2026 назвал ровно
                 // это — «рукоять выходит за внешние пределы руки, надо сажать
                 // глубже в ладонь». Доворот при этом один на весь ряд.
-                var deeper = Grip + GripFit.DepthRight * Deltas[i];
-                var deeperLeft = GripFit.GripLeft + GripFit.DepthLeft * Deltas[i];
+                // Ряд идёт по ПРОВОРОТУ вокруг оси клинка, от посчитанного
+                // значения: Павлон 02.09.2026 сказал «развернуть в правую
+                // сторону примерно наполовину», а какая сторона правая с
+                // точки зрения модели — из слов не выводится. Ряд решает это
+                // за один кадр вместо переписки.
+                var deeper = Grip;
+                var deeperLeft = GripFit.GripLeft;
+                var roll = Quaternion.Euler(0f, Deltas[i], 0f);
 
                 var hero = (GameObject)PrefabUtility.InstantiatePrefab(heroPrefab);
-                hero.name = (i + 1) + ". глубже на " + (Deltas[i] * 1000f).ToString("0") + " мм";
+                hero.name = (i + 1) + ". проворот " + Deltas[i].ToString("0") + " градусов";
                 hero.transform.position = new Vector3((i - (Deltas.Length - 1) * 0.5f) * step, 0f, 0f);
                 hero.transform.rotation = facing;
 
@@ -159,7 +165,7 @@ namespace IsoRPG.EditorTools
 
                 var blade = (GameObject)PrefabUtility.InstantiatePrefab(daggerPrefab, bone);
                 blade.transform.localPosition = deeper;
-                blade.transform.localRotation = Quaternion.Euler(Current);
+                blade.transform.localRotation = Quaternion.Euler(Current) * roll;
                 blade.transform.localScale = Vector3.one;
 
                 // Второй клинок — в левую, СВОИМИ числами, а не отражением.
@@ -174,7 +180,7 @@ namespace IsoRPG.EditorTools
                 {
                     var second = (GameObject)PrefabUtility.InstantiatePrefab(daggerPrefab, leftBone);
                     second.transform.localPosition = deeperLeft;
-                    second.transform.localRotation = Quaternion.Euler(GripFit.FittedLeft);
+                    second.transform.localRotation = Quaternion.Euler(GripFit.FittedLeft) * roll;
                     second.transform.localScale = Vector3.one;
                 }
 
@@ -189,7 +195,7 @@ namespace IsoRPG.EditorTools
 
             Debug.Log("[IsoRPG] Щуп хвата: " + Deltas.Length + " вариантов слева направо, " +
                       "доворот " + Current + ", глубина — " +
-                      string.Join(" | ", Deltas.Select(d => (d * 1000f).ToString("0") + " мм")) +
+                      string.Join(" | ", Deltas.Select(d => d.ToString("0") + " гр")) +
                       ". Кость: " + string.Join("/", RightSlotBones) +
                       ", кинжал " + System.IO.Path.GetFileNameWithoutExtension(Dagger) +
                       ", поза — середина замаха, кулак на высоте " + FirstHand.y.ToString("0.00") + " м.");

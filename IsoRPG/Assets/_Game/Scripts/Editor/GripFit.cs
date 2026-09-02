@@ -72,6 +72,25 @@ namespace IsoRPG.EditorTools
             "Assets/ExplosiveLLC/RPG Character Mecanim Animation Pack/Animations/" +
             "Armed/RPG-Character@Armed-Idle.FBX";
 
+        /// <summary>
+        /// Прокрутка вокруг оси клинка, градусы. Правка Павлона по кадру
+        /// 02.09.2026: «кинжал лежит плашмя, надо развернуть в правую сторону
+        /// примерно наполовину» — то есть на половину прямого угла, из
+        /// положения плашмя к ребру. Наклон при этом не меняется: вращение
+        /// идёт вокруг самого клинка.
+        ///
+        /// Вокруг ЛОКАЛЬНОЙ оси Y модели: у кинжалов Synty клинок идёт вдоль
+        /// неё, значит это и есть его собственная ось.
+        /// </summary>
+        private const float Roll = 45f;
+
+        /// <summary>
+        /// Доводка глубины сверх расчёта, метры. Ноль — чистый расчёт по
+        /// костям. Правится только по кадру от Павлона: «немного сильнее в
+        /// глубь ладони».
+        /// </summary>
+        private const float DepthNudge = 0.005f;
+
         /// <summary>Посчитанное. Читает щуп, чтобы поставить это серединой ряда.</summary>
         public static Vector3 Grip { get; private set; } = new Vector3(-0.0904f, 0.0060f, 0.0259f);
         public static Vector3 Fitted { get; private set; } = new Vector3(6.47f, 93.00f, 178.34f);
@@ -241,8 +260,12 @@ namespace IsoRPG.EditorTools
             var from = Quaternion.LookRotation(bladeLocal, guardLocal);
             var to = Quaternion.LookRotation(bladeInSlot, guardInSlot);
 
-            angles = (to * Quaternion.Inverse(from)).eulerAngles;
+            // Прокрутка вокруг клинка и доводка глубины — уже поверх расчёта.
+            var fitted = to * Quaternion.Inverse(from) * Quaternion.Euler(0f, Roll, 0f);
+
+            angles = fitted.eulerAngles;
             depth = slot.InverseTransformDirection(fingers);
+            grip += depth * DepthNudge;
 
             log = $"  {side}: держатель «{slot.name}», косточки {knuckles - slot.position}, " +
                   $"клинок в держателе {bladeInSlot}, гарда {guardInSlot}";

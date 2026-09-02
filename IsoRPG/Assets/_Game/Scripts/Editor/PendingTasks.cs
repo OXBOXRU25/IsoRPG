@@ -3671,6 +3671,10 @@ namespace IsoRPG.EditorTools
                     HeroAnimProbe.Run();
                     break;
 
+                case "hero-move":
+                    HeroMoveKit.Apply();
+                    break;
+
                 case "hand-pose":
                     HandPose.Apply();
                     break;

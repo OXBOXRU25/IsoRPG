@@ -49,6 +49,13 @@ namespace IsoRPG.EditorTools
         /// не выводилось, поэтому щуп `npc-poses` ставит их в ряд одним
         /// кадром: одна сборка вместо круга переписки.
         ///
+        /// Серия B выброшена 03.09.2026: Павлон увидел стойку, где персонаж
+        /// поднимает обе руки и раскачивает таз. По кадру такое не найти —
+        /// качание это движение, а кадр статичен. Нашлось замером: щуп
+        /// считает размах кривых корня, и обе стойки серии B оказались в
+        /// лидерах (2.3 см вбок и 11 градусов поворота против 0.6 и 3.2 у
+        /// базовой).
+        ///
         /// Махание и жестикуляцию ведёт
         /// <see cref="IsoRPG.World.NpcGesture"/>.
         /// </summary>
@@ -57,8 +64,6 @@ namespace IsoRPG.EditorTools
             ("Base Move/Stand_Idle/Idle", "Stand_Idle_A_2"),
             ("Base Move/Stand_Idle/Idle", "Stand_Idle_A_3"),
             ("Base Move/Stand_Idle/Idle", "Stand_Idle_A_4"),
-            ("Base Move/Stand_Idle/Idle", "Stand_Idle_B_1"),
-            ("Base Move/Stand_Idle/Idle", "Stand_Idle_B_2"),
             ("NPC/Wipe Forehead", "Wipe_Forehead"),
             ("NPC/Think", "Think_All"),
         };

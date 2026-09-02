@@ -166,7 +166,7 @@ namespace IsoRPG.Cameras
         /// мигание, а не как в WoW, где персонаж тает плавно, пока камера
         /// опускается.
         /// </summary>
-        private const float FadeFrom = 2.5f;
+        private const float FadeFrom = 1.3f;
 
         /// <summary>
         /// Насколько камера держится выше грунта, метры.
@@ -787,6 +787,20 @@ namespace IsoRPG.Cameras
                 renderer.enabled = alpha > 0.01f;
 
                 if (!renderer.enabled) continue;
+
+                // Оружие не растворяем, а гасим порогом.
+                //
+                // Прозрачный режим выключает запись глубины, и клинки в нём
+                // начинают тонуть за телом: Павлон 03.09.2026 поймал ракурс,
+                // где кинжалы есть, а от поворота на сантиметр пропадают.
+                // Тело — скелетный меш, оружие — обычный, и это надёжный
+                // признак: он не зависит от того, вспомнил ли я все имена
+                // клинков, луков и щитов, которые появятся потом.
+                if (!(renderer is SkinnedMeshRenderer))
+                {
+                    renderer.enabled = alpha > 0.5f;
+                    continue;
+                }
 
                 SetFadeMode(renderer, solid);
 

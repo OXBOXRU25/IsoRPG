@@ -162,7 +162,21 @@ namespace IsoRPG.Player
 
             if (giver != null)
             {
-                hud.ShowNeutral(giver.DisplayName, IsoRPG.Combat.Portraits.QuestGiver());
+                // Лицо берём общим путём, а не отдельным вызовом
+                // «портрет квестодателя».
+                //
+                // Тот вызов грузил файл по жёстко вписанному имени
+                // Quest_Giver — а 03.09.2026 Павлон отдал новый набор
+                // портретов, старый файл был заменён, и панель мирного
+                // осталась с пустым чёрным квадратом. Причём в окне
+                // разговора лицо при этом было: там путь другой. Один
+                // источник истины лечит оба места разом.
+                var own = giver.GetComponent<IsoRPG.Combat.Targetable>();
+
+                hud.ShowNeutral(giver.DisplayName,
+                                IsoRPG.Combat.Portraits.ByKey(own != null ? own.PortraitKey : null)
+                                ?? IsoRPG.Combat.Portraits.For(giver.DisplayName)
+                                ?? (own != null ? own.Portrait : null));
             }
         }
 

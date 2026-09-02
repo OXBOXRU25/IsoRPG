@@ -906,7 +906,9 @@ namespace IsoRPG.EditorTools
                 LoadButtonIcon("UI_Character"),
                 LoadButtonIcon("UI_Journal"),
                 LoadButtonIcon("UI_Talents"),
-                LoadButtonIcon("UI_Settings"));
+                LoadButtonIcon("UI_Settings"),
+                LoadButtonIcon("UI_Map"),
+                LoadButtonIcon("UI_Guild"));
 
             EditorUtility.SetDirty(bar);
         }

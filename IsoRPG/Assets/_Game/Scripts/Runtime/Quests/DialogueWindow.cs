@@ -133,14 +133,13 @@ namespace IsoRPG.Quests
 
             // Лицо собеседника. Сначала своё, назначенное этому существу,
             // потом общее по имени — тот же порядок, что в окне цели.
-            var own = current.GetComponent<IsoRPG.Combat.Targetable>();
-
-            var art = IsoRPG.Combat.Portraits.ByKey(own != null ? own.PortraitKey : null)
-                      ?? IsoRPG.Combat.Portraits.For(current.DisplayName)
-                      ?? (own != null ? own.Portrait : null);
-
-            face.sprite = art;
-            face.enabled = art != null;
+            // Портрета в окне задания нет намеренно.
+            //
+            // Я его сюда добавил, решив, что «у НПС нет лица» — про разговор.
+            // Оказалось, про панель мирного сверху, а в самом окне задания
+            // портрет только отнимает место у текста. Павлон 03.09.2026: «в
+            // окне с квестом она там вообще не нужна».
+            face.enabled = false;
 
             bool offering = current.State == QuestState.Available;
             bool turningIn = current.State == QuestState.ReadyToTurnIn;
@@ -392,6 +391,7 @@ namespace IsoRPG.Quests
             faceRect.anchorMax = new Vector2(0f, 1f);
             faceRect.pivot = new Vector2(0f, 1f);
             faceRect.anchoredPosition = new Vector2(Pad, -Pad);
+            faceRect.sizeDelta = Vector2.zero;
             faceRect.sizeDelta = new Vector2(FaceSize, FaceSize);
             face.preserveAspect = true;
             face.enabled = false;
@@ -401,8 +401,8 @@ namespace IsoRPG.Quests
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);
             titleRect.pivot = new Vector2(0f, 1f);
-            titleRect.anchoredPosition = new Vector2(Pad + FaceSize + 8f, -Pad);
-            titleRect.sizeDelta = new Vector2(-(Pad * 2f + FaceSize + 8f), 22f);
+            titleRect.anchoredPosition = new Vector2(Pad, -Pad);
+            titleRect.sizeDelta = new Vector2(-Pad * 2f, 22f);
             title.alignment = TextAnchor.MiddleCenter;
 
             // Разделы колонкой, как в образце: название задания, описание,
@@ -415,7 +415,7 @@ namespace IsoRPG.Quests
             content.anchorMin = Vector2.zero;
             content.anchorMax = Vector2.one;
             content.offsetMin = new Vector2(Pad, Pad + ButtonsArea);
-            content.offsetMax = new Vector2(-Pad, -(Pad + FaceSize + 6f));
+            content.offsetMax = new Vector2(-Pad, -(Pad + 30f));
 
             var layout = contentGo.GetComponent<VerticalLayoutGroup>();
             layout.childAlignment = TextAnchor.UpperLeft;

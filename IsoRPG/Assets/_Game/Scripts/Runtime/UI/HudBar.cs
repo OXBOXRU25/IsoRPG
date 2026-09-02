@@ -37,23 +37,28 @@ namespace IsoRPG.UI
         private const float Margin = 18f;
         private const float BottomOffset = 28f;
 
-        [Tooltip("Иконки кнопок: сумка, персонаж, журнал, настройки.")]
+        [Tooltip("Иконки кнопок нижнего ряда.")]
         [SerializeField] private Sprite bagIcon;
         [SerializeField] private Sprite characterIcon;
         [SerializeField] private Sprite journalIcon;
         [SerializeField] private Sprite settingsIcon;
         [SerializeField] private Sprite talentsIcon;
+        [SerializeField] private Sprite mapIcon;
+        [SerializeField] private Sprite guildIcon;
 
         private Font font;
 
         public void SetupIcons(Sprite bag, Sprite character, Sprite journal,
-                               Sprite talents, Sprite settings)
+                               Sprite talents, Sprite settings,
+                               Sprite map, Sprite guild)
         {
             bagIcon = bag;
             characterIcon = character;
             journalIcon = journal;
             talentsIcon = talents;
             settingsIcon = settings;
+            mapIcon = map;
+            guildIcon = guild;
         }
 
         private void Start()
@@ -97,23 +102,39 @@ namespace IsoRPG.UI
             var settings = GetComponent<SettingsWindow>();
             var talents = GetComponent<TalentWindow>();
 
-            // Порядок справа налево: ближе к углу то, чем пользуются чаще.
+            // Порядок справа налево, выбран Павлоном 03.09.2026:
+            // сумка, настройки, карта мира, квесты, гильдия, таланты,
+            // персонаж. Нулевой слот — самый правый, у угла экрана.
             int slot = 0;
 
             MakeButton(root, slot++, bagIcon, "I", "Сумка",
                 "Добыча, снаряжение и золото", () => { if (inventory != null) inventory.Toggle(); });
 
-            MakeButton(root, slot++, characterIcon, "C", "Персонаж",
-                "Надетые вещи и характеристики", () => { if (character != null) character.Toggle(); });
+            MakeButton(root, slot++, settingsIcon, "Esc", "Настройки",
+                "Громкость и управление", () => { if (settings != null) settings.Toggle(); });
+
+            // Карта и гильдия — кнопки есть, окон за ними пока нет.
+            //
+            // Ставим их сейчас, потому что порядок ряда — решение о виде, и
+            // менять его потом означало бы переучивать руку. Нажатие честно
+            // говорит, что раздела ещё нет: молчащая кнопка читается как
+            // поломка, а не как «пока не сделано».
+            MakeButton(root, slot++, mapIcon, "M", "Карта мира",
+                "Пока не готова", () => IsoRPG.Combat.CombatLog.Add(
+                    Loc.T("Карта мира ещё не готова."), IsoRPG.Combat.LogKind.System));
 
             MakeButton(root, slot++, journalIcon, "J", "Журнал заданий",
                 "Взятые задания и награды", () => { if (journal != null) journal.Toggle(); });
 
+            MakeButton(root, slot++, guildIcon, "G", "Гильдия",
+                "Пока не готова", () => IsoRPG.Combat.CombatLog.Add(
+                    Loc.T("Гильдии ещё не готовы."), IsoRPG.Combat.LogKind.System));
+
             MakeButton(root, slot++, talentsIcon, "N", "Таланты",
                 "Три ветки, очко за уровень", () => { if (talents != null) talents.Toggle(); });
 
-            MakeButton(root, slot++, settingsIcon, "Esc", "Настройки",
-                "Громкость и управление", () => { if (settings != null) settings.Toggle(); });
+            MakeButton(root, slot++, characterIcon, "C", "Персонаж",
+                "Надетые вещи и характеристики", () => { if (character != null) character.Toggle(); });
         }
 
         private void MakeButton(RectTransform root, int slot, Sprite icon, string key,
@@ -132,9 +153,13 @@ namespace IsoRPG.UI
 
             var image = go.GetComponent<Image>();
 
-            // Иконки нарезаны вместе со своей тёмной подложкой, поэтому
-            // отдельная плашка под ними не нужна. Если иконки нет — рисуем
-            // хотя бы квадрат, чтобы кнопка не превратилась в пустоту.
+            // Иконки идут без подложки — Павлон нарисовал новый набор
+            // 03.09.2026 прозрачными PNG. Отдельная плашка под ними не
+            // заводится нарочно: рамка вокруг каждой кнопки спорила бы с
+            // рисунком и утяжеляла угол экрана.
+            //
+            // Если иконки нет — рисуем хотя бы квадрат, чтобы кнопка не
+            // превратилась в пустоту.
             if (icon != null)
             {
                 image.sprite = icon;

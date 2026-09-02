@@ -31,28 +31,64 @@ const SHADER =
 const DECL = "uniform float4 _CameraDepthTexture_TexelSize;";
 const GUARD = "UNITY_DECLARE_DEPTH_TEXTURE_INCLUDED";
 
+// Вторая правка того же файла: гладь видна с ОБЕИХ сторон.
+//
+// Шейдер отсекает изнанку жёстко, строкой `Cull Back` в главном проходе, и
+// свойства `_Cull` у материала нет — поэтому задание «underwater», которое
+// раньше включало двусторонность настройкой материала, на авторской воде не
+// работает вовсе и честно докладывает «сделано двусторонними 1» (это наш
+// собственный материал на штатном URP-шейдере).
+//
+// Зачем двусторонность. Гладь — плоскость гранями вверх; опустив камеру ниже
+// уровня воды, игрок смотрит на её изнанку, а изнанка не рисуется — водоём
+// исчезает целиком. Павлон 03.09.2026 увидел это, опустив камеру у пруда, и
+// принял за баг камеры.
+const CULL_FROM = "Cull Back";
+const CULL_TO = "Cull Off";
+
 const text = readFileSync(SHADER, "utf8");
 
 // Идемпотентность проверяем по СТРАЖУ, а не по имени переменной: имя есть в
 // файле и до правки, и после неё, поэтому проверка по нему всегда говорила бы
 // «уже сделано».
+let patched = text;
+let changed = false;
+
+// Правка 1: переопределение переменной глубины.
 if (text.includes(GUARD)) {
-  console.log("Шейдер воды уже пропатчен — страж на месте, ничего не меняю.");
+  console.log("Объявление глубины уже обёрнуто — пропускаю.");
+} else {
+  const found = text.split(DECL).length - 1;
+
+  if (found === 0) {
+    console.error("Не нашёл объявления глубины — набор изменился, править надо заново.");
+    process.exit(1);
+  }
+
+  patched = patched.replaceAll(DECL, `#ifndef ${GUARD}\n\t\t\t${DECL}\n\t\t\t#endif`);
+  changed = true;
+
+  console.log(`Объявлений глубины обёрнуто: ${found}.`);
+}
+
+// Правка 2: гладь с обеих сторон. Вхождение одно — главный проход; в двух
+// других проходах у автора уже стоит Cull Off, их трогать нечего.
+const culls = patched.split(CULL_FROM).length - 1;
+
+if (culls === 0) {
+  console.log("Отсечение изнанки уже снято — пропускаю.");
+} else {
+  patched = patched.replaceAll(CULL_FROM, CULL_TO);
+  changed = true;
+
+  console.log(`Отсечение изнанки снято в проходах: ${culls}.`);
+}
+
+if (!changed) {
+  console.log("Шейдер воды уже пропатчен целиком, ничего не меняю.");
   process.exit(0);
 }
 
-const before = text.split(DECL).length - 1;
-
-if (before === 0) {
-  console.error("Не нашёл объявления в шейдере — набор изменился, править надо заново.");
-  process.exit(1);
-}
-
-const patched = text.replaceAll(
-  DECL,
-  `#ifndef ${GUARD}\n\t\t\t${DECL}\n\t\t\t#endif`
-);
-
 writeFileSync(SHADER, patched, "utf8");
 
-console.log(`Шейдер воды пропатчен: объявлений обёрнуто ${before}.`);
+console.log("Шейдер воды записан.");

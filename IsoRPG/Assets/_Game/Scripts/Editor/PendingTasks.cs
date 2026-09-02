@@ -2574,6 +2574,167 @@ namespace IsoRPG.EditorTools
 
 
 
+                case "rock-probe":
+                {
+                    // Видит ли камера скалы, в которые проваливается.
+                    //
+                    // Павлон 03.09.2026 спрыгнул с горы в точке (121, 142) и
+                    // получил кадр изнутри камня. Защита камеры отбирает
+                    // препятствия СЛОЕМ и стреляет лучом от героя — то и
+                    // другое уже чинили. Прежде чем чинить в третий раз,
+                    // проверяем то, чего никто не проверял: а есть ли у этих
+                    // скал коллайдер вообще. Луч не видит того, чего нет в
+                    // физике, и выглядит это ровно как «защита не работает».
+                    //
+                    // Мелкий декор мы намеренно лишали коллайдеров по размеру
+                    // (порог 0.9 м) — если под ту же гребёнку попали скалы,
+                    // причина здесь.
+                    var at = new Vector3(121f, 0f, 142f);
+                    const float Around = 20f;
+
+                    int big = 0, withCollider = 0;
+                    var report = new List<string>();
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+                                 FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                    {
+                        if (r == null) continue;
+
+                        var b = r.bounds;
+
+                        // Рядом по горизонтали и крупное: скалы, а не трава.
+                        if (Mathf.Abs(b.center.x - at.x) > Around) continue;
+                        if (Mathf.Abs(b.center.z - at.z) > Around) continue;
+                        if (b.size.y < 2f && b.size.x < 2f) continue;
+
+                        big++;
+
+                        // Коллайдер ищем и ВВЕРХ по иерархии, а не только на
+                        // себе и в детях. У префабов набора рендерер сидит в
+                        // дочернем узле уровня детализации, а коллайдер — на
+                        // корне; первая версия щупа этого не знала и выдала
+                        // «крупных 113, с коллайдером 7», обвинив в бесплотности
+                        // деревья, у которых физика на месте.
+                        var col = r.GetComponentInParent<Collider>();
+                        if (col == null) col = r.GetComponentInChildren<Collider>();
+
+                        if (col != null) withCollider++;
+
+                        report.Add("«" + r.gameObject.name + "» слой " +
+                                   LayerMask.LayerToName(r.gameObject.layer) +
+                                   ", размер " + b.size.x.ToString("0.0") + " x " +
+                                   b.size.y.ToString("0.0") + " x " + b.size.z.ToString("0.0") +
+                                   ", коллайдер " + (col == null ? "НЕТ" : col.GetType().Name));
+                    }
+
+                    foreach (var line in report.Take(25))
+                        Debug.Log("[IsoRPG] скала: " + line);
+
+                    Debug.Log("[IsoRPG] Скалы у точки (" + at.x + ", " + at.z + "): крупных объектов " +
+                              big + ", из них с коллайдером " + withCollider + ".");
+                    break;
+                }
+
+                case "shader-check":
+                {
+                    // Собирается ли шейдер воды — до сборки игры.
+                    //
+                    // Полный билд стоит пять минут, а ответ на вопрос «лёг ли
+                    // патч» лежит в редакторе и достаётся за секунды: Unity
+                    // хранит сообщения компилятора по каждому шейдеру.
+                    //
+                    // И это ровно тот случай, где зелёный ответ надо уметь
+                    // отличить от пустого: если шейдер не найден, сообщений
+                    // тоже ноль — поэтому сначала печатаем, нашли ли его.
+                    string path = "Assets/PolygonNatureBiomes/PNB_Core/Shaders/" +
+                                  "SyntyStudios_WaterShader.shader";
+
+                    AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+
+                    var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+
+                    if (shader == null)
+                    {
+                        Debug.LogError("[IsoRPG] Шейдера воды нет по пути " + path);
+                        break;
+                    }
+
+                    int errors = ShaderUtil.GetShaderMessageCount(shader);
+
+                    Debug.Log("[IsoRPG] Шейдер «" + shader.name + "» найден, сообщений компилятора " +
+                              errors + ", ошибок " + (ShaderUtil.ShaderHasError(shader) ? "ЕСТЬ" : "нет") + ".");
+
+                    if (errors > 0)
+                    {
+                        foreach (var m in ShaderUtil.GetShaderMessages(shader).Take(6))
+                            Debug.Log("[IsoRPG] шейдер: " + m.severity + " — " + m.message +
+                                      " (строка " + m.line + ")");
+                    }
+
+                    break;
+                }
+
+                case "water-lake-author":
+                {
+                    // Перевести НАШ пруд на авторскую воду.
+                    //
+                    // Задание «water-restore» вернуло авторские материалы там,
+                    // где было с чем сверяться — у объектов из префабов
+                    // набора. Пруд в это не попал и попасть не мог: мы его
+                    // построили сами заданием «pond», источника у него нет.
+                    // Павлон 03.09.2026 увидел это первым: «в этом озере
+                    // по-моему осталась наша старая вода».
+                    //
+                    // Ставим ровно тот материал, которым автор кроет ОЗЁРА, —
+                    // у него их два вида, озеро и река, и мешать их незачем:
+                    // разница видна на воде.
+                    //
+                    // Делать это можно только после того, как патч шейдера
+                    // подтверждён в собранной игре: с несобираемым шейдером
+                    // вода не розовеет, а исчезает, и пруд пропал бы так же,
+                    // как пропали ручьи.
+                    var lakeMat = AssetDatabase.LoadAssetAtPath<Material>(
+                        "Assets/PolygonNatureBiomes/PNB_Meadow_Forest/Materials/Water_Lake_01.mat");
+
+                    if (lakeMat == null)
+                    {
+                        Debug.LogError("[IsoRPG] Нет авторского материала озера — переводить нечем.");
+                        break;
+                    }
+
+                    int moved = 0;
+
+                    foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (r == null) continue;
+
+                        var mats = r.sharedMaterials;
+                        bool touched = false;
+
+                        for (int i = 0; i < mats.Length; i++)
+                        {
+                            if (mats[i] == null) continue;
+                            if (!mats[i].name.Contains("Water_Lake_URP")) continue;
+
+                            mats[i] = lakeMat;
+                            touched = true;
+                        }
+
+                        if (!touched) continue;
+
+                        r.sharedMaterials = mats;
+                        moved++;
+
+                        Debug.Log("[IsoRPG] пруд на авторскую воду: " + r.gameObject.name);
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Пруд переведён на авторский материал озера: объектов " + moved + ".");
+                    break;
+                }
+
                 case "water-restore":
                 {
                     // Вернуть воде авторские материалы.
@@ -2847,7 +3008,23 @@ namespace IsoRPG.EditorTools
                         var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
 
                         if (mat == null || !mat.HasProperty("_Cull")) continue;
-                        if (!mat.name.Contains("Water_Lake")) continue;
+
+                        // Вся вода, а не только озеро.
+                        //
+                        // Здесь стояло «имя содержит Water_Lake», и пока вся
+                        // вода была залита нашим материалом, этого хватало.
+                        // После возврата авторских материалов под отбор
+                        // перестали попадать река и базовая вода: их гладь
+                        // осталась односторонней, и при низком угле камеры
+                        // водоём исчезал целиком — Павлон 03.09.2026 принял
+                        // это за баг камеры и предложил придвигать её к
+                        // герою. Признак у всей авторской воды один и тот же
+                        // — её шейдер.
+                        bool authorWater = mat.shader != null &&
+                            mat.shader.name.IndexOf("WaterShader",
+                                StringComparison.OrdinalIgnoreCase) >= 0;
+
+                        if (!authorWater && !mat.name.Contains("Water_Lake")) continue;
 
                         mat.SetFloat("_Cull", 0f);          // Off: видно с обеих сторон
                         mat.doubleSidedGI = true;

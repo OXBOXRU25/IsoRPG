@@ -30,7 +30,40 @@ namespace IsoRPG.EditorTools
         private const string ControllerPath =
             "Assets/_Game/Art/Animations/Controllers/AC_Hero_Sidekick.controller";
 
-        private const string Move = "Assets/DoubleL/FBX_Animations/Base Move";
+        /// <summary>
+        /// С какой скоростью герой РЕАЛЬНО бегает, метры в секунду. Скорость
+        /// его навигационного агента.
+        ///
+        /// Пороги дерева обязаны стоять на ней, а не на скорости клипа.
+        /// Первый заход поставил их по клипам — бег 5.10, спринт 7.28, — и
+        /// при беге на 5.5 дерево держало смесь 82% бега и 18% спринта.
+        /// Спринт это широкий вынос ног, и подмешанный к бегу он дал
+        /// заплетающуюся походку. Павлон 03.09.2026: «бегает как паралитик,
+        /// старый дед с радикулитом».
+        ///
+        /// Клип при этом подтягивается по времени: играет во столько раз
+        /// быстрее или медленнее, во сколько его своя скорость отличается от
+        /// нашей. Тогда и ноги совпадают с землёй, и смеси нет.
+        /// </summary>
+        private const float HeroSpeed = 5.5f;
+
+        /// <summary>Прибавка спринта — способность даёт +70%.</summary>
+        private const float SprintFactor = 1.7f;
+
+        /// <summary>
+        /// Ход берём ВООРУЖЁННЫЙ, а не общий.
+        ///
+        /// Первый заход взял общий раздел движения — безоружный бег со
+        /// свободными махами руками и раскачкой корпуса. У героя в руках два кинжала, и
+        /// со стороны это читалось как виляние: Павлон 03.09.2026 «при беге
+        /// персонаж как-то сильно задницей вилял». У набора для этого есть
+        /// свой раздел: руки при оружии прижаты, корпус собран.
+        ///
+        /// Тот же случай, что и с пальцами: у автора нужное лежит отдельной
+        /// папкой, и брать общее вместо специального — моя ошибка, а не
+        /// свойство набора.
+        /// </summary>
+        private const string Move = "Assets/DoubleL/FBX_Animations/One Hand Base/Movement";
         private const string Jump = "Assets/DoubleL/FBX_Animations/One Hand Base/Jump";
 
         [MenuItem("Tools/IsoRPG/Герой: ход и прыжок из нового набора", priority = 43)]
@@ -46,10 +79,10 @@ namespace IsoRPG.EditorTools
 
             LoopMovement();
 
-            var idle = Clip(Move + "/Stand_Idle/Idle/Stand_Idle_A_1.fbx");
-            var walk = Clip(Move + "/Walk/Base/InPlace/Walk_F_InPlace.fbx");
-            var run = Clip(Move + "/Run/Base/InPlace/Run_F_InPlace.fbx");
-            var sprint = Clip(Move + "/Sprint/Base/InPlace/Sprint_F_InPlace.fbx");
+            var idle = Clip(Move + "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx");
+            var walk = Clip(Move + "/Walk/Type A/Base/InPlace/OneHand_Base_Walk_A_F_InPlace.fbx");
+            var run = Clip(Move + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx");
+            var sprint = Clip(Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx");
 
             if (idle == null || walk == null || run == null)
             {
@@ -58,9 +91,9 @@ namespace IsoRPG.EditorTools
             }
 
             // Скорость каждого аллюра — из клипа С корневым движением.
-            float walkAt = Speed(Move + "/Walk/Base/Walk_F.fbx", 1.8f);
-            float runAt = Speed(Move + "/Run/Base/Run_F.fbx", 4.0f);
-            float sprintAt = Speed(Move + "/Sprint/Base/Sprint_F.fbx", 6.5f);
+            float walkAt = Speed(Move + "/Walk/Type A/Base/OneHand_Base_Walk_A_F.fbx", 1.8f);
+            float runAt = Speed(Move + "/Run/Type A/Base/OneHand_Base_Run_A_F.fbx", 4.0f);
+            float sprintAt = Speed(Move + "/Sprint/Type A/Base/OneHand_Base_Sprint_A_F.fbx", 6.5f);
 
             var tree = new BlendTree
             {
@@ -72,18 +105,30 @@ namespace IsoRPG.EditorTools
 
             AssetDatabase.AddObjectToAsset(tree, controller);
 
+            // Порог — наша скорость, а масштаб времени — отношение нашей к
+            // клиповой. Шаг оставляем на его собственной скорости: медленное
+            // движение у нас идёт ровно им.
+            float runScale = runAt > 0.1f ? HeroSpeed / runAt : 1f;
+            float sprintTarget = HeroSpeed * SprintFactor;
+            float sprintScale = sprintAt > 0.1f ? sprintTarget / sprintAt : 1f;
+
             var children = new System.Collections.Generic.List<ChildMotion>
             {
                 new ChildMotion { motion = idle, threshold = 0f, timeScale = 1f },
                 new ChildMotion { motion = walk, threshold = walkAt, timeScale = 1f },
-                new ChildMotion { motion = run, threshold = runAt, timeScale = 1f },
+                new ChildMotion { motion = run, threshold = HeroSpeed, timeScale = runScale },
             };
 
             // Спринт — отдельная ступень, а не растянутый бег: у героя есть
             // способность на +70% скорости, и на растянутом беге она читалась
             // бы как ускоренная перемотка.
-            if (sprint != null && sprintAt > runAt + 0.2f)
-                children.Add(new ChildMotion { motion = sprint, threshold = sprintAt, timeScale = 1f });
+            if (sprint != null)
+                children.Add(new ChildMotion
+                {
+                    motion = sprint,
+                    threshold = sprintTarget,
+                    timeScale = sprintScale,
+                });
 
             tree.children = children.ToArray();
 
@@ -134,8 +179,10 @@ namespace IsoRPG.EditorTools
 
             Debug.Log($"[IsoRPG] Ход героя переведён на новый набор: деревьев {moved}, " +
                       $"фаз прыжка {jumped} из 3.\n" +
-                      $"  Пороги сняты с клипов: шаг {walkAt:0.00}, бег {runAt:0.00}, " +
-                      $"спринт {(sprint != null ? sprintAt.ToString("0.00") : "нет")} м/с.");
+                      $"  Скорости клипов: шаг {walkAt:0.00}, бег {runAt:0.00}, " +
+                      $"спринт {sprintAt:0.00} м/с.\n" +
+                      $"  Пороги по герою: бег {HeroSpeed:0.00} (клип x{runScale:0.00}), " +
+                      $"спринт {sprintTarget:0.00} (клип x{sprintScale:0.00}).");
         }
 
         // ------------------------------------------------------------------
@@ -150,10 +197,10 @@ namespace IsoRPG.EditorTools
         {
             (string Path, bool Loop)[] files =
             {
-                (Move + "/Walk/Base/InPlace/Walk_F_InPlace.fbx", true),
-                (Move + "/Run/Base/InPlace/Run_F_InPlace.fbx", true),
-                (Move + "/Sprint/Base/InPlace/Sprint_F_InPlace.fbx", true),
-                (Move + "/Stand_Idle/Idle/Stand_Idle_A_1.fbx", true),
+                (Move + "/Walk/Type A/Base/InPlace/OneHand_Base_Walk_A_F_InPlace.fbx", true),
+                (Move + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx", true),
+                (Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx", true),
+                (Move + "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx", true),
                 (Jump + "/InPlace/OneHand_Base_Jump_Air_Loop_InPlace.fbx", true),
                 (Jump + "/OneHand_Base_Jump_Air_Loop.fbx", true),
             };

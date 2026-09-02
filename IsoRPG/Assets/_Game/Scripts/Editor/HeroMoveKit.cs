@@ -1,6 +1,7 @@
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace IsoRPG.EditorTools
@@ -27,6 +28,8 @@ namespace IsoRPG.EditorTools
     /// </summary>
     public static class HeroMoveKit
     {
+        private const string Arena = "Assets/_Game/Scenes/ArenaAuthor.unity";
+
         private const string ControllerPath =
             "Assets/_Game/Art/Animations/Controllers/AC_Hero_Sidekick.controller";
 
@@ -177,6 +180,8 @@ namespace IsoRPG.EditorTools
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
 
+            LockJaw();
+
             Debug.Log($"[IsoRPG] Ход героя переведён на новый набор: деревьев {moved}, " +
                       $"фаз прыжка {jumped} из 3.\n" +
                       $"  Скорости клипов: шаг {walkAt:0.00}, бег {runAt:0.00}, " +
@@ -186,6 +191,35 @@ namespace IsoRPG.EditorTools
         }
 
         // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Замок челюсти герою.
+        ///
+        /// Клипы нового набора двигают кость , и герой пошёл с открытым
+        /// ртом — ровно как до этого НПС. Компонент общий, вешаем той же
+        /// рукой: правило одно на всех, кто получил чужие анимации.
+        /// </summary>
+        private static void LockJaw()
+        {
+            if (EditorSceneManager.GetActiveScene().path != Arena)
+                EditorSceneManager.OpenScene(Arena, OpenSceneMode.Single);
+
+            int locked = 0;
+
+            foreach (var router in Object.FindObjectsByType<IsoRPG.Player.PlayerInputRouter>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (router.GetComponent<IsoRPG.World.JawLock>() != null) continue;
+
+                router.gameObject.AddComponent<IsoRPG.World.JawLock>();
+                locked++;
+            }
+
+            EditorSceneManager.MarkAllScenesDirty();
+            EditorSceneManager.SaveOpenScenes();
+
+            Debug.Log("[IsoRPG] Замок челюсти повешен героям: " + locked + ".");
+        }
 
         /// <summary>
         /// Зациклить ход и зависание в воздухе.

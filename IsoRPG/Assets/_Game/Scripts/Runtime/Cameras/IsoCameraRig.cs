@@ -183,6 +183,19 @@ namespace IsoRPG.Cameras
         /// </summary>
         private const float OverGround = 1.2f;
 
+        /// <summary>
+        /// Как быстро камера отъезжает обратно, когда препятствие ушло.
+        /// Четыре — примерно четверть секунды на возврат: глаз читает это
+        /// как движение, а не как скачок.
+        /// </summary>
+        private const float DodgeReturn = 4f;
+
+        /// <summary>
+        /// Дистанция, на которую камера придвинута препятствием.
+        /// Ноль и меньше — ещё не считали.
+        /// </summary>
+        private float dodgedReach;
+
         /// <summary>Текущая прозрачность героя. Отрицательная — ещё не считали.</summary>
         private float heroAlpha = -1f;
 
@@ -652,6 +665,8 @@ namespace IsoRPG.Cameras
                 {
                     Vector3 direction = back / wanted;
 
+                    float want = wanted;
+
                     if (Physics.SphereCast(eye, 0.35f, direction, out var hit, wanted,
                                            Blockers, QueryTriggerInteraction.Ignore))
                     {
@@ -660,9 +675,26 @@ namespace IsoRPG.Cameras
                         // Отступ увеличен: при 0.25 край кадра всё равно
                         // задевал камень — ближняя плоскость отсечения
                         // отрезает не по центру, а по всей рамке.
-                        float safe = Mathf.Max(hit.distance - 0.3f, 0.8f);
-                        place = eye + direction * safe;
+                        want = Mathf.Max(hit.distance - 0.3f, MinReach);
                     }
+
+                    // Придвигаемся мгновенно, отъезжаем плавно.
+                    //
+                    // Это и есть «камера скользит по стволу», которое Павлон
+                    // разобрал по кадрам WoW 03.09.2026. Мгновенно — потому
+                    // что запаздывание здесь означает кадр внутри дерева.
+                    // Плавно назад — потому что резкий отъезд читается как
+                    // рывок: обзор открылся, а картинка прыгнула.
+                    //
+                    // Без сглаживания механизм и был снят в прошлый раз: за
+                    // деревьями камера моталась к герою и обратно каждый шаг.
+                    if (dodgedReach <= 0f || want < dodgedReach) dodgedReach = want;
+                    else dodgedReach = Mathf.Lerp(dodgedReach, want,
+                                                  1f - Mathf.Exp(-DodgeReturn * deltaTime));
+
+                    dodgedReach = Mathf.Min(dodgedReach, wanted);
+
+                    place = eye + direction * dodgedReach;
                 }
             }
 

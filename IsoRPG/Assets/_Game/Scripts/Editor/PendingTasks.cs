@@ -2574,6 +2574,76 @@ namespace IsoRPG.EditorTools
 
 
 
+                case "tree-capsules":
+                {
+                    // Деревьям — ствол вместо кроны, кустам — ничего.
+                    //
+                    // Замер 03.09.2026: 975 деревьев и кустов, у всех
+                    // MeshCollider, ширина физики от 0.5 до 11 метров при
+                    // середине 2.1. Камера, обходящая препятствия, ловит луч
+                    // в этой кроне за несколько метров от ствола и дёргается
+                    // посреди чистого места — из-за этого обход и был
+                    // выключен 01.09.2026.
+                    //
+                    // Разводим намерения: НАВИГАЦИЯ решает, где можно стоять,
+                    // ФИЗИКА — во что упираешься. Сквозь листву проходят и
+                    // герой, и камера, ствол не пускает ни того ни другого.
+                    //
+                    // Заодно снимаем 975 сеточных коллайдеров: в ММО каждый
+                    // из них считается при каждом запросе физики, а капсула
+                    // стоит несравнимо дешевле.
+                    int toCapsule = 0, stripped = 0;
+
+                    foreach (var mc in UnityEngine.Object.FindObjectsByType<MeshCollider>(
+                                 FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    {
+                        if (mc == null) continue;
+
+                        string n = mc.gameObject.name;
+
+                        bool bush = n.IndexOf("Bush", StringComparison.OrdinalIgnoreCase) >= 0;
+                        bool tree = n.IndexOf("Tree", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                        if (!bush && !tree) continue;
+
+                        var b = mc.bounds;
+                        var go = mc.gameObject;
+
+                        UnityEngine.Object.DestroyImmediate(mc);
+
+                        // Куст остаётся без физики вовсе: он ниже пояса и
+                        // мешает больше, чем держит.
+                        if (bush) { stripped++; continue; }
+
+                        var cap = go.AddComponent<CapsuleCollider>();
+
+                        // Ствол — примерно шестая часть кроны в поперечнике,
+                        // и не тоньше двадцати сантиметров: у молодых деревьев
+                        // крона узкая, доля от неё дала бы ниточку.
+                        float trunk = Mathf.Max(Mathf.Max(b.size.x, b.size.z) * 0.06f, 0.2f);
+
+                        // Считаем в локальных единицах: у деревьев масштаб
+                        // разный, а коллайдер живёт в системе объекта.
+                        var scale = go.transform.lossyScale;
+                        float sxz = Mathf.Max(0.0001f, Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z)));
+                        float sy = Mathf.Max(0.0001f, Mathf.Abs(scale.y));
+
+                        cap.radius = trunk / sxz;
+                        cap.height = b.size.y / sy;
+                        cap.center = new Vector3(0f, cap.height * 0.5f, 0f);
+                        cap.direction = 1;   // вдоль Y
+
+                        toCapsule++;
+                    }
+
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+
+                    Debug.Log("[IsoRPG] Физика растительности: деревьям поставлено капсул " +
+                              toCapsule + ", у кустов снята вовсе " + stripped +
+                              ". Сеточных коллайдеров стало меньше на " + (toCapsule + stripped) + ".");
+                    break;
+                }
+
                 case "tree-collider-probe":
                 {
                     // Чем закрыты деревья: стволом или кроной.

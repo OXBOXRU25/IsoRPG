@@ -79,7 +79,7 @@ namespace IsoRPG.Cameras
         /// Ноль-семь даёт дистанцию 1.12 — камера входит в голову, модель
         /// героя гаснет, и получается тот самый вид почти от первого лица.
         /// </summary>
-        [SerializeField] private float minOrthoSize = 0.7f;
+        [SerializeField] private float minOrthoSize = 0.12f;
         [SerializeField] private float maxOrthoSize = 18f;
 
         [Tooltip("На сколько меняется зум за один щелчок колеса.")]
@@ -149,7 +149,7 @@ namespace IsoRPG.Cameras
         /// нужен, когда игрок уводит камеру к самой траве: без предела она
         /// сошлась бы в точку взгляда и вывернулась наизнанку.
         /// </summary>
-        private const float MinReach = 0.8f;
+        private const float MinReach = 0.15f;
 
         /// <summary>
         /// С какой дистанции прячем модель героя, метры.
@@ -169,7 +169,7 @@ namespace IsoRPG.Cameras
         /// мигание, а не как в WoW, где персонаж тает плавно, пока камера
         /// опускается.
         /// </summary>
-        private const float FadeFrom = 1.3f;
+        private const float FadeFrom = 0.85f;
 
         /// <summary>
         /// За сколько делений зума до упора герой успевает раствориться.
@@ -190,7 +190,7 @@ namespace IsoRPG.Cameras
         /// 0.8 при упоре 0.7 — это последняя треть приближения, ближе
         /// которой герой уже закрывает собой весь кадр.
         /// </summary>
-        private const float FadeZoomSpan = 0.55f;
+        private const float FadeZoomSpan = 0.45f;
 
         /// <summary>
         /// Насколько камера держится выше грунта, метры.
@@ -287,7 +287,7 @@ namespace IsoRPG.Cameras
             // поправил значение по умолчанию — в игре ничего не изменилось.
             // На этом мы уже обожглись со сменой взгляда; здесь та же
             // ловушка, и она молчаливая.
-            minOrthoSize = 0.7f;
+            minOrthoSize = 0.12f;
             maxOrthoSize = 18f;
 
             // Пределы наклона — там же и по той же причине.
@@ -452,7 +452,7 @@ namespace IsoRPG.Cameras
         /// причине. Нижняя граница нужна, чтобы у самого упора шаг не
         /// выродился в ноль и колесо не перестало отвечать.
         /// </summary>
-        private float ZoomStepAt(float size) => Mathf.Max(0.22f, size * 0.18f);
+        private float ZoomStepAt(float size) => Mathf.Max(0.09f, size * 0.18f);
 
         private void ReadZoomInput()
         {

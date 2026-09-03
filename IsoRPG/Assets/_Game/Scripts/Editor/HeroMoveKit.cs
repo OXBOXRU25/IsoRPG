@@ -179,10 +179,10 @@ namespace IsoRPG.EditorTools
             var fight = BuildStride(controller, "Ход боевой", "",
                 Move + "/Idle/Idle/OneHand_Base_Stand_Idle_B_1.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
-                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
+                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
                 Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
-                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
+                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx",
                 Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx");
 
             if (fight == null)
@@ -206,10 +206,10 @@ namespace IsoRPG.EditorTools
             var peace = BuildStride(controller, "Ход мирный", "",
                 Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
-                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
+                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
                 Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
-                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
+                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx",
                 Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx");
 
             if (!controller.parameters.Any(p => p.name == CombatParameter))

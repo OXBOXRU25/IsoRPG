@@ -260,6 +260,7 @@ namespace IsoRPG.EditorTools
             "A_KidneyShot",       // 2
             "A_Eviscerate",       // 3
             "A_Sprint",           // 4
+            "A_ThrowDagger",      // 5  метание, добавлено 04.09.2026
             "A_Stealth",          // 0
         };
 

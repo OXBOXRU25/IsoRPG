@@ -108,13 +108,14 @@ namespace IsoRPG.UI
             var pick = WorldPick.From(hits, count, gameObject);
             if (!pick.Found) return false;
 
-            // Враг сюда пока не входит: под него заказан отдельный указатель
-            // с мечом, и подсвечивать его перчаткой значило бы обещать
-            // разговор там, где будет драка.
-            return pick.Kind == PickKind.Talk
-                || pick.Kind == PickKind.Trade
-                || pick.Kind == PickKind.Chest
-                || pick.Kind == PickKind.Loot;
+            // Всё живое и всё, что открывается, — кроме самого героя.
+            //
+            // Врага и мирную живность подсвечиваем той же перчаткой: пока
+            // меча нет, важнее показать, что цель вообще берётся. Павлон
+            // 04.09.2026: «нажимаю на лошадь или моба — указатель не
+            // меняется». Появится меч — враг уйдёт под него, остальные
+            // останутся здесь.
+            return pick.Kind != PickKind.None && pick.Kind != PickKind.Self;
         }
 
         private void Apply(bool lit, bool force = false)

@@ -70,7 +70,7 @@ namespace IsoRPG.EditorTools
             body.center = new Vector3(0f, 0.9f, 0f);
             body.isTrigger = false;
 
-            Ground(dummy);
+            Ground(dummy, player);
 
             var health = dummy.GetComponent<Health>();
             if (health == null) health = dummy.AddComponent<Health>();
@@ -97,7 +97,7 @@ namespace IsoRPG.EditorTools
         /// того, где стоит он сам, а висящая в воздухе кукла читается как
         /// поломка мира, а не как мишень.
         /// </summary>
-        private static void Ground(GameObject go)
+        private static void Ground(GameObject go, GameObject player)
         {
             // Свои коллайдеры на время замера выключаем.
             //
@@ -115,22 +115,33 @@ namespace IsoRPG.EditorTools
                 own[i].enabled = false;
             }
 
-            Vector3 from = go.transform.position + Vector3.up * 5f;
-            bool found = Physics.Raycast(from, Vector3.down, out var hit, 50f,
+            // Отсчёт от ГЕРОЯ, а не от рельефа.
+            //
+            // Первая попытка искала землю лучом и нашла террейн на 2.65 —
+            // а герой в мире автора стоит не на террейне, а на его земле,
+            // которая ниже. Манекен честно встал на найденное и оказался в
+            // трёх метрах над головой. Это тот же промах, что был у камеры:
+            // пол здесь задаёт не рельеф, а физика мира автора.
+            //
+            // Герой же стоит на земле по определению — его туда опускает
+            // капсула каждый кадр. Поэтому берём высоту у него, а лучом
+            // только уточняем, если под ногами манекена опора нашлась НЕ
+            // выше его самого.
+            float ground = player == null ? go.transform.position.y : player.transform.position.y;
+
+            Vector3 from = new Vector3(go.transform.position.x, ground + 2f, go.transform.position.z);
+
+            bool found = Physics.Raycast(from, Vector3.down, out var hit, 8f,
                                          ~0, QueryTriggerInteraction.Ignore);
 
             for (int i = 0; i < own.Length; i++) own[i].enabled = was[i];
 
-            if (!found)
-            {
-                Debug.LogWarning("[IsoRPG] Под манекеном не нашлось земли — оставлен где был.");
-                return;
-            }
+            float y = found && hit.point.y <= ground + 0.5f ? hit.point.y : ground;
 
-            go.transform.position = hit.point;
+            go.transform.position = new Vector3(go.transform.position.x, y, go.transform.position.z);
 
-            Debug.Log($"[IsoRPG] Манекен опущен на землю: {hit.point.y:0.00} м, " +
-                      $"опора «{hit.collider.name}».");
+            Debug.Log($"[IsoRPG] Манекен на высоте {y:0.00} м (герой на {ground:0.00}); " +
+                      $"луч {(found ? "нашёл «" + hit.collider.name + "» на " + hit.point.y.ToString("0.00") : "не нашёл ничего")}.");
         }
 
         /// <summary>

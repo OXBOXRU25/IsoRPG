@@ -40,6 +40,7 @@ namespace IsoRPG.Player
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
         private Animator animator;
+        private CharacterAnimatorDriver driver;
         private int layer = -1;
 
         private float nextAt;
@@ -76,7 +77,20 @@ namespace IsoRPG.Player
         {
             // Стоит ли герой. Двигается — никаких поз: вставка посреди бега
             // выглядит как сбой, а не как характер.
-            bool still = animator.GetFloat(SpeedHash) < 0.05f;
+            // В бою поз ожидания не бывает.
+            //
+            // Слой играет ПОВЕРХ всего, включая удар: Павлон 04.09.2026
+            // «анимации боя прерываются накладывающимися сверху анимациями
+            // состояния ожидания». Так и есть — замах перекрывался позой,
+            // потому что проверка была одна: стоит ли герой. А стоит он и
+            // между ударами тоже.
+            //
+            // Позы — про безделье, а не про паузу в драке.
+            if (driver == null) driver = GetComponent<CharacterAnimatorDriver>();
+
+            bool fighting = driver != null && driver.InCombat;
+
+            bool still = !fighting && animator.GetFloat(SpeedHash) < 0.05f;
 
             if (!still)
             {

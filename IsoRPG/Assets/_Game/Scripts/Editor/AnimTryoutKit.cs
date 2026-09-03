@@ -154,7 +154,48 @@ namespace IsoRPG.EditorTools
                 Boom + "/Armed/RPG-Character@Armed-Run-Attack-L1.FBX",
                 Boom + "/Armed/RPG-Character@Armed-Run-Attack-R1.FBX",
                 Boom + "/Armed/RPG-Character@Armed-Special1.FBX",
-                Boom + "/Armed/RPG-Character@Armed-Air-Attack-L1.FBX");
+                Boom + "/Armed/RPG-Character@Armed-Air-Attack-L1.FBX",
+
+                // Одноручные удары DoubleL — их я в прошлый раз не показал
+                // вовсе, хотя их больше, чем всех остальных вместе.
+                // 04.09.2026 Павлон спросил прямо: «ты уверен, что больше нет
+                // других анимаций ударов?» Не был уверен — и правильно.
+                Root + "/One Hand Base/Attack_A/OneHand_Base_Attack_A_1.fbx",
+                Root + "/One Hand Base/Attack_A/OneHand_Base_Attack_A_2.fbx",
+                Root + "/One Hand Base/Attack_A/OneHand_Base_Attack_A_3.fbx",
+                Root + "/One Hand Base/Attack_A/OneHand_Base_Attack_A_4.fbx",
+                Root + "/One Hand Base/Attack_A/OneHand_Base_Attack_A_5.fbx",
+                Root + "/One Hand Base/Attack_A/OneHand_Base_Attack_A_6.fbx",
+                Root + "/One Hand Base/Attack_A/OneHand_Base_Attack_A_7.fbx",
+                Root + "/One Hand Base/Attack_A/OneHand_Base_Attack_A_8.fbx",
+
+                Root + "/One Hand Base/Attack_C/OneHand_Base_Attack_C_1.fbx",
+                Root + "/One Hand Base/Attack_C/OneHand_Base_Attack_C_2.fbx",
+                Root + "/One Hand Base/Attack_C/OneHand_Base_Attack_C_3.fbx",
+                Root + "/One Hand Base/Attack_C/OneHand_Base_Attack_C_4.fbx",
+                Root + "/One Hand Base/Attack_C/OneHand_Base_Attack_C_5.fbx",
+                Root + "/One Hand Base/Attack_C/OneHand_Base_Attack_C_6.fbx",
+                Root + "/One Hand Base/Attack_C/OneHand_Base_Attack_C_7.fbx",
+                Root + "/One Hand Base/Attack_C/OneHand_Base_Attack_C_8.fbx",
+
+                Root + "/One Hand Up/Attack_A/OneHand_Up_Attack_1.fbx",
+                Root + "/One Hand Up/Attack_A/OneHand_Up_Attack_2.fbx",
+                Root + "/One Hand Up/Attack_A/OneHand_Up_Attack_3.fbx",
+                Root + "/One Hand Up/Attack_A/OneHand_Up_Attack_4.fbx",
+                Root + "/One Hand Up/Attack_A/OneHand_Up_Attack_5.fbx",
+
+                // Меч и кулаки ExplosiveLLC: движения те же по сути, но
+                // рисунок другой — разбойнику часть подходит.
+                Boom + "/1Hand-Sword/RPG-Character@Sword-Attack-L1.FBX",
+                Boom + "/1Hand-Sword/RPG-Character@Sword-Attack-L2.FBX",
+                Boom + "/1Hand-Sword/RPG-Character@Sword-Attack-L3.FBX",
+                Boom + "/1Hand-Sword/RPG-Character@Sword-Attack-R1.FBX",
+                Boom + "/1Hand-Sword/RPG-Character@Sword-Attack-R2.FBX",
+                Boom + "/1Hand-Sword/RPG-Character@Sword-Attack-R3.FBX",
+                Boom + "/Unarmed/RPG-Character@Unarmed-Attack-L1.FBX",
+                Boom + "/Unarmed/RPG-Character@Unarmed-Attack-R1.FBX",
+                Boom + "/Unarmed/RPG-Character@Unarmed-Attack-Kick-L1.FBX",
+                Boom + "/Unarmed/RPG-Character@Unarmed-Attack-Kick-R1.FBX");
 
             // Текущие шесть ударов серии — их и подменяем все разом.
             var currentAttacks = new[]

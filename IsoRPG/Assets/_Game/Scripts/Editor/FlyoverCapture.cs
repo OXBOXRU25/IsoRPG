@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace IsoRPG.EditorTools
 {
@@ -23,6 +24,7 @@ namespace IsoRPG.EditorTools
         public static void SingleFrame()
         {
             var cam = Prepare(out var centre, out var radius);
+            ReportPipeline();
             // Пробный кадр: три четверти оборота, чтобы поймать характерный вид.
             PlaceCamera(cam, centre, radius, 215f);
             Directory.CreateDirectory(OutDir);
@@ -51,6 +53,12 @@ namespace IsoRPG.EditorTools
 
         static Camera Prepare(out Vector3 centre, out float radius)
         {
+            // Пока вариант шейдера компилируется в фоне, редактор рисует объект
+            // розовой заглушкой. Съёмка успевает раньше компиляции - и весь лес
+            // выходит малиновым, будто материалов нет вовсе. Выключаем асинхрон:
+            // прогон станет дольше, зато кадр будет настоящим.
+            ShaderUtil.allowAsyncCompilation = false;
+
             EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
 
             // Центр и размах мира считаем по обычным мешам: у скелетных границы
@@ -103,6 +111,27 @@ namespace IsoRPG.EditorTools
             var pos = centre + flat + Vector3.up * (dist * Mathf.Tan(pitch * Mathf.Deg2Rad));
             cam.transform.position = pos;
             cam.transform.LookAt(centre + Vector3.up * (radius * 0.05f));
+        }
+
+        /// <summary>
+        /// Что за конвейер активен и на чём сидят материалы. Розовый кадр может
+        /// значить и «шейдера нет», и «рисую мимо конвейера» — это разные болезни.
+        /// </summary>
+        static void ReportPipeline()
+        {
+            var rp = GraphicsSettings.currentRenderPipeline;
+            Debug.Log($"[Ютуб] конвейер: {(rp == null ? "ВСТРОЕННЫЙ (URP не активен!)" : rp.GetType().Name)}");
+
+            var shaders = new Dictionary<string, int>();
+            foreach (var mr in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
+            {
+                var m = mr.sharedMaterial;
+                if (m == null || m.shader == null) continue;
+                shaders.TryGetValue(m.shader.name, out int n);
+                shaders[m.shader.name] = n + 1;
+            }
+            foreach (var kv in shaders.OrderByDescending(k => k.Value).Take(6))
+                Debug.Log($"[Ютуб]   {kv.Value,6} объектов на шейдере {kv.Key}");
         }
 
         static void Shoot(Camera cam, string path)

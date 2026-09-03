@@ -224,7 +224,13 @@ namespace IsoRPG.Items
             // и ноги срезало краем кадра (Павлон 01.09.2026: «ноги
             // обрезаны»). Запас в десятую долю оставляем на капюшон и
             // оружие: габариты считаются по мешу, а они торчат за него.
-            stageCamera.orthographicSize = height * 0.63f;
+            // 0.525 вместо 0.63 — фигура крупнее на 20%.
+            //
+            // Павлон 03.09.2026: «персонаж мелковат, надо процентов на 15–20,
+            // чтобы голова стала выше а ноги ниже, слишком много пустого
+            // места». Запас на капюшон и причёску остаётся: высота кадра
+            // выходит 1.05 роста против прежних 1.26.
+            stageCamera.orthographicSize = height * 0.525f;
 
             // Смотрим выше середины — тогда фигура садится ниже в кадре и
             // под ногами остаётся опора, а не обрез.
@@ -280,8 +286,28 @@ namespace IsoRPG.Items
             light.shadows = LightShadows.None;
         }
 
+        /// <summary>
+        /// Габарит ТЕЛА, а не всего, что на герое висит.
+        ///
+        /// Кадр строится по росту, и рост — это тело. Считай по всем
+        /// рендерерам — и двуручный меч за спиной или посох выше макушки
+        /// раздвинут габарит, камера отъедет, и герой станет мельче ровно
+        /// оттого, что он вооружился. Скелетная сетка есть у тела любого
+        /// набора и не бывает у надетой в кость железки — по ней и меряем.
+        /// Запасной путь на случай, если тело собрано обычными мешами.
+        /// </summary>
         private static Bounds Measure(GameObject go)
         {
+            var skins = go.GetComponentsInChildren<SkinnedMeshRenderer>();
+
+            if (skins.Length > 0)
+            {
+                var body = skins[0].bounds;
+                foreach (var s in skins) body.Encapsulate(s.bounds);
+
+                return body;
+            }
+
             var renderers = go.GetComponentsInChildren<Renderer>();
 
             if (renderers.Length == 0) return new Bounds(go.transform.position, Vector3.one);

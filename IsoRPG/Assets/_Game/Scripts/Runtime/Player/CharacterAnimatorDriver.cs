@@ -138,6 +138,7 @@ namespace IsoRPG.Player
         private IsoRPG.Combat.TargetSelector targets;
         private bool hasCombatFlag;
         private bool hasStance;
+        private bool hasFall;
         private bool hasStrafe;
         private bool hasTurn;
 
@@ -200,6 +201,7 @@ namespace IsoRPG.Player
             // у зверей одноуровневое. Спрашиваем один раз — перебор параметров
             // каждый кадр у каждого существа это ММО не переживёт.
             hasStance = Has(StanceHash, AnimatorControllerParameterType.Float);
+            hasFall = Has(FallHash, AnimatorControllerParameterType.Float);
 
             CountAttackVariants();
 
@@ -287,6 +289,28 @@ namespace IsoRPG.Player
         /// у смешивания аллюров, поэтому вход в бой выглядит как движение,
         /// а не как склейка.
         /// </summary>
+        /// <summary>Мягкое, слабое, сильное — норматив удара о землю, м/с.</summary>
+        private const float SoftLanding = 7f;
+        private const float HardLanding = 14f;
+
+        private static readonly int FallHash = Animator.StringToHash("FallHard");
+
+        /// <summary>
+        /// Насколько жёстко герой встретил землю.
+        ///
+        /// Семь метров в секунду — прыжок с места, четырнадцать — падение
+        /// примерно с четырёх метров. Между ними дерево приземления
+        /// смешивает мягкий клип с глубоким приседом, и высота читается
+        /// сама, без порогов и переключений.
+        /// </summary>
+        private void DriveLanding()
+        {
+            if (!hasFall || motor == null) return;
+
+            animator.SetFloat(FallHash,
+                Mathf.InverseLerp(SoftLanding, HardLanding, motor.LastFallSpeed));
+        }
+
         private void DriveCombatStance()
         {
             if (!hasStance) return;
@@ -398,6 +422,7 @@ namespace IsoRPG.Player
             animator.SetFloat(SpeedHash, smoothedSpeed);
 
             DriveCombatStance();
+            DriveLanding();
 
             // Приземление на бегу играем быстрее, а не обрезаем.
             //

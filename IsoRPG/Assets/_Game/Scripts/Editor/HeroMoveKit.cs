@@ -108,6 +108,9 @@ namespace IsoRPG.EditorTools
         /// </summary>
         public const string CombatParameter = "Stance";
 
+        /// <summary>Сила удара о землю: 0 — мягко, 1 — с высоты.</summary>
+        public const string FallParameter = "FallHard";
+
         [MenuItem("Tools/IsoRPG/Герой: ход и прыжок из нового набора", priority = 43)]
         public static void Apply()
         {
@@ -140,14 +143,22 @@ namespace IsoRPG.EditorTools
             // удар, прыжок — наборы мешать можно и нужно (удары кинжалами у
             // нас останутся из DoubleL, они хороши). А внутри дерева разные
             // пропорции блендятся друг с другом, и герой начинает дёргаться.
-            var fight = BuildStride(controller, "Ход боевой", Synty,
-                "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
-                "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
-                "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
-                "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
-                "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
-                "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
-                "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx");
+            // Спринт — вооружённый бег DoubleL, выбор Павла 04.09.2026 глазами
+            // из четырёх вариантов примерки.
+            //
+            // Это единственное место, где я сознательно нарушаю правило «один
+            // набор внутри дерева»: на разгоне между бегом и спринтом пойдёт
+            // смесь двух пластик с разными пропорциями. Заказчик предупреждён;
+            // увидит дёрганье — рядом лежит родной `A_MOD_BL_Sprint_F_Masc`,
+            // замена в одну строку.
+            var fight = BuildStride(controller, "Ход боевой", "",
+                Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
+                Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
+                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
+                Move + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx",
+                Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
+                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
+                Move + "/Run/Type A/Base/OneHand_Base_Run_A_F.fbx");
 
             if (fight == null)
             {
@@ -202,8 +213,40 @@ namespace IsoRPG.EditorTools
             var jumpAir = Clip(Jump + "/InPlace/OneHand_Base_Jump_Air_Loop_InPlace.fbx")
                           ?? Clip(Jump + "/OneHand_Base_Jump_Air_Loop.fbx");
 
-            var jumpLand = Clip(Jump + "/InPlace/OneHand_Base_Jump_End_1_InPlace.fbx")
-                           ?? Clip(Jump + "/OneHand_Base_Jump_End_1.fbx");
+            // Приземление в двух видах: мягкое и с высоты.
+            //
+            // Выбор Павла 04.09.2026: «для приземления 2, если с большой
+            // высоты приземление 3». Клипы разные по глубине приседа, и
+            // смешивать их по силе удара честнее, чем переключать: прыжок с
+            // бордюра и падение со скалы — разные события, а не два состояния.
+            var landSoft = Clip(Jump + "/InPlace/OneHand_Base_Jump_End_2_InPlace.fbx");
+            var landHard = Clip(Jump + "/InPlace/OneHand_Base_Jump_End_3_InPlace.fbx");
+
+            Motion jumpLand = landSoft;
+
+            if (landSoft != null && landHard != null)
+            {
+                if (!controller.parameters.Any(p => p.name == FallParameter))
+                    controller.AddParameter(FallParameter, AnimatorControllerParameterType.Float);
+
+                var landTree = new BlendTree
+                {
+                    name = "Приземление",
+                    blendType = BlendTreeType.Simple1D,
+                    blendParameter = FallParameter,
+                    useAutomaticThresholds = false,
+                };
+
+                AssetDatabase.AddObjectToAsset(landTree, controller);
+
+                landTree.children = new[]
+                {
+                    new ChildMotion { motion = landSoft, threshold = 0f, timeScale = 1f },
+                    new ChildMotion { motion = landHard, threshold = 1f, timeScale = 1f },
+                };
+
+                jumpLand = landTree;
+            }
 
             int moved = 0, jumped = 0;
 
@@ -369,6 +412,8 @@ namespace IsoRPG.EditorTools
                 (Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx", true),
                 (Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx", true),
                 (Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx", true),
+                (Jump + "/InPlace/OneHand_Base_Jump_End_2_InPlace.fbx", false),
+                (Jump + "/InPlace/OneHand_Base_Jump_End_3_InPlace.fbx", false),
                 (Jump + "/InPlace/OneHand_Base_Jump_Air_Loop_InPlace.fbx", true),
                 (Jump + "/OneHand_Base_Jump_Air_Loop.fbx", true),
             };

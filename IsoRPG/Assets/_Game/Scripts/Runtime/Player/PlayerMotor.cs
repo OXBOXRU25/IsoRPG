@@ -37,6 +37,12 @@ namespace IsoRPG.Player
         private CharacterController body;
         private NavMeshAgent agent;
         private float fallSpeed;
+
+        /// <summary>Самая большая скорость падения за текущий полёт, м/с.</summary>
+        private float deepestFall;
+
+        /// <summary>С какой скоростью герой ударился о землю в последний раз, м/с.</summary>
+        public float LastFallSpeed { get; private set; }
         private Vector3 lastMove;
         private bool movedThisFrame;
         private int reported;
@@ -142,6 +148,17 @@ namespace IsoRPG.Player
 
             if (body.isGrounded)
             {
+                // Коснулись земли — запоминаем, насколько жёстко.
+                //
+                // Прыжок с бордюра и падение со скалы должны выглядеть
+                // по-разному: у набора под это два клипа приземления, и
+                // выбирает между ними именно эта величина.
+                if (deepestFall > 0f)
+                {
+                    LastFallSpeed = deepestFall;
+                    deepestFall = 0f;
+                }
+
                 // Небольшой прижим вниз: ровно ноль оставляет капсулу
                 // «висящей» на границе, и isGrounded начинает мигать.
                 if (fallSpeed < 0f) fallSpeed = -StickToGround;
@@ -149,6 +166,11 @@ namespace IsoRPG.Player
             else
             {
                 fallSpeed -= Gravity * Time.deltaTime;
+
+                // Самая быстрая точка падения за полёт, а не скорость в
+                // момент касания: у капсулы последний кадр перед землёй
+                // бывает укорочен, и мерить по нему значит занижать удар.
+                if (-fallSpeed > deepestFall) deepestFall = -fallSpeed;
             }
 
             Vector3 step = velocity;

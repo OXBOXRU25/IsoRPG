@@ -268,6 +268,12 @@ namespace IsoRPG.Player
         /// подкрасться и промахнуться тоже значит вступить в бой, и позвать
         /// это должен тот, кто про такое знает.
         /// </summary>
+        /// <summary>
+        /// Идёт ли бой прямо сейчас. Один источник на всех: по нему
+        /// переключается пластика и по нему же затягиваются раны.
+        /// </summary>
+        public bool InCombat => Time.time < combatUntil;
+
         public void NoticeCombat()
         {
             combatUntil = Time.time + CombatMemory;

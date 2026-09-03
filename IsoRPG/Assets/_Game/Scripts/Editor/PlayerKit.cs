@@ -244,6 +244,9 @@ namespace IsoRPG.EditorTools
 
             // Оружие в руках — после экипировки: компонент читает её при включении.
             Ensure<IsoRPG.Items.WeaponVisual>(player);
+
+            // Затягивание ран вне боя: пять в секунду.
+            Ensure<IsoRPG.Combat.HealthRegen>(player);
             Ensure<IsoRPG.Items.FoodConsumer>(player);
 
             // Размер сумки задаём явно: у компонента, уже лежащего в сцене,

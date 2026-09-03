@@ -95,7 +95,7 @@ namespace IsoRPG.Combat
         private const float PortraitFrameOut = PortraitWall / PanelWidth;
 
         /// <summary>Зазор между рамкой портрета и полосками, в долях ширины панели.</summary>
-        private const float PortraitGap = 0.028f;
+        private const float PortraitGap = 0.014f;
 
         /// <summary>
         /// Три блока справа от портрета — имя, здоровье, выносливость —
@@ -116,8 +116,16 @@ namespace IsoRPG.Combat
         private const float BlockTop = PortraitCenterY - PortraitFrameHalf;
         private const float BlockBottom = PortraitCenterY + PortraitFrameHalf;
 
-        /// <summary>Зазор между блоками — четыре точки, одинаковый для обоих.</summary>
-        private const float BlockGap = 4f / PanelHeight;
+        /// <summary>
+        /// Зазор между блоками — две точки.
+        ///
+        /// Было четыре. Павлон 03.09.2026 по кадру из WoW: «сократи вдвое
+        /// расстояние между полосками и между полосками и портретом, но не
+        /// вплотную». Вплотную и не выходит: жёлоб полоски сам несёт кромку,
+        /// и две точки между двумя кромками читаются как отбивка, а четыре
+        /// уже как пустое поле.
+        /// </summary>
+        private const float BlockGap = 2f / PanelHeight;
 
         private const float BlockHeight = (BlockBottom - BlockTop - BlockGap * 2f) / 3f;
 
@@ -1573,6 +1581,19 @@ namespace IsoRPG.Combat
             fillRect.anchorMax = new Vector2(1f, 1f);
             fillRect.offsetMin = new Vector2(1f, 1f);
             fillRect.offsetMax = new Vector2(-1f, -1f);
+
+            // Опора у ЛЕВОГО края, иначе полоска пустеет с двух сторон.
+            //
+            // Убыль показывается сжатием по горизонтали, а сжимается любая
+            // вещь к своей опорной точке. По умолчанию она в центре — и
+            // полоска схлопывалась к середине, оставляя пустоту и слева, и
+            // справа. Павлон 03.09.2026: «хп уменьшаются с двух сторон, хочу
+            // как в WoW — справа налево». Опора слева и даёт ровно это.
+            //
+            // При растянутых якорях края держат отступы, поэтому смена опоры
+            // ничего не двигает — меняется только точка, к которой всё
+            // стягивается.
+            fillRect.pivot = new Vector2(0f, 0.5f);
 
             var fillImage = fillGo.GetComponent<Image>();
             fillImage.color = color;

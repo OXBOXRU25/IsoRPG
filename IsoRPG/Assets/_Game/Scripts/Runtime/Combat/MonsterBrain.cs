@@ -19,7 +19,18 @@ namespace IsoRPG.Combat
         [SerializeField] private float aggroRadius = 7f;
 
         [Tooltip("Насколько далеко от дома монстр готов гнаться. Дальше — разворачивается и уходит обратно.")]
-        [SerializeField] private float leashRange = 16f;
+        [SerializeField] private float leashRange = 48f;
+
+        /// <summary>
+        /// Во сколько радиусов внимания монстр держится за цель в бою.
+        ///
+        /// Стояло 1.6, то есть 11 метров при радиусе 7 — герой бежит 5.5 м/с и
+        /// выходил из этого круга за две секунды. Павлон 03.09.2026: «моб
+        /// бежит буквально пару секунд и отстаёт, в WoW он гонится очень
+        /// долго — надо втрое». Вместе с поводком от дома, тоже утроенным,
+        /// это даёт погоню на треть минуты, а не на два шага.
+        /// </summary>
+        private const float ChaseHold = 4.8f;
 
         [Tooltip("Как часто осматриваться, в секундах. Каждый кадр не нужно — это лишняя нагрузка при десятках монстров.")]
         [SerializeField] private float scanInterval = 0.25f;
@@ -170,7 +181,7 @@ namespace IsoRPG.Combat
 
             // Цель ещё жива и рядом — держимся за неё.
             if (victim != null && victim.IsAlive
-                && Vector3.Distance(transform.position, victim.transform.position) <= aggroRadius * 1.6f)
+                && Vector3.Distance(transform.position, victim.transform.position) <= aggroRadius * ChaseHold)
             {
                 return;
             }
@@ -313,6 +324,16 @@ namespace IsoRPG.Combat
         {
             targets.Clear();
             returningHome = true;
+
+            // Сбросил агро — здоровье возвращается целиком и сразу.
+            //
+            // Так у Blizzard, и не из щедрости: иначе игрок бьёт монстра,
+            // отбегает за поводок, лечится и приходит добивать — и любой
+            // сильный противник разбирается на десять безопасных заходов.
+            // Полное восстановление делает отступление честной ценой, а не
+            // приёмом. Правило Павла 03.09.2026.
+            var body = GetComponent<Health>();
+            if (body != null && body.IsAlive) body.Heal(body.Max);
         }
 
         private void StepHome()

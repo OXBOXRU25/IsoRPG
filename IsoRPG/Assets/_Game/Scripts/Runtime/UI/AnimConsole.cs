@@ -92,17 +92,54 @@ namespace IsoRPG.UI
             Redraw();
         }
 
-        /// <summary>Отобрать по строке поиска. Пусто — показываем всё.</summary>
+        /// <summary>
+        /// Разделы-вкладки. Просьба Павла 04.09.2026: «сделаем внутреннюю
+        /// сортировку по разделам, типа вкладок — додж, кик и тому подобное».
+        ///
+        /// Слова, а не папки: одно и то же движение лежит у трёх наборов в
+        /// трёх разных местах, зато называется всюду похоже. Отбор по имени
+        /// собирает их вместе, а отбор по папке развёл бы обратно.
+        /// </summary>
+        private static readonly (string title, string[] words)[] Tabs =
+        {
+            ("Всё",        new string[0]),
+            ("Удары",      new[] { "attack" }),
+            ("Пинки",      new[] { "kick" }),
+            ("Уклонения",  new[] { "dodge", "roll" }),
+            ("Стойки",     new[] { "idle" }),
+            ("Ход",        new[] { "walk", "run", "sprint" }),
+            ("Ножны",      new[] { "sheath", "switch" }),
+            ("Прыжок",     new[] { "jump", "fall", "air" }),
+            ("Реакции",    new[] { "hit", "block", "stun", "knock" }),
+            ("Смерть",     new[] { "death", "dead", "getup", "revive" }),
+        };
+
+        private int tab;
+
+        /// <summary>Отобрать по вкладке и строке поиска.</summary>
         private void Refilter()
         {
             string mask = search != null ? search.text.Trim().ToLowerInvariant() : "";
+            var words = Tabs[Mathf.Clamp(tab, 0, Tabs.Length - 1)].words;
 
             shown.Clear();
 
             for (int i = 0; i < clips.Length; i++)
             {
                 if (clips[i] == null) continue;
-                if (mask.Length > 0 && !clips[i].name.ToLowerInvariant().Contains(mask)) continue;
+
+                string name = clips[i].name.ToLowerInvariant();
+
+                if (mask.Length > 0 && !name.Contains(mask)) continue;
+
+                if (words.Length > 0)
+                {
+                    bool fits = false;
+                    foreach (string word in words)
+                        if (name.Contains(word)) { fits = true; break; }
+
+                    if (!fits) continue;
+                }
 
                 shown.Add(i);
             }
@@ -236,11 +273,12 @@ namespace IsoRPG.UI
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(1f, 1f);
             rect.anchoredPosition = new Vector2(-20f, -20f);
-            rect.sizeDelta = new Vector2(Width, Rows * RowHeight + 76f);
+            rect.sizeDelta = new Vector2(Width, Rows * RowHeight + 122f);
 
             window.GetComponent<Image>().color = new Color32(0x14, 0x16, 0x12, 0xF2);
 
             search = MakeSearch(rect);
+            MakeTabs(rect);
             labels = new Text[Rows];
 
             for (int r = 0; r < Rows; r++)
@@ -249,7 +287,7 @@ namespace IsoRPG.UI
                 labels[r] = row;
             }
 
-            status = MakeText(rect, new Vector2(10f, -(Rows * RowHeight + 52f)),
+            status = MakeText(rect, new Vector2(10f, -(Rows * RowHeight + 98f)),
                               new Vector2(Width - 20f, 20f), 11);
 
             status.color = new Color32(0x8A, 0x86, 0x76, 0xFF);
@@ -278,6 +316,66 @@ namespace IsoRPG.UI
             return field;
         }
 
+        /// <summary>
+        /// Ряд вкладок под строкой поиска.
+        ///
+        /// Двумя рядами: десять названий в одну строку не влезают, а резать
+        /// их до трёх букв — значит заставить читать ребусы.
+        /// </summary>
+        private void MakeTabs(RectTransform parent)
+        {
+            tabLabels = new Text[Tabs.Length];
+
+            const float w = 108f;
+            const float h = 20f;
+
+            for (int i = 0; i < Tabs.Length; i++)
+            {
+                int row = i / 5;
+                int col = i % 5;
+
+                var go = new GameObject("Вкладка" + i, typeof(Image), typeof(Button));
+                var rect = (RectTransform)go.transform;
+                rect.SetParent(parent, false);
+                rect.anchorMin = new Vector2(0f, 1f);
+                rect.anchorMax = new Vector2(0f, 1f);
+                rect.pivot = new Vector2(0f, 1f);
+                rect.anchoredPosition = new Vector2(10f + col * (w + 2f), -(40f + row * (h + 2f)));
+                rect.sizeDelta = new Vector2(w, h);
+
+                go.GetComponent<Image>().color = new Color32(0x24, 0x26, 0x20, 0xFF);
+
+                int at = i;
+                go.GetComponent<Button>().onClick.AddListener(() =>
+                {
+                    tab = at;
+                    Refilter();
+                    PaintTabs();
+                });
+
+                var text = MakeText(rect, Vector2.zero, new Vector2(w, h), 11);
+                text.alignment = TextAnchor.MiddleCenter;
+                text.raycastTarget = false;
+                text.text = Tabs[i].title;
+
+                tabLabels[i] = text;
+            }
+
+            PaintTabs();
+        }
+
+        private Text[] tabLabels;
+
+        private void PaintTabs()
+        {
+            if (tabLabels == null) return;
+
+            for (int i = 0; i < tabLabels.Length; i++)
+                tabLabels[i].color = i == tab
+                    ? new Color32(0xFF, 0xD9, 0x8A, 0xFF)
+                    : new Color32(0x9A, 0x96, 0x86, 0xFF);
+        }
+
         private Text MakeRow(RectTransform parent, int index)
         {
             var go = new GameObject("Строка" + index, typeof(Image), typeof(Button));
@@ -286,7 +384,7 @@ namespace IsoRPG.UI
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(10f, -(42f + index * RowHeight));
+            rect.anchoredPosition = new Vector2(10f, -(88f + index * RowHeight));
             rect.sizeDelta = new Vector2(Width - 20f, RowHeight);
 
             go.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);

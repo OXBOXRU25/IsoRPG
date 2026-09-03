@@ -158,24 +158,42 @@ namespace IsoRPG.UI
                 var target = GameObject.Find("Манекен");
                 if (target == null)
                 {
-                    if (status != null) status.text = "Манекена нет — показывать не на ком.";
+                    Say("Манекена нет в сцене — показывать не на ком.");
                     return;
                 }
 
                 dummy = target.GetComponentInChildren<Animator>(true);
-                if (dummy == null) return;
 
-                if (previewController != null)
+                if (dummy == null)
                 {
-                    over = new AnimatorOverrideController(previewController);
-
-                    var pairs = new List<KeyValuePair<AnimationClip, AnimationClip>>();
-                    over.GetOverrides(pairs);
-
-                    if (pairs.Count > 0) slot = pairs[0].Key;
-
-                    dummy.runtimeAnimatorController = over;
+                    Say("У манекена нет аниматора.");
+                    return;
                 }
+
+                if (previewController == null)
+                {
+                    Say("Нет контроллера показа — прогони задание anim-console.");
+                    return;
+                }
+
+                over = new AnimatorOverrideController(previewController);
+
+                var pairs = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+                over.GetOverrides(pairs);
+
+                if (pairs.Count == 0)
+                {
+                    Say("В контроллере показа нет клипа-затычки — подменять нечего.");
+                    return;
+                }
+
+                slot = pairs[0].Key;
+                dummy.runtimeAnimatorController = over;
+
+                // Модель манекена анимируется, только когда её видит камера;
+                // окно консоли может её загораживать, а смотреть надо всегда.
+                dummy.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                dummy.applyRootMotion = false;
             }
 
             if (over == null || slot == null) return;
@@ -183,6 +201,14 @@ namespace IsoRPG.UI
             over[slot] = clips[index];
 
             dummy.Play("Preview", 0, 0f);
+            dummy.Update(0f);
+
+            Say($"Играю «{clips[index].name}» ({clips[index].length:0.00} с) на манекене.");
+        }
+
+        private void Say(string text)
+        {
+            if (status != null) status.text = text;
         }
 
         // ------------------------------------------------------------------

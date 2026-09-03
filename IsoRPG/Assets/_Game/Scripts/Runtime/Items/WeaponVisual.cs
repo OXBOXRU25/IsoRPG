@@ -54,6 +54,29 @@ namespace IsoRPG.Items
             gripAnglesLeft = leftAngles;
         }
 
+        /// <summary>
+        /// Перенять посадку оружия у другого показа — обычно у живого героя.
+        ///
+        /// Числа хвата подобраны примеркой и лежат в СЦЕНЕ, а не в коде:
+        /// значение, заданное в обоих местах, работает из сцены. Витрина же
+        /// вешает свой компонент через AddComponent и получает умолчания из
+        /// кода — то есть заведомо другой хват. Отсюда Павлон 03.09.2026:
+        /// «кинжалы не лежат в руках, один ниже руки, второй в кисти».
+        ///
+        /// Копия обязана спрашивать оригинал, а не помнить числа сама: иначе
+        /// подобранный хват придётся править дважды, и второй раз про него
+        /// забудут.
+        /// </summary>
+        public void CopyGrip(WeaponVisual source)
+        {
+            if (source == null) return;
+
+            grip = source.grip;
+            gripAngles = source.gripAngles;
+            gripLeft = source.gripLeft;
+            gripAnglesLeft = source.gripAnglesLeft;
+        }
+
         private static readonly string[] RightSlotBones = { "handslot.r", "prop_r", "hand_r" };
         private static readonly string[] LeftSlotBones = { "handslot.l", "prop_l", "hand_l" };
 

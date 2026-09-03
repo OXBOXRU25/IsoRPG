@@ -191,7 +191,23 @@ namespace IsoRPG.Items
             // Оружие в руках копии ведёт тот же компонент, что и у героя, и
             // читает ТУ ЖЕ экипировку. Никакой синхронизации писать не нужно:
             // её просто нет — источник один.
+            // Челюсть копии тоже надо запереть.
+            //
+            // Клипы нового набора двигают кость `jaw`, и держит её компонент
+            // `JawLock` — но висит он на корне героя, а копируем мы модель.
+            // Копия его не наследовала и стояла с открытым ртом: Павлон
+            // 03.09.2026 «в окне персонажа рот открыт». Тот же класс, что и с
+            // хватом ниже: копия собирается заново и теряет всё, что настроено
+            // на живом герое, — значит переносить надо явно, а не надеяться.
+            if (model.GetComponentInChildren<IsoRPG.World.JawLock>(true) == null)
+                model.AddComponent<IsoRPG.World.JawLock>();
+
             var visual = model.AddComponent<WeaponVisual>();
+
+            // Хват — с живого героя, до Setup: Setup сразу вкладывает оружие,
+            // и числа обязаны быть верными уже к этому мигу.
+            visual.CopyGrip(GetComponentInChildren<WeaponVisual>(true));
+
             visual.Setup(GetComponent<Equipment>(), PreviewLayer);
 
             var bounds = Measure(model);

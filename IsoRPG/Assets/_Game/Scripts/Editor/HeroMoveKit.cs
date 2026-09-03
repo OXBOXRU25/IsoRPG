@@ -124,14 +124,22 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
-            var peace = BuildStride(controller, "Ход мирный", Peace,
-                "/Stand_Idle/Idle/Stand_Idle_A_1.fbx",
-                "/Walk/Base/InPlace/Walk_F_InPlace.fbx",
-                "/Run/Base/InPlace/Run_F_InPlace.fbx",
-                "/Sprint/Base/InPlace/Sprint_F_InPlace.fbx",
-                "/Walk/Base/Walk_F.fbx",
-                "/Run/Base/Run_F.fbx",
-                "/Sprint/Base/Sprint_F.fbx");
+            // Мирная фаза меняет ТОЛЬКО стойку покоя.
+            //
+            // Аллюры остаются вооружёнными, и это не экономия, а замер:
+            // безоружный бег из `Base Move` мы уже брали 03.09.2026 и уже
+            // отвергли — свободные махи руками и раскачка корпуса читаются
+            // как виляние задом. Павлон увидел это второй раз, когда я взял
+            // мирную ветку целиком: «бег стал выглядеть жутко, вернулось
+            // виляние задом». Жалоба была про ПОЗУ В ПОКОЕ, ею и лечим.
+            var peace = BuildStride(controller, "Ход мирный", "",
+                Peace + "/Stand_Idle/Idle/Stand_Idle_A_1.fbx",
+                Move + "/Walk/Type A/Base/InPlace/OneHand_Base_Walk_A_F_InPlace.fbx",
+                Move + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx",
+                Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx",
+                Move + "/Walk/Type A/Base/OneHand_Base_Walk_A_F.fbx",
+                Move + "/Run/Type A/Base/OneHand_Base_Run_A_F.fbx",
+                Move + "/Sprint/Type A/Base/OneHand_Base_Sprint_A_F.fbx");
 
             if (!controller.parameters.Any(p => p.name == CombatParameter))
                 controller.AddParameter(CombatParameter, AnimatorControllerParameterType.Float);
@@ -327,9 +335,6 @@ namespace IsoRPG.EditorTools
                 (Move + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx", true),
                 (Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx", true),
                 (Move + "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx", true),
-                (Peace + "/Walk/Base/InPlace/Walk_F_InPlace.fbx", true),
-                (Peace + "/Run/Base/InPlace/Run_F_InPlace.fbx", true),
-                (Peace + "/Sprint/Base/InPlace/Sprint_F_InPlace.fbx", true),
                 (Peace + "/Stand_Idle/Idle/Stand_Idle_A_1.fbx", true),
                 (Jump + "/InPlace/OneHand_Base_Jump_Air_Loop_InPlace.fbx", true),
                 (Jump + "/OneHand_Base_Jump_Air_Loop.fbx", true),

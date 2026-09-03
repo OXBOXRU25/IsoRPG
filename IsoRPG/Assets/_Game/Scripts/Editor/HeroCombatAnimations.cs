@@ -139,6 +139,13 @@ namespace IsoRPG.EditorTools
             foreach (var cast in Casts)
                 added += OneShot(controller, root, cast.clip, cast.trigger, cast.state, 0.05f);
 
+            // Метание кинжала — новая способность, заведена 04.09.2026.
+            //
+            // Клип не из ExplosiveLLC, а из DoubleL: у первого метания нет
+            // вовсе, у второго оно есть отдельным действием. Поэтому путь
+            // абсолютный, а не от корня набора.
+            added += OneShot(controller, root, ThrowClip, "Throw", "Throw", 0.05f);
+
             // Крадущийся шаг.
             added += Sneak(controller, root);
 
@@ -536,9 +543,15 @@ namespace IsoRPG.EditorTools
         }
 
         /// <summary>Клип лежит подобъектом внутри FBX — берём его оттуда.</summary>
+        /// <summary>Метание: единственный клип не из этого набора, потому путь целиком.</summary>
+        private const string ThrowClip =
+            "Assets/DoubleL/FBX_Animations/Actions/Item/Item_Throw_InPlace.fbx";
+
         private static AnimationClip LoadClip(string relative)
         {
-            string path = Pack + relative;
+            // Путь, начинающийся с Assets, берём как есть: клипы приходят из
+            // разных наборов, и склейка с корнем годится только для своего.
+            string path = relative.StartsWith("Assets/") ? relative : Pack + relative;
 
             var clip = AssetDatabase.LoadAllAssetsAtPath(path)
                                     .OfType<AnimationClip>()

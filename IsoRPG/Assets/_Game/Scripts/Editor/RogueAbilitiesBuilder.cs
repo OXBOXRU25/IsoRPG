@@ -211,6 +211,43 @@ namespace IsoRPG.EditorTools
                 ability.impactDelay = 0f;
             });
 
+            // Метание кинжала. Заведено 04.09.2026 по просьбе Павла —
+            // «у нас нет такого скила, добавь сразу пока без иконки».
+            //
+            // Единственный дальний приём разбойника: бьёт с пятнадцати
+            // метров, то есть работает там, где остальные его умения
+            // бесполезны — по убегающему, по лучнику, по цели за пропастью.
+            // Оттого и откат заметный: иначе им можно было бы вести весь бой,
+            // не подходя, и ближний бой стал бы не нужен.
+            Create("A_ThrowDagger", ability =>
+            {
+                ability.displayName = "Метание кинжала";
+                ability.description =
+                    "Бросок клинка в цель на расстоянии до пятнадцати метров. " +
+                    "Урон оружия плюс восемь. Даёт комбо-очко.";
+
+                ability.hotkeyLabel = "5";
+                ability.iconColor = new Color32(0x9A, 0xA8, 0xB8, 0xFF);
+
+                ability.energyCost = 30;
+                ability.cooldown = 8f;
+
+                ability.comboRole = ComboRole.Generator;
+                ability.comboGain = 1;
+
+                ability.dealsDamage = true;
+                ability.bonusDamage = 8;
+
+                // Дальность — то, ради чего приём и заводится.
+                ability.reach = 15f;
+                ability.requiresTarget = true;
+
+                // Задержка больше, чем у удара: клинок должен успеть
+                // покинуть руку, иначе цель вздрагивает раньше броска.
+                ability.animationTrigger = "Throw";
+                ability.impactDelay = 0.55f;
+            });
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("[IsoRPG] Способности разбойника созданы в " + Folder);

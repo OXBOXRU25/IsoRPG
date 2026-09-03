@@ -98,6 +98,10 @@ namespace IsoRPG.EditorTools
         private const string Synty =
             "Assets/Synty/AnimationBaseLocomotion/Animations/Sidekick/Masculine";
 
+        /// <summary>Третий набор: ExplosiveLLC, анимации с оружием в обеих руках.</summary>
+        private const string Boom =
+            "Assets/ExplosiveLLC/RPG Character Mecanim Animation Pack/Animations";
+
         /// <summary>
         /// Параметр фазы: 0 — мирная пластика, 1 — боевая.
         ///
@@ -155,10 +159,10 @@ namespace IsoRPG.EditorTools
                 Move + "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
-                Move + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx",
+                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
-                Move + "/Run/Type A/Base/OneHand_Base_Run_A_F.fbx");
+                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX");
 
             if (fight == null)
             {
@@ -182,10 +186,10 @@ namespace IsoRPG.EditorTools
                 Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
-                null,
+                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
-                null);
+                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX");
 
             if (!controller.parameters.Any(p => p.name == CombatParameter))
                 controller.AddParameter(CombatParameter, AnimatorControllerParameterType.Float);
@@ -219,8 +223,10 @@ namespace IsoRPG.EditorTools
                 : new[] { new ChildMotion { motion = fight, threshold = 0f, timeScale = 1f } };
 
             // --- подмена в состояниях ------------------------------------
-            var jumpStart = Clip(Jump + "/InPlace/OneHand_Base_Jump_Start_InPlace.fbx")
-                            ?? Clip(Jump + "/OneHand_Base_Jump_Start.fbx");
+            // Прыжок: Synty с разбега. Выбор Павла 04.09.2026 — «руки
+            // поднимает, выглядит анатомично».
+            var jumpStart = Clip(Synty + "/InAir/A_MOD_BL_Jump_Running_Masc.fbx")
+                            ?? Clip(Jump + "/InPlace/OneHand_Base_Jump_Start_InPlace.fbx");
 
             var jumpAir = Clip(Jump + "/InPlace/OneHand_Base_Jump_Air_Loop_InPlace.fbx")
                           ?? Clip(Jump + "/OneHand_Base_Jump_Air_Loop.fbx");
@@ -351,7 +357,12 @@ namespace IsoRPG.EditorTools
                 new ChildMotion { motion = run, threshold = HeroSpeed, timeScale = runScale },
             };
 
-            // Отдельной ступени спринта больше нет.
+            // Спринт — отдельная ступень, и клип выбран Павлоном глазами.
+            //
+            // 04.09.2026: «шестой бег хорошо было бы для спринта, прикольно
+            // выглядит» — это безоружный бег ExplosiveLLC. Своего клипа
+            // спринта у него нет, поэтому берём бег и гоним быстрее: у
+            // спринта размашистость и так читается сама.
             //
             // Решение Павла 04.09.2026: «меняем спринт на обычный бег с
             // ускорением». Причина в замере: любой чужой клип спринта
@@ -363,9 +374,13 @@ namespace IsoRPG.EditorTools
             // Это честнее: ноги успевают ровно настолько, насколько герой
             // реально быстрее. Стрекот при этом никуда не девается —
             // убрать его можно только уменьшив прибавку спринта.
-            _ = sprintTarget;
-            _ = sprintScale;
-            _ = sprint;
+            if (sprint != null)
+                children.Add(new ChildMotion
+                {
+                    motion = sprint,
+                    threshold = sprintTarget,
+                    timeScale = sprintScale,
+                });
 
             tree.children = children.ToArray();
 

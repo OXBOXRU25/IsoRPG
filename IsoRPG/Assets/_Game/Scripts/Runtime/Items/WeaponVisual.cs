@@ -70,11 +70,39 @@ namespace IsoRPG.Items
         /// <summary>
         /// Показывать чужую экипировку. Копии героя в окне отдают ту же
         /// самую — поэтому синхронизировать нечего: источник один.
+        ///
+        /// Подписываемся и показываем прямо здесь, а не надеемся на OnEnable.
+        /// Витрина окна персонажа вешает этот компонент через AddComponent, а
+        /// Unity зовёт Awake и OnEnable СРАЗУ, внутри самого вызова — то есть
+        /// до Setup. К моменту подписки экипировки ещё не было: событие никто
+        /// не слушал, первый показ прошёл вхолостую, и копия героя стояла с
+        /// пустыми руками навсегда. Снаружи это выглядело как «витрина не
+        /// умеет оружие», хотя умеет — ей просто не сказали, чьё.
         /// </summary>
         public void Setup(Equipment source, int layer = -1)
         {
+            if (equipment != null) equipment.Changed -= Refresh;
+
             equipment = source;
             forcedLayer = layer;
+
+            if (!isActiveAndEnabled) return;
+
+            Subscribe();
+            Refresh();
+        }
+
+        /// <summary>
+        /// Подписка на смену экипировки. Идёт из двух мест — OnEnable и
+        /// Setup, — поэтому сперва снимаем: иначе один и тот же Refresh
+        /// встал бы в очередь дважды и всё делал бы по два раза.
+        /// </summary>
+        private void Subscribe()
+        {
+            if (equipment == null) return;
+
+            equipment.Changed -= Refresh;
+            equipment.Changed += Refresh;
         }
 
         private Transform rightSlot;
@@ -92,6 +120,9 @@ namespace IsoRPG.Items
         private Animator animator;
         private int fistLayer = -1;
 
+        /// <summary>Имя слоя. Ставит его задание `hand-pose`, ищем по нему же.</summary>
+        private const string FistLayerName = "Кисть";
+
         private void Awake()
         {
             if (equipment == null) equipment = GetComponent<Equipment>();
@@ -99,7 +130,22 @@ namespace IsoRPG.Items
             animator = GetComponentInChildren<Animator>(true);
 
             if (animator != null && animator.runtimeAnimatorController != null)
-                fistLayer = animator.GetLayerIndex("Кисть");
+                fistLayer = animator.GetLayerIndex(FistLayerName);
+
+            // Слоя нет — значит пальцы этим кодом не управляются вовсе, ни
+            // сжать, ни разжать. Молчать тут нельзя: снаружи это неотличимо
+            // от «хват подобран криво», а лечится совсем другим — прогоном
+            // задания `hand-pose` на контроллер героя.
+            if (animator != null && fistLayer <= 0)
+            {
+                string controller = animator.runtimeAnimatorController != null
+                    ? animator.runtimeAnimatorController.name
+                    : "нет вовсе";
+
+                Debug.LogWarning($"[IsoRPG] У «{name}» в контроллере «{controller}» нет слоя " +
+                                 $"«{FistLayerName}» — пальцы не сожмутся вокруг рукояти и не " +
+                                 "разожмутся при снятии оружия. Прогнать задание hand-pose.");
+            }
 
             rightSlot = FindAnyBone(RightSlotBones);
             leftSlot = FindAnyBone(LeftSlotBones);
@@ -117,7 +163,7 @@ namespace IsoRPG.Items
 
         private void OnEnable()
         {
-            if (equipment != null) equipment.Changed += Refresh;
+            Subscribe();
             Refresh();
         }
 
@@ -139,8 +185,23 @@ namespace IsoRPG.Items
             // Пальцы сжимаем только когда в руке что-то есть. Иначе герой
             // ходил бы с вечно стиснутыми кулаками — Павлон 02.09.2026:
             // «пальцы должны сжать рукоять, они вообще не согнуты».
-            if (animator != null && fistLayer > 0)
-                animator.SetLayerWeight(fistLayer, rightModel != null || leftModel != null ? 1f : 0f);
+            if (animator == null || fistLayer <= 0) return;
+
+            float weight = rightModel != null || leftModel != null ? 1f : 0f;
+            float was = animator.GetLayerWeight(fistLayer);
+
+            animator.SetLayerWeight(fistLayer, weight);
+
+            // Замер, а не догадка. 03.09.2026 Павлон увидел: «снял оружие —
+            // руки остались в хвате». По коду вес обязан упасть до нуля, и
+            // если он падает, а пальцы согнуты — держит их не этот слой, а
+            // сама стойка. Строчка в журнале отвечает на это за один проход
+            // игры вместо круга правок вслепую. Событие редкое — смена
+            // экипировки, — на кадре не сказывается.
+            if (!Mathf.Approximately(was, weight))
+                Debug.Log($"[IsoRPG] Кисть: вес слоя {was:0.##} → {weight:0.##} " +
+                          $"(правая {(rightModel != null ? "занята" : "пуста")}, " +
+                          $"левая {(leftModel != null ? "занята" : "пуста")}).");
         }
 
         private void Show(EquipSlot slot, Transform bone, ref GameObject current,

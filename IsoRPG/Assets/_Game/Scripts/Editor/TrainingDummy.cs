@@ -136,7 +136,15 @@ namespace IsoRPG.EditorTools
 
             for (int i = 0; i < own.Length; i++) own[i].enabled = was[i];
 
-            float y = found && hit.point.y <= ground + 0.5f ? hit.point.y : ground;
+            // Берём высоту ГЕРОЯ, а луч — только справка в журнал.
+            //
+            // Вторая попытка доверяла лучу, если он нашёл опору не выше
+            // героя, — и снова получила террейн: он лежит на 2.65, а герой
+            // стоит на 3.22, потому что под ним земля автора. Манекен
+            // утонул по колено. В трёх метрах перепад земли меньше, чем
+            // разница между рельефом и настоящим полом, поэтому высота
+            // героя тут — самый точный ответ, а не приближение.
+            float y = ground;
 
             go.transform.position = new Vector3(go.transform.position.x, y, go.transform.position.z);
 

@@ -315,7 +315,19 @@ namespace IsoRPG.Player
         {
             if (!hasStance) return;
 
-            float target = Time.time < combatUntil ? 1f : 0f;
+            // В боевую стойку герой встаёт, ВЫБРАВ противника, а не только
+            // получив по зубам.
+            //
+            // Предложение Павла 04.09.2026. Так честнее по смыслу: наведя
+            // цель, человек уже принял решение драться — и персонаж обязан
+            // отвечать телом сразу, а не через удар. Держится стойка потом
+            // ещё пять секунд по таймеру: снял цель посреди драки — не
+            // распрямляйся мгновенно.
+            if (targets == null) targets = GetComponent<IsoRPG.Combat.TargetSelector>();
+
+            bool aiming = targets != null && targets.Current != null && targets.HasHostileTarget;
+
+            float target = aiming || Time.time < combatUntil ? 1f : 0f;
 
             stance = Mathf.MoveTowards(stance, target, Time.deltaTime / StanceBlend);
 

@@ -102,13 +102,21 @@ namespace IsoRPG.EditorTools
             // повторяло первое по памяти. Пока примерка читает контроллер,
             // разойтись они не могут.
             var (curIdle, curWalk, curRun, curSprint) = CurrentStride(player);
+
+            // Боевую стойку берём ИМЕННО из боевого дерева, по имени.
+            //
+            // По общему порядку клипов её не найти: он зависит от того, есть
+            // ли у фаз спринт и совпадают ли у них аллюры, — и уже один раз
+            // соврал, выдав боевую стойку за спринт. Имя дерева задаёт
+            // HeroMoveKit, оно стабильно.
+            var curCombat = FirstClipOf(player, "Ход боевой") ?? curIdle;
             var curJump = CurrentState(player, "Jump_Start");
 
             tryout.Setup(runs, idles, combat, jumps,
-                         curRun, curIdle, curIdle, curJump);
+                         curRun, curIdle, curCombat, curJump);
 
             Debug.Log($"[IsoRPG] Примерка подменяет: бег «{Name(curRun)}», стойку «{Name(curIdle)}», " +
-                      $"прыжок «{Name(curJump)}». Шаг «{Name(curWalk)}», спринт «{Name(curSprint)}» " +
+                      $"прыжок «{Name(curJump)}», боевую стойку «{Name(curCombat)}». Шаг «{Name(curWalk)}», спринт «{Name(curSprint)}» " +
                       "остаются как есть.");
 
             EditorUtility.SetDirty(tryout);
@@ -122,6 +130,29 @@ namespace IsoRPG.EditorTools
             Report("стойка", idles);
             Report("боевая стойка", combat);
             Report("прыжок", jumps);
+        }
+
+        /// <summary>Первый клип названного дерева — у нас это всегда стойка покоя.</summary>
+        private static AnimationClip FirstClipOf(GameObject player, string treeName)
+        {
+            var clips = new List<AnimationClip>();
+
+            Find(FindMotion(player, "Locomotion"), treeName, clips);
+
+            return clips.Count > 0 ? clips[0] : null;
+        }
+
+        private static void Find(Motion motion, string treeName, List<AnimationClip> into)
+        {
+            if (motion is not UnityEditor.Animations.BlendTree tree) return;
+
+            if (tree.name == treeName)
+            {
+                Collect(tree, into);
+                return;
+            }
+
+            foreach (var child in tree.children) Find(child.motion, treeName, into);
         }
 
         private static string Name(AnimationClip clip) => clip != null ? clip.name : "НЕТ";

@@ -179,10 +179,10 @@ namespace IsoRPG.EditorTools
             var fight = BuildStride(controller, "Ход боевой", "",
                 Move + "/Idle/Idle/OneHand_Base_Stand_Idle_B_1.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
-                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
+                Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx",
                 Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
-                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx",
+                Move + "/Sprint/Type A/Base/OneHand_Base_Sprint_A_F.fbx",
                 Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx");
 
             if (fight == null)
@@ -206,10 +206,10 @@ namespace IsoRPG.EditorTools
             var peace = BuildStride(controller, "Ход мирный", "",
                 Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
-                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
+                Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx",
                 Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
-                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx",
+                Move + "/Sprint/Type A/Base/OneHand_Base_Sprint_A_F.fbx",
                 Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx");
 
             if (!controller.parameters.Any(p => p.name == CombatParameter))
@@ -320,6 +320,7 @@ namespace IsoRPG.EditorTools
             }
 
             BuildFidgetLayer(controller);
+            BuildArmLayer(controller);
 
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
@@ -330,6 +331,79 @@ namespace IsoRPG.EditorTools
                       $"Фазы: боевая есть, мирная {(peace != null ? "есть" : "НЕ НАЙДЕНА")}; " +
                       $"переключает параметр «{CombatParameter}».");
         }
+
+        /// <summary>
+        /// Правая рука машет при беге — отдельным СИНХРОННЫМ слоем.
+        ///
+        /// Павлон 04.09.2026 про выбранный бег: «плохо только что он машет
+        /// только левой рукой, а правой вообще не двигает». Так и нарисовано:
+        /// клип вооружённый, правая держит оружие у бедра и не участвует в
+        /// беге вовсе. Доворотом или подменой всего клипа это не лечится —
+        /// нужен мах именно правой, поверх остального.
+        ///
+        /// Слой синхронный (`syncedLayerIndex = 0`): у него та же машина
+        /// состояний и то же время, но свой клип и своя маска. Значит мах
+        /// пойдёт РОВНО в такт шагам — а несинхронный слой разошёлся бы с
+        /// ногами за пару секунд, и это читалось бы куда хуже неподвижной
+        /// руки.
+        ///
+        /// Маска — только плечо и предплечье, без пальцев: кисть ведёт свой
+        /// слой, он держит рукоять, и отнимать её у него нельзя.
+        /// </summary>
+        private static void BuildArmLayer(AnimatorController controller)
+        {
+            var swing = Clip(Peace + "/Sprint/Base/InPlace/Sprint_F_InPlace.fbx");
+
+            if (swing == null)
+            {
+                Debug.LogWarning("[IsoRPG] Нет клипа для маха правой рукой — слой не собран.");
+                return;
+            }
+
+            for (int i = controller.layers.Length - 1; i > 0; i--)
+                if (controller.layers[i].name == ArmLayer) controller.RemoveLayer(i);
+
+            var mask = new AvatarMask();
+
+            for (var part = AvatarMaskBodyPart.Root; part < AvatarMaskBodyPart.LastBodyPart; part++)
+                mask.SetHumanoidBodyPartActive(part, false);
+
+            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.RightArm, true);
+
+            AssetDatabase.CreateAsset(mask, MaskPath);
+
+            controller.AddLayer(new AnimatorControllerLayer
+            {
+                name = ArmLayer,
+                syncedLayerIndex = 0,
+                avatarMask = mask,
+                blendingMode = AnimatorLayerBlendingMode.Override,
+                defaultWeight = 1f,
+            });
+
+            // Клип синхронного слоя задаётся не состоянию, а слою: у него своя
+            // подмена движения на каждое состояние базового.
+            var layers = controller.layers;
+            var last = layers[layers.Length - 1];
+
+            foreach (var child in layers[0].stateMachine.states)
+            {
+                if (child.state.name != "Locomotion") continue;
+
+                last.SetOverrideMotion(child.state, swing);
+                break;
+            }
+
+            controller.layers = layers;
+
+            Debug.Log($"[IsoRPG] Слой «{ArmLayer}»: мах правой рукой из «{swing.name}», " +
+                      "синхронно с базовым слоем, маска только на руку без пальцев.");
+        }
+
+        /// <summary>Имя слоя маха правой рукой.</summary>
+        private const string ArmLayer = "Правая рука";
+
+        private const string MaskPath = "Assets/_Game/Art/Animations/Masks/RightArm.mask";
 
         /// <summary>
         /// Слой редких поз ожидания — поверх всего остального.

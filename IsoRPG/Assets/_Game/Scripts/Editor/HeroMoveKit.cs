@@ -176,6 +176,39 @@ namespace IsoRPG.EditorTools
             // смесь двух пластик с разными пропорциями. Заказчик предупреждён;
             // увидит дёрганье — рядом лежит родной `A_MOD_BL_Sprint_F_Masc`,
             // замена в одну строку.
+            // Двумерный ход: вперёд, назад, вбок. Клипы направлений Павлон
+            // отобрал сам через консоль 04.09.2026.
+            if (!controller.parameters.Any(p => p.name == MoveXParameter))
+                controller.AddParameter(MoveXParameter, AnimatorControllerParameterType.Float);
+
+            if (!controller.parameters.Any(p => p.name == MoveYParameter))
+                controller.AddParameter(MoveYParameter, AnimatorControllerParameterType.Float);
+
+            var runClip = Clip(Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx");
+            var walkClip = Clip(Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx");
+            var idlePeace = Clip(Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx");
+            var idleFight = Clip(Move + "/Idle/Idle/OneHand_Base_Stand_Idle_B_1.fbx");
+
+            var backClip = Clip(Boom + "/Relax/RPG-Character@Relax-Run-Backward.FBX");
+            var leftClip = Clip(Boom + "/Relax/RPG-Character@Relax-Run-Left.FBX");
+            var rightClip = Clip(Boom + "/Relax/RPG-Character@Relax-Run-Right.FBX");
+
+            float walkAt2 = Speed(Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx", 1.8f);
+            float runAt2 = Speed(Move + "/Sprint/Type A/Base/OneHand_Base_Sprint_A_F.fbx", 5.0f);
+            float runScale2 = runAt2 > 0.1f ? HeroSpeed / runAt2 : 1f;
+
+            BlendTree fight2 = null, peace2 = null;
+
+            if (runClip != null && walkClip != null && idleFight != null)
+            {
+                fight2 = BuildStride2D(controller, "Ход боевой 2D", idleFight, walkClip, runClip,
+                                       backClip, leftClip, rightClip, walkAt2, runScale2);
+
+                peace2 = BuildStride2D(controller, "Ход мирный 2D", idlePeace ?? idleFight,
+                                       walkClip, runClip, backClip, leftClip, rightClip,
+                                       walkAt2, runScale2);
+            }
+
             var fight = BuildStride(controller, "Ход боевой", "",
                 Move + "/Idle/Idle/OneHand_Base_Stand_Idle_B_1.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
@@ -532,6 +565,74 @@ namespace IsoRPG.EditorTools
             Debug.Log("[IsoRPG] Слой оживления: поз " + clips.Length + " — " +
                       string.Join(", ", clips.Select(c => c.name)) + ".");
         }
+
+        /// <summary>
+        /// Двумерное дерево хода: вперёд, назад, вбок.
+        ///
+        /// Просьба Павла 04.09.2026 — «делаем один в один как в WoW»: W бежит
+        /// вперёд, S шагает назад, A и D с зажатой правой кнопкой несут героя
+        /// боком, лицом вперёд. Клипы он отобрал сам через консоль: назад и
+        /// вбок берём у `Relax`, там полный набор восьми направлений.
+        ///
+        /// Оси — скорость в СВОИХ координатах героя, метры в секунду: вперёд
+        /// это плюс по Y, вправо — плюс по X. Поэтому пороги можно ставить
+        /// прямо в метрах, а не в долях, и дерево само разбирается, что
+        /// подмешать на диагонали.
+        ///
+        /// Тип Cartesian, а не Directional: направленный считает углы и на
+        /// нулевой скорости мечется между соседями, потому что угол там не
+        /// определён. Декартов же спокойно сходится к центру — к покою.
+        /// </summary>
+        private static BlendTree BuildStride2D(AnimatorController controller, string name,
+                                               AnimationClip idle, AnimationClip walk,
+                                               AnimationClip run, AnimationClip back,
+                                               AnimationClip left, AnimationClip right,
+                                               float walkAt, float runScale)
+        {
+            var tree = new BlendTree
+            {
+                name = name,
+                blendType = BlendTreeType.FreeformCartesian2D,
+                blendParameter = MoveXParameter,
+                blendParameterY = MoveYParameter,
+                useAutomaticThresholds = false,
+            };
+
+            AssetDatabase.AddObjectToAsset(tree, controller);
+
+            var children = new System.Collections.Generic.List<ChildMotion>
+            {
+                new ChildMotion { motion = idle, position = Vector2.zero, timeScale = 1f },
+                new ChildMotion { motion = walk, position = new Vector2(0f, walkAt), timeScale = 1f },
+                new ChildMotion { motion = run,  position = new Vector2(0f, HeroSpeed), timeScale = runScale },
+            };
+
+            // Боковые и задний ход — из другого набора, и это осознанно: у
+            // нашего их нет вовсе, а без них герой вбок «едет лицом вперёд»,
+            // что и было главной претензией.
+            if (back != null)
+                children.Add(new ChildMotion
+                { motion = back, position = new Vector2(0f, -HeroSpeed * 0.7f), timeScale = 1f });
+
+            if (left != null)
+                children.Add(new ChildMotion
+                { motion = left, position = new Vector2(-HeroSpeed * 0.8f, 0f), timeScale = 1f });
+
+            if (right != null)
+                children.Add(new ChildMotion
+                { motion = right, position = new Vector2(HeroSpeed * 0.8f, 0f), timeScale = 1f });
+
+            tree.children = children.ToArray();
+
+            Debug.Log($"[IsoRPG] «{name}»: двумерное дерево, точек {children.Count} " +
+                      $"(вперёд {HeroSpeed:0.0}, шаг {walkAt:0.0}, назад и вбок из Relax).");
+
+            return tree;
+        }
+
+        /// <summary>Скорость в своих координатах героя: вправо и вперёд, м/с.</summary>
+        public const string MoveXParameter = "MoveX";
+        public const string MoveYParameter = "MoveY";
 
         /// <summary>
         /// Одномерное дерево аллюров одной фазы: покой → шаг → бег → спринт.

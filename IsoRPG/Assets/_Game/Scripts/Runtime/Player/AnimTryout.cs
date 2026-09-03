@@ -88,7 +88,7 @@ namespace IsoRPG.Player
             if (keys.f1Key.wasPressedThisFrame) Next(runs, baseRun, ref runAt, "Бег");
             if (keys.f2Key.wasPressedThisFrame) Next(idles, baseIdle, ref idleAt, "Стойка");
             if (keys.f3Key.wasPressedThisFrame) Next(combatIdles, baseCombatIdle, ref combatAt, "Боевая стойка");
-            if (keys.f4Key.wasPressedThisFrame) Next(landings, baseLanding, ref landAt, "Приземление");
+            if (keys.f4Key.wasPressedThisFrame) Next(landings, baseLanding, ref landAt, "Прыжок");
         }
 
         /// <summary>

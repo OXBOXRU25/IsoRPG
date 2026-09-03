@@ -27,6 +27,9 @@ namespace IsoRPG.EditorTools
         private const string Synty =
             "Assets/Synty/AnimationBaseLocomotion/Animations/Sidekick/Masculine";
 
+        private const string Boom =
+            "Assets/ExplosiveLLC/RPG Character Mecanim Animation Pack/Animations";
+
         public static void Apply()
         {
             var player = GameObject.Find("Player");
@@ -38,7 +41,9 @@ namespace IsoRPG.EditorTools
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
                 OneHand + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx",
                 OneHandUp + "/Run/Type A/Base/InPlace/OneHand_Up_Run_F_InPlace.fbx",
-                Peace + "/Run/Base/InPlace/Run_F_InPlace.fbx");
+                Peace + "/Run/Base/InPlace/Run_F_InPlace.fbx",
+                Boom + "/Armed/RPG-Character@Armed-Run-Forward.FBX",
+                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX");
 
             var idles = Clips(
                 Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
@@ -66,6 +71,13 @@ namespace IsoRPG.EditorTools
                 Actions + "/Combat Idle/Combat_Idle_5.fbx",
                 Actions + "/Combat Idle/Combat_Idle_6.fbx");
 
+            var jumps = Clips(
+                Jump + "/InPlace/OneHand_Base_Jump_Start_InPlace.fbx",
+                Boom + "/Armed/RPG-Character@Armed-Jump.FBX",
+                Boom + "/Unarmed/RPG-Character@Unarmed-Jump.FBX",
+                Synty + "/InAir/A_MOD_BL_Jump_Idle_Masc.fbx",
+                Synty + "/InAir/A_MOD_BL_Jump_Running_Masc.fbx");
+
             var landings = Clips(
                 Jump + "/InPlace/OneHand_Base_Jump_End_1_InPlace.fbx",
                 Jump + "/InPlace/OneHand_Base_Jump_End_2_InPlace.fbx",
@@ -90,26 +102,26 @@ namespace IsoRPG.EditorTools
             // повторяло первое по памяти. Пока примерка читает контроллер,
             // разойтись они не могут.
             var (curIdle, curWalk, curRun, curSprint) = CurrentStride(player);
-            var curLanding = CurrentState(player, "Jump_Land");
+            var curJump = CurrentState(player, "Jump_Start");
 
-            tryout.Setup(runs, idles, combat, landings,
-                         curRun, curIdle, curIdle, curLanding);
+            tryout.Setup(runs, idles, combat, jumps,
+                         curRun, curIdle, curIdle, curJump);
 
             Debug.Log($"[IsoRPG] Примерка подменяет: бег «{Name(curRun)}», стойку «{Name(curIdle)}», " +
-                      $"приземление «{Name(curLanding)}». Шаг «{Name(curWalk)}», спринт «{Name(curSprint)}» " +
+                      $"прыжок «{Name(curJump)}». Шаг «{Name(curWalk)}», спринт «{Name(curSprint)}» " +
                       "остаются как есть.");
 
             EditorUtility.SetDirty(tryout);
             UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
 
             Debug.Log($"[IsoRPG] Примерка анимаций: бег {runs.Length}, стойка {idles.Length}, " +
-                      $"боевая стойка {combat.Length}, приземление {landings.Length}. " +
+                      $"боевая стойка {combat.Length}, прыжок {jumps.Length}. " +
                       "Клавиши в игре: F1, F2, F3, F4.");
 
             Report("бег", runs);
             Report("стойка", idles);
             Report("боевая стойка", combat);
-            Report("приземление", landings);
+            Report("прыжок", jumps);
         }
 
         private static string Name(AnimationClip clip) => clip != null ? clip.name : "НЕТ";

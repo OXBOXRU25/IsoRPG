@@ -152,7 +152,7 @@ namespace IsoRPG.EditorTools
             // увидит дёрганье — рядом лежит родной `A_MOD_BL_Sprint_F_Masc`,
             // замена в одну строку.
             var fight = BuildStride(controller, "Ход боевой", "",
-                Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
+                Move + "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
                 Move + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx",
@@ -166,14 +166,26 @@ namespace IsoRPG.EditorTools
                 return;
             }
 
-            // Мирная фаза пока та же, что боевая.
+            // Боевая фаза отличается ТОЛЬКО стойкой покоя.
             //
-            // У Synty в этом наборе одна стойка стоя — боевой там нет вовсе.
-            // Разводить фазы клипами из разных наборов значило бы вернуть ту
-            // самую беду, от которой уходим. Боевую стойку подберём отдельным
-            // шагом, когда убедимся, что базовый ход хорош; параметр `Stance`
-            // остаётся на месте и ждёт её.
-            var peace = fight;
+            // У Synty в наборе передвижения боевой стойки нет вовсе — есть
+            // одна нейтральная. Поэтому боевую берём у DoubleL: Павлон выбрал
+            // её глазами из тринадцати вариантов примерки 04.09.2026 (ему
+            // понравились первая, вторая и пятая; ставим первую, разнообразие
+            // добавим отдельным механизмом).
+            //
+            // Смешение наборов здесь есть, но узкое: стойка блендится с шагом
+            // только в полосе около полутора метров в секунду, а стоя и на
+            // бегу играет чистый клип. Это не то же самое, что мешать бег с
+            // бегом, где смесь идёт постоянно.
+            var peace = BuildStride(controller, "Ход мирный", "",
+                Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
+                Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
+                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
+                null,
+                Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
+                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
+                null);
 
             if (!controller.parameters.Any(p => p.name == CombatParameter))
                 controller.AddParameter(CombatParameter, AnimatorControllerParameterType.Float);
@@ -339,16 +351,21 @@ namespace IsoRPG.EditorTools
                 new ChildMotion { motion = run, threshold = HeroSpeed, timeScale = runScale },
             };
 
-            // Спринт — отдельная ступень, а не растянутый бег: у героя есть
-            // способность на +70% скорости, и на растянутом беге она читалась
-            // бы как ускоренная перемотка.
-            if (sprint != null)
-                children.Add(new ChildMotion
-                {
-                    motion = sprint,
-                    threshold = sprintTarget,
-                    timeScale = sprintScale,
-                });
+            // Отдельной ступени спринта больше нет.
+            //
+            // Решение Павла 04.09.2026: «меняем спринт на обычный бег с
+            // ускорением». Причина в замере: любой чужой клип спринта
+            // приходилось гнать вдвое — вооружённый бег DoubleL шёл x2.00,
+            // родной Synty x1.44, и оба читались как перемотка.
+            //
+            // Теперь выше беговой скорости дерево держит чистый бег, а
+            // ускоряет его множитель скорости состояния (параметр MoveRate).
+            // Это честнее: ноги успевают ровно настолько, насколько герой
+            // реально быстрее. Стрекот при этом никуда не девается —
+            // убрать его можно только уменьшив прибавку спринта.
+            _ = sprintTarget;
+            _ = sprintScale;
+            _ = sprint;
 
             tree.children = children.ToArray();
 

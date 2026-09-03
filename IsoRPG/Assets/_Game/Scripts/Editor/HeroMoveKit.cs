@@ -320,7 +320,19 @@ namespace IsoRPG.EditorTools
             }
 
             BuildFidgetLayer(controller);
-            BuildArmLayer(controller);
+
+            // Слой маха правой рукой СНЯТ.
+            //
+            // Павлон 04.09.2026 сразу после сборки: «ты сломал бег, верни как
+            // было». Синхронный слой брал руку из безоружного спринта — а
+            // корпус в выбранном клипе развёрнут иначе, и рука пошла не по
+            // своей дуге. Замысел был верный, исполнение — нет: маска на всю
+            // руку переносит и плечо, а плечо принадлежит корпусу.
+            //
+            // Если возвращаться, то не этим путём, а аддитивом: разницей
+            // между двумя клипами, а не подменой целиком.
+            DropArmLayer(controller);
+            DropTryout();
 
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
@@ -350,6 +362,38 @@ namespace IsoRPG.EditorTools
         /// Маска — только плечо и предплечье, без пальцев: кисть ведёт свой
         /// слой, он держит рукоять, и отнимать её у него нельзя.
         /// </summary>
+        /// <summary>
+        /// Снять с героя примерку анимаций.
+        ///
+        /// Инструмент выбора, а не механика: чтобы показывать клипы честно,
+        /// он гонит скорость всего аниматора под выбранный вариант — и,
+        /// оставшись в сцене после выбора, продолжает её крутить. Павлон
+        /// 04.09.2026: «что-то не то со скоростью простого бега». Так и
+        /// было: скорость держала примерка, а не дерево.
+        ///
+        /// Ровно та причина, по которой мы убрали переключатель проекций:
+        /// пока варианты живы, каждая правка делается вслепую.
+        /// </summary>
+        private static void DropTryout()
+        {
+            var player = GameObject.Find("Player");
+            if (player == null) return;
+
+            var tryout = player.GetComponent<IsoRPG.Player.AnimTryout>();
+            if (tryout == null) return;
+
+            Object.DestroyImmediate(tryout, true);
+            EditorSceneManager.MarkAllScenesDirty();
+
+            Debug.Log("[IsoRPG] Примерка анимаций снята с героя: выбор сделан.");
+        }
+
+        private static void DropArmLayer(AnimatorController controller)
+        {
+            for (int i = controller.layers.Length - 1; i > 0; i--)
+                if (controller.layers[i].name == ArmLayer) controller.RemoveLayer(i);
+        }
+
         private static void BuildArmLayer(AnimatorController controller)
         {
             var swing = Clip(Peace + "/Sprint/Base/InPlace/Sprint_F_InPlace.fbx");

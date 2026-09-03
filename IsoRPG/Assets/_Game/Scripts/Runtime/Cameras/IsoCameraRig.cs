@@ -306,6 +306,18 @@ namespace IsoRPG.Cameras
             UpdatePlacement(Application.isPlaying ? Time.deltaTime : 0f);
         }
 
+        /// <summary>Началось ли нажатие на мире, а не на окне. Решается один раз при нажатии.</summary>
+        private bool orbitFromWorld;
+        private bool steerFromWorld;
+
+        /// <summary>Стоит ли указатель над интерфейсом прямо сейчас.</summary>
+        private static bool PointerOverUi()
+        {
+            var events = UnityEngine.EventSystems.EventSystem.current;
+
+            return events != null && events.IsPointerOverGameObject();
+        }
+
         private bool quitting;
 
         private void OnApplicationQuit()
@@ -336,18 +348,24 @@ namespace IsoRPG.Cameras
             var mouse = Mouse.current;
             if (mouse == null || !Application.isPlaying) return;
 
-            bool orbit = mouse.leftButton.isPressed;
-            bool steer = mouse.rightButton.isPressed;
+            // Решаем в момент НАЖАТИЯ, а не каждый кадр.
+            //
+            // Проверка «указатель над интерфейсом» перестаёт отвечать правду,
+            // как только начинается перетаскивание: указатель захвачен окном,
+            // и рейкаст под ним больше не считается. Именно там она и была
+            // нужна — Павлон 03.09.2026: «начались проблемы с перетаскиванием
+            // окон левой кнопкой, вместо этого поворачивается экран».
+            //
+            // Спрашиваем один раз, пока перетаскивания ещё нет, и держим ответ
+            // до отпускания. Заодно чинится и обратное: начал крутить с земли,
+            // увёл курсор на окно — вращение не обрывается на полпути.
+            if (mouse.leftButton.wasPressedThisFrame) orbitFromWorld = !PointerOverUi();
+            if (mouse.rightButton.wasPressedThisFrame) steerFromWorld = !PointerOverUi();
+
+            bool orbit = mouse.leftButton.isPressed && orbitFromWorld;
+            bool steer = mouse.rightButton.isPressed && steerFromWorld;
 
             if (!orbit && !steer) return;
-
-            // Над окном интерфейса кнопки принадлежат окну: иначе перетаскивание
-            // окна или предмета утаскивало бы за собой весь мир.
-            if (UnityEngine.EventSystems.EventSystem.current != null &&
-                UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
-            {
-                return;
-            }
 
             Vector2 move = mouse.delta.ReadValue();
 

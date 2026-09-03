@@ -99,16 +99,38 @@ namespace IsoRPG.EditorTools
         /// </summary>
         private static void Ground(GameObject go)
         {
-            Vector3 from = go.transform.position + Vector3.up * 5f;
+            // Свои коллайдеры на время замера выключаем.
+            //
+            // Иначе луч сверху попадает В САМ манекен — я же только что дал
+            // ему капсулу, — считает её землёй и ставит куклу на собственную
+            // макушку. Павлон 04.09.2026 после первой попытки: «ты его ещё
+            // выше поднял». Так и было: каждый прогон задания поднимал его
+            // ещё на рост.
+            var own = go.GetComponentsInChildren<Collider>(true);
+            var was = new bool[own.Length];
 
-            if (!Physics.Raycast(from, Vector3.down, out var hit, 50f,
-                                 ~0, QueryTriggerInteraction.Ignore))
+            for (int i = 0; i < own.Length; i++)
+            {
+                was[i] = own[i].enabled;
+                own[i].enabled = false;
+            }
+
+            Vector3 from = go.transform.position + Vector3.up * 5f;
+            bool found = Physics.Raycast(from, Vector3.down, out var hit, 50f,
+                                         ~0, QueryTriggerInteraction.Ignore);
+
+            for (int i = 0; i < own.Length; i++) own[i].enabled = was[i];
+
+            if (!found)
             {
                 Debug.LogWarning("[IsoRPG] Под манекеном не нашлось земли — оставлен где был.");
                 return;
             }
 
             go.transform.position = hit.point;
+
+            Debug.Log($"[IsoRPG] Манекен опущен на землю: {hit.point.y:0.00} м, " +
+                      $"опора «{hit.collider.name}».");
         }
 
         /// <summary>

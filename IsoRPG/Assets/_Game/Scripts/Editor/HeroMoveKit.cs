@@ -573,11 +573,60 @@ namespace IsoRPG.EditorTools
             }
         }
 
+        /// <summary>
+        /// Достать корневое движение, если оно запечено в позу.
+        ///
+        /// У Synty клипы `_RM_` импортированы с включённым «Bake Into Pose»
+        /// по горизонтали: движение в них есть, но наружу не выдаётся — ни
+        /// кривыми, ни средней скоростью. Замерщик честно возвращал ноль, а
+        /// мы молча подставляли запасное число и объявляли его замером.
+        /// 04.09.2026 я на этом основании сказал Павлону «клип нарисован под
+        /// 4 м/с» — цифра была из кода, а не из клипа.
+        ///
+        /// Трогаем только версии `_RM_`: играем мы `_InPlace`, поэтому на
+        /// саму игру настройка не влияет — лишь на возможность померить.
+        /// </summary>
+        private static void UnbakeRoot(string path)
+        {
+            var importer = AssetImporter.GetAtPath(path) as ModelImporter;
+            if (importer == null) return;
+
+            var takes = importer.clipAnimations;
+            if (takes == null || takes.Length == 0) takes = importer.defaultClipAnimations;
+            if (takes.Length == 0) return;
+
+            bool changed = false;
+
+            for (int i = 0; i < takes.Length; i++)
+            {
+                if (!takes[i].lockRootPositionXZ) continue;
+
+                takes[i].lockRootPositionXZ = false;
+                changed = true;
+            }
+
+            if (!changed) return;
+
+            importer.clipAnimations = takes;
+            importer.SaveAndReimport();
+        }
+
         private static float Speed(string path, float fallback)
         {
             float measured = ClipSpeed.Measure(Clip(path));
 
             if (measured > 0.05f) return measured;
+
+            // Не померилось — скорее всего движение запечено в позу.
+            // Снимаем запекание и пробуем ещё раз, прежде чем сдаваться.
+            UnbakeRoot(path);
+            measured = ClipSpeed.Measure(Clip(path));
+
+            if (measured > 0.05f)
+            {
+                Debug.Log($"[IsoRPG] {path}: {measured:0.00} м/с — померилось после снятия запекания.");
+                return measured;
+            }
 
             Debug.LogWarning("[IsoRPG] Скорость не померилась у " + path + " — порог запасной.");
             return fallback;

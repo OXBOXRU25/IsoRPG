@@ -137,6 +137,7 @@ namespace IsoRPG.Player
         // существа — это ММО, так делать нельзя.
         private IsoRPG.Combat.TargetSelector targets;
         private bool hasCombatFlag;
+        private bool hasStance;
         private bool hasStrafe;
         private bool hasTurn;
 
@@ -195,6 +196,11 @@ namespace IsoRPG.Player
             hasStrafe = Has(StrafeHash, AnimatorControllerParameterType.Float);
             hasTurn = Has(TurnHash, AnimatorControllerParameterType.Float);
 
+            // Фаза пластики есть только у героя: дерево хода у него двухуровневое,
+            // у зверей одноуровневое. Спрашиваем один раз — перебор параметров
+            // каждый кадр у каждого существа это ММО не переживёт.
+            hasStance = Has(StanceHash, AnimatorControllerParameterType.Float);
+
             CountAttackVariants();
 
             lastYaw = transform.eulerAngles.y;
@@ -238,8 +244,58 @@ namespace IsoRPG.Player
             }
         }
 
+        /// <summary>
+        /// Сколько герой остаётся «в бою» после последнего удара, секунд.
+        ///
+        /// Пять — как у Blizzard. Меньше — и герой распрямляется между двумя
+        /// своими же ударами, потому что замах длиннее паузы; больше — и он
+        /// ходит подобравшись ещё полминуты после того, как всё кончилось.
+        /// </summary>
+        private const float CombatMemory = 5f;
+
+        /// <summary>За сколько секунд стойка переходит из мирной в боевую и обратно.</summary>
+        private const float StanceBlend = 0.3f;
+
+        private static readonly int StanceHash = Animator.StringToHash("Stance");
+
+        private float combatUntil = -1f;
+        private float stance;
+
+        /// <summary>
+        /// Отметить, что бой идёт: ударили мы или ударили нас.
+        ///
+        /// Публичный — потому что бой начинается не только от удара по нам:
+        /// подкрасться и промахнуться тоже значит вступить в бой, и позвать
+        /// это должен тот, кто про такое знает.
+        /// </summary>
+        public void NoticeCombat()
+        {
+            combatUntil = Time.time + CombatMemory;
+        }
+
+        /// <summary>
+        /// Ведёт фазу пластики: подобранная в бою, свободная вне его.
+        ///
+        /// Гоним плавно, а не переключаем: мгновенная смена стойки читается
+        /// как подмена персонажа. Три десятых секунды — тот же порядок, что
+        /// у смешивания аллюров, поэтому вход в бой выглядит как движение,
+        /// а не как склейка.
+        /// </summary>
+        private void DriveCombatStance()
+        {
+            if (!hasStance) return;
+
+            float target = Time.time < combatUntil ? 1f : 0f;
+
+            stance = Mathf.MoveTowards(stance, target, Time.deltaTime / StanceBlend);
+
+            animator.SetFloat(StanceHash, stance);
+        }
+
         private void OnDamaged(int amount, GameObject source)
         {
+            NoticeCombat();
+
             // Мёртвые не вздрагивают: поверх падения это выглядит как
             // судорога, а не как удар.
             if (health != null && !health.IsAlive) return;
@@ -334,6 +390,8 @@ namespace IsoRPG.Player
             if (speed <= 0f && smoothedSpeed < 0.05f) smoothedSpeed = 0f;
 
             animator.SetFloat(SpeedHash, smoothedSpeed);
+
+            DriveCombatStance();
 
             // Приземление на бегу играем быстрее, а не обрезаем.
             //
@@ -433,6 +491,7 @@ namespace IsoRPG.Player
             if (variant > 0 && Has(AttackVariantHash, AnimatorControllerParameterType.Int))
                 animator.SetInteger(AttackVariantHash, variant);
 
+            NoticeCombat();
             animator.SetTrigger(AttackHash);
         }
 
@@ -566,6 +625,7 @@ namespace IsoRPG.Player
 
         public void PlayAttack()
         {
+            NoticeCombat();
             if (animator != null) animator.SetTrigger(AttackHash);
         }
 

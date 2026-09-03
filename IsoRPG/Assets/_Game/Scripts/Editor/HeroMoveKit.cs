@@ -69,6 +69,33 @@ namespace IsoRPG.EditorTools
         private const string Move = "Assets/DoubleL/FBX_Animations/One Hand Base/Movement";
         private const string Jump = "Assets/DoubleL/FBX_Animations/One Hand Base/Jump";
 
+        /// <summary>
+        /// Мирный ход — безоружный раздел того же набора.
+        ///
+        /// Вооружённая стойка правильна в бою и только в нём. Вне боя она
+        /// читается как «герой всё время крадётся»: колени подсогнуты, корпус
+        /// подан вперёд, кисти держат несуществующую рукоять. Павлон
+        /// 03.09.2026: «он всегда стоит немного согнувшись, поза в покое
+        /// супер странная».
+        ///
+        /// Автор набора развёл фазы папками — `Base Move` и `One Hand Base`, —
+        /// то есть переключение между ними и есть его замысел, а не наша
+        /// выдумка. Мы же взяли одну ветку на все случаи, и это была моя
+        /// ошибка дважды подряд: сперва общий ход вместо вооружённого, теперь
+        /// вооружённый вместо обоих.
+        /// </summary>
+        private const string Peace = "Assets/DoubleL/FBX_Animations/Base Move";
+
+        /// <summary>
+        /// Параметр фазы: 0 — мирная пластика, 1 — боевая.
+        ///
+        /// Дробный намеренно. Будь он булевым, пришлось бы разводить фазы
+        /// переходами машины состояний, а так внешнее дерево само смешивает
+        /// одну стойку с другой, и вход в бой выглядит как то, чем он и
+        /// является: герой подбирается, а не переключается кадром.
+        /// </summary>
+        public const string CombatParameter = "Stance";
+
         [MenuItem("Tools/IsoRPG/Герой: ход и прыжок из нового набора", priority = 43)]
         public static void Apply()
         {
@@ -82,58 +109,58 @@ namespace IsoRPG.EditorTools
 
             LoopMovement();
 
-            var idle = Clip(Move + "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx");
-            var walk = Clip(Move + "/Walk/Type A/Base/InPlace/OneHand_Base_Walk_A_F_InPlace.fbx");
-            var run = Clip(Move + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx");
-            var sprint = Clip(Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx");
+            var fight = BuildStride(controller, "Ход боевой", Move,
+                "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx",
+                "/Walk/Type A/Base/InPlace/OneHand_Base_Walk_A_F_InPlace.fbx",
+                "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx",
+                "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx",
+                "/Walk/Type A/Base/OneHand_Base_Walk_A_F.fbx",
+                "/Run/Type A/Base/OneHand_Base_Run_A_F.fbx",
+                "/Sprint/Type A/Base/OneHand_Base_Sprint_A_F.fbx");
 
-            if (idle == null || walk == null || run == null)
+            if (fight == null)
             {
-                Debug.LogError("[IsoRPG] Клипы хода не нашлись — ход не переведён.");
+                Debug.LogError("[IsoRPG] Клипы боевого хода не нашлись — ход не переведён.");
                 return;
             }
 
-            // Скорость каждого аллюра — из клипа С корневым движением.
-            float walkAt = Speed(Move + "/Walk/Type A/Base/OneHand_Base_Walk_A_F.fbx", 1.8f);
-            float runAt = Speed(Move + "/Run/Type A/Base/OneHand_Base_Run_A_F.fbx", 4.0f);
-            float sprintAt = Speed(Move + "/Sprint/Type A/Base/OneHand_Base_Sprint_A_F.fbx", 6.5f);
+            var peace = BuildStride(controller, "Ход мирный", Peace,
+                "/Stand_Idle/Idle/Stand_Idle_A_1.fbx",
+                "/Walk/Base/InPlace/Walk_F_InPlace.fbx",
+                "/Run/Base/InPlace/Run_F_InPlace.fbx",
+                "/Sprint/Base/InPlace/Sprint_F_InPlace.fbx",
+                "/Walk/Base/Walk_F.fbx",
+                "/Run/Base/Run_F.fbx",
+                "/Sprint/Base/Sprint_F.fbx");
 
+            if (!controller.parameters.Any(p => p.name == CombatParameter))
+                controller.AddParameter(CombatParameter, AnimatorControllerParameterType.Float);
+
+            // Внешнее дерево выбирает фазу, внутренние — аллюр.
+            //
+            // Два уровня вместо двух состояний с переходами: смешивание
+            // достаётся даром, а машину состояний трогать не приходится
+            // вовсе — значит и ломаться в ней нечему.
             var tree = new BlendTree
             {
                 name = "Ход",
                 blendType = BlendTreeType.Simple1D,
-                blendParameter = "Speed",
+                blendParameter = CombatParameter,
                 useAutomaticThresholds = false,
             };
 
             AssetDatabase.AddObjectToAsset(tree, controller);
 
-            // Порог — наша скорость, а масштаб времени — отношение нашей к
-            // клиповой. Шаг оставляем на его собственной скорости: медленное
-            // движение у нас идёт ровно им.
-            float runScale = runAt > 0.1f ? HeroSpeed / runAt : 1f;
-            float sprintTarget = HeroSpeed * SprintFactor;
-            float sprintScale = sprintAt > 0.1f ? sprintTarget / sprintAt : 1f;
-
-            var children = new System.Collections.Generic.List<ChildMotion>
-            {
-                new ChildMotion { motion = idle, threshold = 0f, timeScale = 1f },
-                new ChildMotion { motion = walk, threshold = walkAt, timeScale = 1f },
-                new ChildMotion { motion = run, threshold = HeroSpeed, timeScale = runScale },
-            };
-
-            // Спринт — отдельная ступень, а не растянутый бег: у героя есть
-            // способность на +70% скорости, и на растянутом беге она читалась
-            // бы как ускоренная перемотка.
-            if (sprint != null)
-                children.Add(new ChildMotion
-                {
-                    motion = sprint,
-                    threshold = sprintTarget,
-                    timeScale = sprintScale,
-                });
-
-            tree.children = children.ToArray();
+            // Мирной ветки может не оказаться — тогда ход остаётся боевым,
+            // как был. Молча ронять весь ход из-за отсутствия одной папки
+            // нельзя: герой встанет в позу T.
+            tree.children = peace != null
+                ? new[]
+                  {
+                      new ChildMotion { motion = peace, threshold = 0f, timeScale = 1f },
+                      new ChildMotion { motion = fight, threshold = 1f, timeScale = 1f },
+                  }
+                : new[] { new ChildMotion { motion = fight, threshold = 0f, timeScale = 1f } };
 
             // --- подмена в состояниях ------------------------------------
             var jumpStart = Clip(Jump + "/InPlace/OneHand_Base_Jump_Start_InPlace.fbx")
@@ -182,12 +209,77 @@ namespace IsoRPG.EditorTools
 
             LockJaw();
 
-            Debug.Log($"[IsoRPG] Ход героя переведён на новый набор: деревьев {moved}, " +
-                      $"фаз прыжка {jumped} из 3.\n" +
-                      $"  Скорости клипов: шаг {walkAt:0.00}, бег {runAt:0.00}, " +
-                      $"спринт {sprintAt:0.00} м/с.\n" +
-                      $"  Пороги по герою: бег {HeroSpeed:0.00} (клип x{runScale:0.00}), " +
-                      $"спринт {sprintTarget:0.00} (клип x{sprintScale:0.00}).");
+            Debug.Log($"[IsoRPG] Ход героя переведён: деревьев {moved}, фаз прыжка {jumped} из 3. " +
+                      $"Фазы: боевая есть, мирная {(peace != null ? "есть" : "НЕ НАЙДЕНА")}; " +
+                      $"переключает параметр «{CombatParameter}».");
+        }
+
+        /// <summary>
+        /// Одномерное дерево аллюров одной фазы: покой → шаг → бег → спринт.
+        ///
+        /// Пороги ставим по скорости ГЕРОЯ, а масштаб времени клипа — по
+        /// отношению нашей скорости к его собственной. Скорость клипа
+        /// снимаем с версии С корневым движением: она и говорит, под какую
+        /// скорость шаг нарисован. Играем при этом версии `_InPlace` —
+        /// героя везёт капсула, и клип, который едет сам, уехал бы от неё.
+        /// </summary>
+        private static BlendTree BuildStride(AnimatorController controller, string name, string root,
+                                             string idlePath, string walkPath, string runPath, string sprintPath,
+                                             string walkRef, string runRef, string sprintRef)
+        {
+            var idle = Clip(root + idlePath);
+            var walk = Clip(root + walkPath);
+            var run = Clip(root + runPath);
+            var sprint = Clip(root + sprintPath);
+
+            if (idle == null || walk == null || run == null)
+            {
+                Debug.LogWarning($"[IsoRPG] «{name}»: клипы не нашлись в {root} — фаза пропущена.");
+                return null;
+            }
+
+            float walkAt = Speed(root + walkRef, 1.8f);
+            float runAt = Speed(root + runRef, 4.0f);
+            float sprintAt = Speed(root + sprintRef, 6.5f);
+
+            var tree = new BlendTree
+            {
+                name = name,
+                blendType = BlendTreeType.Simple1D,
+                blendParameter = "Speed",
+                useAutomaticThresholds = false,
+            };
+
+            AssetDatabase.AddObjectToAsset(tree, controller);
+
+            float runScale = runAt > 0.1f ? HeroSpeed / runAt : 1f;
+            float sprintTarget = HeroSpeed * SprintFactor;
+            float sprintScale = sprintAt > 0.1f ? sprintTarget / sprintAt : 1f;
+
+            var children = new System.Collections.Generic.List<ChildMotion>
+            {
+                new ChildMotion { motion = idle, threshold = 0f, timeScale = 1f },
+                new ChildMotion { motion = walk, threshold = walkAt, timeScale = 1f },
+                new ChildMotion { motion = run, threshold = HeroSpeed, timeScale = runScale },
+            };
+
+            // Спринт — отдельная ступень, а не растянутый бег: у героя есть
+            // способность на +70% скорости, и на растянутом беге она читалась
+            // бы как ускоренная перемотка.
+            if (sprint != null)
+                children.Add(new ChildMotion
+                {
+                    motion = sprint,
+                    threshold = sprintTarget,
+                    timeScale = sprintScale,
+                });
+
+            tree.children = children.ToArray();
+
+            Debug.Log($"[IsoRPG] «{name}»: шаг {walkAt:0.00}, бег {runAt:0.00}, спринт {sprintAt:0.00} м/с; " +
+                      $"клип бега x{runScale:0.00}, спринта x{sprintScale:0.00}.");
+
+            return tree;
         }
 
         // ------------------------------------------------------------------
@@ -235,6 +327,10 @@ namespace IsoRPG.EditorTools
                 (Move + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx", true),
                 (Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx", true),
                 (Move + "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx", true),
+                (Peace + "/Walk/Base/InPlace/Walk_F_InPlace.fbx", true),
+                (Peace + "/Run/Base/InPlace/Run_F_InPlace.fbx", true),
+                (Peace + "/Sprint/Base/InPlace/Sprint_F_InPlace.fbx", true),
+                (Peace + "/Stand_Idle/Idle/Stand_Idle_A_1.fbx", true),
                 (Jump + "/InPlace/OneHand_Base_Jump_Air_Loop_InPlace.fbx", true),
                 (Jump + "/OneHand_Base_Jump_Air_Loop.fbx", true),
             };

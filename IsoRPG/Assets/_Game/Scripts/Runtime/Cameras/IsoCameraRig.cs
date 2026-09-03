@@ -190,7 +190,24 @@ namespace IsoRPG.Cameras
         /// 0.8 при упоре 0.7 — это последняя треть приближения, ближе
         /// которой герой уже закрывает собой весь кадр.
         /// </summary>
-        private const float FadeZoomSpan = 0.45f;
+        private const float FadeZoomSpan = 0.39f;
+
+        /// <summary>
+        /// Приближение, на котором герой обязан исчезнуть СОВСЕМ.
+        ///
+        /// Не упор, а заметно раньше него. Камера входит в голову задолго до
+        /// упора — на 0.35 она уже в полуметре от точки взгляда, — и если к
+        /// этому мигу от героя осталась хоть четверть непрозрачности, видно
+        /// его изнутри: затылок, зубы, гортань. Павлон 04.09.2026 поймал
+        /// ровно это: «мы видим гортань героя».
+        ///
+        /// Порядок обязателен: сперва растворился, потом вошли. Обратный
+        /// порядок не чинится ничем, кроме этого числа.
+        /// </summary>
+        private const float FadeZoomEnd = 0.15f;
+
+        /// <summary>Дистанция, на которой камера уже внутри головы, метры.</summary>
+        private const float HeadReach = FadeZoomEnd * 1.6f;
 
         /// <summary>
         /// Насколько камера держится выше грунта, метры.
@@ -869,7 +886,7 @@ namespace IsoRPG.Cameras
             heroBlock ??= new MaterialPropertyBlock();
 
             // Ближе MinReach — героя нет вовсе, дальше FadeFrom — он целый.
-            float byDistance = Mathf.Clamp01((distance - MinReach) / (FadeFrom - MinReach));
+            float byDistance = Mathf.Clamp01((distance - HeadReach) / (FadeFrom - HeadReach));
 
             // И то же самое по делению зума.
             //
@@ -885,7 +902,7 @@ namespace IsoRPG.Cameras
             // а закрывать обзор герой не должен ни в том случае, ни в другом.
             // Привязка к minOrthoSize, а не к числу: подвинут предел — конец
             // шкалы поедет вместе с ним, и правило не рассыплется.
-            float byZoom = Mathf.InverseLerp(minOrthoSize, minOrthoSize + FadeZoomSpan, orthoSize);
+            float byZoom = Mathf.InverseLerp(FadeZoomEnd, FadeZoomEnd + FadeZoomSpan, orthoSize);
 
             float alpha = Mathf.Min(byDistance, byZoom);
 

@@ -193,3 +193,12 @@ IsoRPG/Assets/Assets/
 IsoRPG/Assets/Assets.meta
 IsoRPG/Assets/Scenes/GUI_Fantasy_Kit.unity
 IsoRPG/Assets/Scenes/GUI_Fantasy_Kit.unity.meta
+
+# Иконки умений: в репозитории держим только готовый набор.
+# Референсы, листы 2×2 и нарезка — рабочий материал на сотню мегабайт.
+Skills/*
+!Skills/ready/
+
+# Уменьшенные копии иконок для сайта — их пересоздаёт build-site.mjs,
+# как logo-web.png.
+tools/class-icons/

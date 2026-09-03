@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "site",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Temp/claude/D--GAME-Ai/372a91b1-ad5b-49ca-9284-8245f5885482/scratchpad/serve.mjs", "D:/GAME Ai/site"],
+      "port": 8123
+    }
+  ]
+}

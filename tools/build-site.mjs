@@ -28,6 +28,12 @@ const FAVICON = path.join(here, 'favicon.png');
 const OUT = path.join(repo, 'site', 'index.html');
 const PACKAGE_ROOT = path.join(repo, 'Package');
 
+// Классы и их умения. Это не история версий, поэтому источник отдельный —
+// но такой же единственный: список умений нигде больше не дублируется.
+const CLASSES = path.join(repo, 'data', 'classes.json');
+const ICONS_SRC = path.join(repo, 'Skills', 'ready');
+const ICONS_WEB = path.join(here, 'class-icons');
+
 // Адрес сайта. Ссылки на скачивание делаем абсолютными: страницу открывают
 // и с сервера, и с диска, и из опубликованной копии — относительный путь
 // работал бы только в первом случае. При переезде на домен меняется здесь.
@@ -234,6 +240,129 @@ function prepareFavicon() {
   spawnSync("powershell", ["-NoProfile", "-Command", script], { encoding: "utf8" });
 }
 
+/**
+ * Иконки умений весят по полмегабайта: они нарисованы в 512 на 512, чтобы
+ * годиться и в игру, и в печать. На странице каждая живёт в квадрате
+ * шириной с ноготь, поэтому уменьшаем до 160 и держим копии рядом со
+ * скриптом — как логотип. Пересчёт только когда копии нет.
+ *
+ * Формат — JPEG, а не PNG. Прозрачности в иконках нет (фон плотный, дымный),
+ * зато это живопись с градиентами: PNG держал её по 90 КБ на штуку и
+ * раздувал страницу до четырёх мегабайт, JPEG качества 85 даёт те же 160
+ * пикселей за 15 КБ, и разницы на экране не видно.
+ */
+function prepareClassIcons(names) {
+  if (!fs.existsSync(ICONS_SRC)) return;
+  fs.mkdirSync(ICONS_WEB, { recursive: true });
+
+  const todo = names.filter(
+    (name) => !fs.existsSync(path.join(ICONS_WEB, name + '.jpg'))
+      && fs.existsSync(path.join(ICONS_SRC, name + '.png')),
+  );
+
+  if (!todo.length) return;
+
+  const lines = [
+    'Add-Type -AssemblyName System.Drawing',
+    "$codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object { $_.MimeType -eq 'image/jpeg' }",
+    '$params = New-Object System.Drawing.Imaging.EncoderParameters(1)',
+    '$params.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality, 85)',
+  ];
+
+  for (const name of todo) {
+    const from = path.join(ICONS_SRC, name + '.png').replace(/\\/g, '/');
+    const to = path.join(ICONS_WEB, name + '.jpg').replace(/\\/g, '/');
+
+    lines.push(
+      "$src = [System.Drawing.Image]::FromFile('" + from + "')",
+      '$out = New-Object System.Drawing.Bitmap(160, 160)',
+      '$g = [System.Drawing.Graphics]::FromImage($out)',
+      '$g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic',
+      '$g.DrawImage($src, 0, 0, 160, 160)',
+      '$g.Dispose()',
+      "$out.Save('" + to + "', $codec, $params)",
+      '$out.Dispose(); $src.Dispose()',
+    );
+  }
+
+  spawnSync('powershell', ['-NoProfile', '-Command', lines.join('; ')], { encoding: 'utf8' });
+}
+
+function classIcon(name) {
+  const file = path.join(ICONS_WEB, name + '.jpg');
+  if (!fs.existsSync(file)) return '';
+
+  return 'data:image/jpeg;base64,' + fs.readFileSync(file).toString('base64');
+}
+
+/**
+ * Карточка умения: иконка крупно, под ней она же в игровом размере — 48
+ * пикселей, ровно столько занимает кнопка на панели. Рядом с картинкой
+ * читается сразу, годится ли рисунок для панели или расплывается в пятно.
+ */
+function renderAbility(ability) {
+  const icon = classIcon(ability.icon);
+  const parts = [];
+
+  parts.push('      <li class="skill">');
+  parts.push('        <div class="skill__art">');
+
+  if (icon) {
+    parts.push('          <img class="skill__icon" src="' + icon + '" alt="" loading="lazy">');
+    parts.push('          <img class="skill__px" src="' + icon + '" alt="" loading="lazy">');
+  }
+
+  parts.push('        </div>');
+  parts.push('        <div class="skill__body">');
+  parts.push('          <p class="skill__name">' + escapeHtml(ability.name) + '</p>');
+
+  // Шапка тултипа: слева стоимость, справа дистанция — как в игре. Пустые
+  // поля не выводим вовсе, иначе у умений без энергии зияет дырка.
+  const head = [
+    ['cost', ability.cost],
+    ['range', ability.range],
+    ['cast', ability.cast],
+    ['cd', ability.cooldown],
+  ].filter(([, value]) => value);
+
+  if (head.length) {
+    parts.push('          <p class="skill__head">' + head
+      .map(([kind, value]) => '<span class="skill__' + kind + '">' + escapeHtml(value) + '</span>')
+      .join('') + '</p>');
+  }
+
+  const reqs = ['Требуется ' + ability.level + '-й ур.'].concat(ability.reqs || []);
+  if (ability.tools) reqs.push(ability.tools);
+
+  parts.push('          <p class="skill__req">' + reqs.map(escapeHtml).join('<br>') + '</p>');
+
+  // Описание идёт строками так же, как в тултипе: первая — сама механика,
+  // дальше таблица по длине серии. Склеивать их в абзац нельзя, весь смысл
+  // в том, чтобы числа стояли столбиком и сравнивались взглядом.
+  parts.push('          <div class="skill__desc">' + (ability.desc || [])
+    .map((line) => '<p class="skill__line' + (/^\d+ прием/.test(line) ? ' skill__line--combo' : '') + '">'
+      + escapeHtml(line) + '</p>')
+    .join(NL) + '</div>');
+
+  parts.push('        </div>');
+  parts.push('      </li>');
+
+  return parts.join(NL);
+}
+
+function renderClass(cls) {
+  return `<article class="class">
+  <header class="class__head">
+    <h2 class="class__name">${escapeHtml(cls.name)}</h2>
+    <p class="class__lede">${escapeHtml(cls.lede)}</p>
+    <p class="class__count"><strong>${cls.abilities.length}</strong> <span data-i18n="abilities">умений</span></p>
+  </header>
+  <ul class="skills">
+${cls.abilities.map(renderAbility).join(NL)}
+  </ul>
+</article>`;
+}
+
 function buttonSkin() {
   const file = path.join(here, 'button-web.png');
   if (!fs.existsSync(file)) return '';
@@ -279,7 +408,7 @@ function downloads(version) {
 
 // --- Страница --------------------------------------------------------------
 
-function buildPage(releases) {
+function buildPage(releases, classes) {
   const latest = releases[0] || { version: '—', date: '' };
   const logo = logoDataUri();
 
@@ -869,6 +998,173 @@ function buildPage(releases) {
 
   /* --- Лента версий -------------------------------------------------- */
 
+  /* --- Вкладки разделов ---------------------------------------------------
+
+     Разделов пока два, и оба живут в одном файле: страница обязана
+     открываться с диска и из скачанной копии, а значит вторая страница
+     потянула бы за собой ссылку, которая там не работает.
+  */
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 28px 16px 0;
+  }
+
+  .tab {
+    font: 600 14px/1 'PT Sans', system-ui, sans-serif;
+    letter-spacing: .02em;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+
+  .tab:hover { color: var(--ink); border-color: var(--gold); }
+
+  .tab--on {
+    color: var(--ground);
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .tab--on:hover { color: var(--ground); background: var(--gold-bright); }
+
+  .tab:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+
+  /* --- Классы -------------------------------------------------------------- */
+
+  .classes__lede {
+    max-width: 640px;
+    margin: 26px auto 0;
+    padding: 0 16px;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 15px;
+  }
+
+  .class { padding-top: 34px; }
+
+  .class__head { text-align: center; padding: 0 16px; }
+
+  .class__name {
+    font: 800 30px/1.1 'Alegreya', Georgia, serif;
+    color: var(--gold-bright);
+    margin: 0 0 8px;
+  }
+
+  .class__lede {
+    max-width: 620px;
+    margin: 0 auto;
+    color: var(--ink-soft);
+    font-size: 15px;
+  }
+
+  .class__count {
+    margin: 10px 0 0;
+    color: var(--ink-faint);
+    font: 500 13px/1 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  .class__count strong { color: var(--gold); }
+
+  .skills {
+    list-style: none;
+    margin: 26px auto 0;
+    padding: 0 16px;
+    max-width: 1180px;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px;
+  }
+
+  .skill {
+    display: flex;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+
+  .skill__art { flex: 0 0 auto; width: 96px; }
+
+  .skill__icon {
+    display: block;
+    width: 96px;
+    height: 96px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+  }
+
+  /* Та же картинка в размере кнопки на панели умений.
+     Стоит рядом с крупной нарочно: рисунок, который на ногте
+     превращается в пятно, виден сразу и без запуска игры. */
+  .skill__px {
+    display: block;
+    width: 48px;
+    height: 48px;
+    margin: 8px auto 0;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+    opacity: .95;
+  }
+
+  .skill__body { min-width: 0; }
+
+  .skill__name {
+    margin: 0 0 4px;
+    font: 700 17px/1.25 'Alegreya', Georgia, serif;
+    color: var(--ink);
+  }
+
+  /*
+    Шапка умения повторяет тултип из игры: стоимость слева, дистанция
+    справа, под ними время применения и восстановление. Так игрок сверяет
+    строку со строкой, а не ищет число в пересказе.
+  */
+  .skill__head {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+    gap: 0 12px;
+    margin: 0 0 6px;
+    font: 400 13px/1.5 'PT Sans', system-ui, sans-serif;
+    color: var(--ink);
+  }
+
+  .skill__cost { grid-column: 1; }
+  .skill__range { grid-column: 2; text-align: right; }
+  .skill__cast { grid-column: 1; }
+  .skill__cd { grid-column: 2; text-align: right; }
+
+  .skill__req {
+    margin: 0 0 8px;
+    font: 400 13px/1.5 'PT Sans', system-ui, sans-serif;
+    color: var(--ink-soft);
+  }
+
+  .skill__desc { margin: 0; }
+
+  /* Зелёный — цвет описания в игровом тултипе. */
+  .skill__line {
+    margin: 0;
+    color: var(--add);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .skill__line--combo {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+  }
+
   .releases { padding-top: 44px; }
 
   .release {
@@ -1024,6 +1320,38 @@ function buildPage(releases) {
     .page { padding: 0 18px 64px; }
 
     .release { grid-template-columns: 1fr; gap: 14px; }
+
+    /*
+      Умения на телефоне — по одному в строке, картинка мельче.
+
+      Карточка в 340 пикселей на экране в 375 не помещается вместе с
+      полями, а сжатая до ширины экрана оставляет описанию полосу в две
+      буквы. Уменьшаем иконку: 72 пикселя хватает, чтобы предмет
+      читался, и описанию остаётся полноценная колонка.
+    */
+    /*
+      Шапка умения на телефоне — столбиком.
+
+      В две колонки, как в игре, «Мгновенное действие» и «Восстановление:
+      10 сек» на 375 пикселях не помещаются: каждая переносится по слову, и
+      строки слипаются в лесенку. Столбиком строк больше, зато каждая
+      читается целиком.
+    */
+    .skill__head { grid-template-columns: 1fr; gap: 2px; }
+    .skill__cost, .skill__range, .skill__cast, .skill__cd {
+      grid-column: 1;
+      text-align: left;
+    }
+
+    .skills { grid-template-columns: 1fr; gap: 12px; padding: 0 2px; }
+    .skill { gap: 12px; padding: 12px; }
+    .skill__art { width: 72px; }
+    .skill__icon { width: 72px; height: 72px; }
+    .skill__px { width: 40px; height: 40px; }
+    .skill__name { font-size: 16px; }
+    .class__name { font-size: 25px; }
+    .tabs { padding-top: 22px; }
+    .tab { padding: 9px 16px; font-size: 13px; }
     /*
       Шапка на телефоне — одной колонкой по центру.
 
@@ -1167,6 +1495,12 @@ function buildPage(releases) {
   </header>
 
   <div class="sheet">
+  <nav class="tabs" role="tablist">
+    <button class="tab tab--on" type="button" data-pane="releases" role="tab" aria-selected="true" data-i18n="tab-releases">Хроника версий</button>
+    <button class="tab" type="button" data-pane="classes" role="tab" aria-selected="false" data-i18n="tab-classes">Классы</button>
+  </nav>
+
+  <div class="pane" data-pane="releases">
   <div class="facts">
     <div class="fact fact--now">
       <p class="fact__label" data-i18n="fact-version">Текущая версия</p>
@@ -1189,6 +1523,13 @@ function buildPage(releases) {
   <main class="releases">
 ${releases.map(renderRelease).join(NL)}
   </main>
+  </div>
+
+  <div class="pane" data-pane="classes" hidden>
+    <p class="classes__lede" data-i18n="classes-lede">Классы, доступные в игре, и их умения.
+    Иконка показана крупно и в игровом размере — таким её видно на панели.</p>
+${classes.map(renderClass).join(NL)}
+  </div>
 
   </div>
 
@@ -1227,6 +1568,10 @@ ${releases.map(renderRelease).join(NL)}
       'section-add': 'Added',
       'section-fix': 'Fixed',
       'section-change': 'Changed',
+      'tab-releases': 'Change log',
+      'tab-classes': 'Classes',
+      'classes-lede': 'The classes available in the game and their abilities. Each icon is shown large and at its in-game size — that is how it looks on the action bar.',
+      abilities: 'abilities',
       foot: 'Built from <code>CHANGELOG.md</code> — the same file the game and the launcher read.'
     },
     uk: {
@@ -1248,6 +1593,10 @@ ${releases.map(renderRelease).join(NL)}
       'section-add': 'Додано',
       'section-fix': 'Виправлено',
       'section-change': 'Змінено',
+      'tab-releases': 'Хроніка версій',
+      'tab-classes': 'Класи',
+      'classes-lede': 'Класи, доступні у грі, та їхні вміння. Іконка показана великою і в ігровому розмірі — такою її видно на панелі.',
+      abilities: 'умінь',
       foot: 'Зібрано з <code>CHANGELOG.md</code> — того самого файлу, що читають гра й лаунчер.'
     }
   };
@@ -1363,6 +1712,46 @@ ${releases.map(renderRelease).join(NL)}
 
   if (saved && (saved === 'ru' || saved === 'en' || saved === 'uk')) apply(saved);
 })();
+
+/*
+  Переключение разделов.
+
+  Оба раздела лежат в одном файле и просто прячутся атрибутом hidden:
+  страницу открывают и с сервера, и с диска, и из скачанной копии, а
+  вторая страница работала бы только в первом случае.
+
+  Выбранный раздел запоминается в адресе (#classes), чтобы ссылку на
+  умения можно было послать, а не объяснять словами, куда нажать.
+*/
+(function () {
+  var tabs = document.querySelectorAll('.tab');
+  var panes = document.querySelectorAll('.pane');
+
+  function show(name) {
+    for (var i = 0; i < panes.length; i++) {
+      panes[i].hidden = panes[i].getAttribute('data-pane') !== name;
+    }
+
+    for (var k = 0; k < tabs.length; k++) {
+      var on = tabs[k].getAttribute('data-pane') === name;
+      tabs[k].classList.toggle('tab--on', on);
+      tabs[k].setAttribute('aria-selected', on ? 'true' : 'false');
+    }
+  }
+
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].addEventListener('click', function () {
+      var name = this.getAttribute('data-pane');
+      show(name);
+
+      if (history.replaceState) {
+        history.replaceState(null, '', name === 'releases' ? location.pathname : '#' + name);
+      }
+    });
+  }
+
+  if (location.hash === '#classes') show('classes');
+})();
 </script>
 `;
 }
@@ -1381,11 +1770,16 @@ if (!releases.length) {
   process.exit(1);
 }
 
+const classes = fs.existsSync(CLASSES)
+  ? JSON.parse(fs.readFileSync(CLASSES, 'utf8'))
+  : [];
+
 prepareLogo();
 prepareFavicon();
+prepareClassIcons(classes.flatMap((cls) => cls.abilities.map((a) => a.icon)));
 
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
-fs.writeFileSync(OUT, buildPage(releases));
+fs.writeFileSync(OUT, buildPage(releases, classes));
 
 const size = (fs.statSync(OUT).size / 1024).toFixed(0);
 

@@ -134,8 +134,38 @@ namespace IsoRPG.EditorTools
             // в собранной игре померить уже нечем.
             var rates = runs.Select(RateFor).ToArray();
 
+            // Удары: всё, чем разбойник машет вблизи. Шесть кинжальных,
+            // три двойных, четыре ногами, три на бегу и два особых.
+            var attacks = Clips(
+                Boom + "/1Hand-Dagger/RPG-Character@Dagger-Attack-L1.FBX",
+                Boom + "/1Hand-Dagger/RPG-Character@Dagger-Attack-L2.FBX",
+                Boom + "/1Hand-Dagger/RPG-Character@Dagger-Attack-L3.FBX",
+                Boom + "/1Hand-Dagger/RPG-Character@Dagger-Attack-R1.FBX",
+                Boom + "/1Hand-Dagger/RPG-Character@Dagger-Attack-R2.FBX",
+                Boom + "/1Hand-Dagger/RPG-Character@Dagger-Attack-R3.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Attack-Dual1.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Attack-Dual2.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Attack-Dual3.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Attack-Kick-L1.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Attack-Kick-L2.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Attack-Kick-R1.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Attack-Kick-R2.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Run-Attack-Dual.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Run-Attack-L1.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Run-Attack-R1.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Special1.FBX",
+                Boom + "/Armed/RPG-Character@Armed-Air-Attack-L1.FBX");
+
+            // Текущие шесть ударов серии — их и подменяем все разом.
+            var currentAttacks = new[]
+            {
+                CurrentState(player, "Attack_1"), CurrentState(player, "Attack_2"),
+                CurrentState(player, "Attack_3"), CurrentState(player, "Attack_4"),
+                CurrentState(player, "Attack_5"), CurrentState(player, "Attack_6"),
+            }.Where(c => c != null).ToArray();
+
             tryout.Setup(runs, idles, combat, jumps,
-                         curRun, curIdle, curCombat, curJump, rates);
+                         curRun, curIdle, curCombat, curJump, rates, attacks, currentAttacks);
 
             for (int i = 0; i < runs.Length; i++)
                 Debug.Log($"[IsoRPG]   бег {i + 1}: {runs[i].name} — множитель x{rates[i]:0.00}");
@@ -155,6 +185,11 @@ namespace IsoRPG.EditorTools
             Report("стойка", idles);
             Report("боевая стойка", combat);
             Report("прыжок", jumps);
+            Report("удар", attacks);
+
+            Debug.Log("[IsoRPG] Ударов в примерке " + attacks.Length +
+                      ", подменяются все " + currentAttacks.Length +
+                      " ударов серии разом. Клавиша F6.");
         }
 
         /// <summary>Первый клип названного дерева — у нас это всегда стойка покоя.</summary>

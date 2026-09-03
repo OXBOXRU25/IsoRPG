@@ -56,6 +56,14 @@ namespace IsoRPG.Player
         /// </summary>
         [SerializeField] private float[] runRates;
 
+        [Tooltip("Варианты удара. Подменяют ВСЕ шесть ударов серии сразу.")]
+        [SerializeField] private AnimationClip[] attacks;
+
+        [Tooltip("Клипы шести ударов, что стоят в контроллере сейчас.")]
+        [SerializeField] private AnimationClip[] baseAttacks;
+
+        private int attackAt;
+
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
         private Animator animator;
@@ -67,9 +75,13 @@ namespace IsoRPG.Player
                           AnimationClip[] combatVariants, AnimationClip[] landVariants,
                           AnimationClip currentRun, AnimationClip currentIdle,
                           AnimationClip currentCombatIdle, AnimationClip currentLanding,
-                          float[] rates = null)
+                          float[] rates = null,
+                          AnimationClip[] attackVariants = null,
+                          AnimationClip[] currentAttacks = null)
         {
             runRates = rates;
+            attacks = attackVariants;
+            baseAttacks = currentAttacks;
             runs = runVariants;
             idles = idleVariants;
             combatIdles = combatVariants;
@@ -95,7 +107,7 @@ namespace IsoRPG.Player
             animator.runtimeAnimatorController = over;
 
             IsoRPG.Combat.CombatLog.Add(
-                "Примерка анимаций: F1 бег, F2 стойка, F3 боевая стойка, F4 приземление.");
+                "Примерка: F1 бег, F2 стойка, F3 боевая стойка, F4 прыжок, F6 удар.");
         }
 
         private void Update()
@@ -109,6 +121,34 @@ namespace IsoRPG.Player
             if (keys.f2Key.wasPressedThisFrame) Next(idles, baseIdle, ref idleAt, "Стойка");
             if (keys.f3Key.wasPressedThisFrame) Next(combatIdles, baseCombatIdle, ref combatAt, "Боевая стойка");
             if (keys.f4Key.wasPressedThisFrame) Next(landings, baseLanding, ref landAt, "Прыжок");
+            if (keys.f6Key.wasPressedThisFrame) NextAttack();
+        }
+
+        /// <summary>
+        /// Следующий вариант удара — сразу во все шесть ударов серии.
+        ///
+        /// Именно во все: серия перебирает удары по очереди, и подменив
+        /// только первый, увидишь его один раз из шести. А смотреть надо
+        /// один жест много раз подряд — иначе не понять, нравится он или
+        /// просто мелькнул.
+        /// </summary>
+        private void NextAttack()
+        {
+            if (attacks == null || attacks.Length == 0 || baseAttacks == null)
+            {
+                IsoRPG.Combat.CombatLog.Add("Ударов в примерке нет.");
+                return;
+            }
+
+            attackAt = (attackAt + 1) % attacks.Length;
+
+            var clip = attacks[attackAt];
+            if (clip == null) return;
+
+            foreach (var original in baseAttacks)
+                if (original != null) over[original] = clip;
+
+            IsoRPG.Combat.CombatLog.Add($"Удар {attackAt + 1} из {attacks.Length}: {clip.name}");
         }
 
         /// <summary>

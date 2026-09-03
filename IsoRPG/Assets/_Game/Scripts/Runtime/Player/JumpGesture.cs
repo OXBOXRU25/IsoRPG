@@ -24,7 +24,7 @@ namespace IsoRPG.Player
         [SerializeField] private float height = 1.7f;
 
         [Tooltip("Высота настоящего прыжка с физической капсулой, метров. Отдельно от height: тот задавал дугу переноса, а это подъём тела.")]
-        [SerializeField] private float jumpHeight = 1.1f;
+        [SerializeField] private float jumpHeight = 1.45f;
 
         [Tooltip("Сколько длится прыжок, вместе со взлётом и приземлением.")]
         //

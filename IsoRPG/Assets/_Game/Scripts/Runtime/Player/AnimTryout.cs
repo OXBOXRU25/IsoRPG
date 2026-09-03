@@ -42,6 +42,22 @@ namespace IsoRPG.Player
         [SerializeField] private AnimationClip baseCombatIdle;
         [SerializeField] private AnimationClip baseLanding;
 
+        /// <summary>
+        /// Во сколько раз гнать каждый вариант бега, чтобы ноги совпали с землёй.
+        ///
+        /// Без этого примерка врёт. Подменяя клип, она оставляет растяжку от
+        /// того, что стоял в дереве, — и чужой клип играет с чужой скоростью:
+        /// нарисованный под 4.2 м/с идёт как под 7.7 или наоборот. Павлон
+        /// смотрел шесть вариантов подряд именно в таком виде, и мой недосмотр
+        /// стоил ему нескольких неверных оценок.
+        ///
+        /// Считает множители задание в редакторе: там можно померить, под
+        /// какую скорость клип нарисован, а в собранной игре уже нельзя.
+        /// </summary>
+        [SerializeField] private float[] runRates;
+
+        private static readonly int SpeedHash = Animator.StringToHash("Speed");
+
         private Animator animator;
         private AnimatorOverrideController over;
 
@@ -50,8 +66,10 @@ namespace IsoRPG.Player
         public void Setup(AnimationClip[] runVariants, AnimationClip[] idleVariants,
                           AnimationClip[] combatVariants, AnimationClip[] landVariants,
                           AnimationClip currentRun, AnimationClip currentIdle,
-                          AnimationClip currentCombatIdle, AnimationClip currentLanding)
+                          AnimationClip currentCombatIdle, AnimationClip currentLanding,
+                          float[] rates = null)
         {
+            runRates = rates;
             runs = runVariants;
             idles = idleVariants;
             combatIdles = combatVariants;
@@ -85,10 +103,29 @@ namespace IsoRPG.Player
             var keys = Keyboard.current;
             if (keys == null) return;
 
+            KeepHonestPace();
+
             if (keys.f1Key.wasPressedThisFrame) Next(runs, baseRun, ref runAt, "Бег");
             if (keys.f2Key.wasPressedThisFrame) Next(idles, baseIdle, ref idleAt, "Стойка");
             if (keys.f3Key.wasPressedThisFrame) Next(combatIdles, baseCombatIdle, ref combatAt, "Боевая стойка");
             if (keys.f4Key.wasPressedThisFrame) Next(landings, baseLanding, ref landAt, "Прыжок");
+        }
+
+        /// <summary>
+        /// Держать выбранный вариант бега на его собственной скорости.
+        ///
+        /// Гоним весь аниматор, а не одно дерево: растяжка задана в дереве и в
+        /// игре не меняется. Для инструмента примерки это годится — на бегу
+        /// остальное всё равно не оценивают, — а в самой игре так делать
+        /// нельзя, потому переключатель после выбора и снимается.
+        /// </summary>
+        private void KeepHonestPace()
+        {
+            if (runRates == null || runAt >= runRates.Length || runRates[runAt] <= 0f) return;
+
+            bool running = animator.GetFloat(SpeedHash) > 3f;
+
+            animator.speed = running ? runRates[runAt] : 1f;
         }
 
         /// <summary>

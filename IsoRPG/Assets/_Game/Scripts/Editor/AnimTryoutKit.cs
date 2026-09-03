@@ -35,15 +35,32 @@ namespace IsoRPG.EditorTools
             var player = GameObject.Find("Player");
             if (player == null) { Debug.LogError("[IsoRPG] Героя нет."); return; }
 
-            // Бег: три доступные ветки. Четвёртая и пятая (лук, двуручное)
-            // лежат в папках с тильдой — Unity их не импортирует вовсе.
+            // ВСЕ прямые беги, какие есть в проекте — просьба Павла
+            // 04.09.2026: «поймём, сколько всего у нас вариаций бега из всех
+            // наборов, и ты их все выведешь в игру, я посмотрю сам».
+            //
+            // Только бег вперёд: боковые, повороты и уклоны сюда не идут —
+            // их оценивать надо в движении вбок, а не на прямой.
             var runs = Clips(
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
+                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
+
                 OneHand + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx",
+                OneHand + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx",
                 OneHandUp + "/Run/Type A/Base/InPlace/OneHand_Up_Run_F_InPlace.fbx",
                 Peace + "/Run/Base/InPlace/Run_F_InPlace.fbx",
+                Peace + "/Sprint/Base/InPlace/Sprint_F_InPlace.fbx",
+
                 Boom + "/Armed/RPG-Character@Armed-Run-Forward.FBX",
-                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX");
+                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX",
+                Boom + "/Relax/RPG-Character@Relax-Run-Forward.FBX",
+                Boom + "/Armed-Shield/RPG-Character@Shield-Run-Forward.fbx",
+                Boom + "/2Hand-Axe/RPG-Character@2Hand-Axe-Run-Forward.FBX",
+                Boom + "/2Hand-Sword/RPG-Character@2Hand-Sword-Run-Forward.FBX",
+                Boom + "/2Hand-Spear/RPG-Character@2Hand-Spear-Run-Forward.FBX",
+                Boom + "/2Hand-Staff/RPG-Character@Staff-Run-Forward.fbx",
+                Boom + "/2Hand-Crossbow/RPG-Character@2Hand-Crossbow-Run-Forward.FBX",
+                Boom + "/2Hand-Shooting/RPG-Character@Shooting-Run-Forward.FBX");
 
             var idles = Clips(
                 Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
@@ -112,8 +129,16 @@ namespace IsoRPG.EditorTools
             var curCombat = FirstClipOf(player, "Ход боевой") ?? curIdle;
             var curJump = CurrentState(player, "Jump_Start");
 
+            // Множитель на каждый вариант бега: во сколько раз гнать клип,
+            // чтобы ноги совпали с землёй при нашей скорости. Считаем здесь —
+            // в собранной игре померить уже нечем.
+            var rates = runs.Select(RateFor).ToArray();
+
             tryout.Setup(runs, idles, combat, jumps,
-                         curRun, curIdle, curCombat, curJump);
+                         curRun, curIdle, curCombat, curJump, rates);
+
+            for (int i = 0; i < runs.Length; i++)
+                Debug.Log($"[IsoRPG]   бег {i + 1}: {runs[i].name} — множитель x{rates[i]:0.00}");
 
             Debug.Log($"[IsoRPG] Примерка подменяет: бег «{Name(curRun)}», стойку «{Name(curIdle)}», " +
                       $"прыжок «{Name(curJump)}», боевую стойку «{Name(curCombat)}». Шаг «{Name(curWalk)}», спринт «{Name(curSprint)}» " +
@@ -156,6 +181,58 @@ namespace IsoRPG.EditorTools
         }
 
         private static string Name(AnimationClip clip) => clip != null ? clip.name : "НЕТ";
+
+        /// <summary>Скорость героя, под которую подгоняем клип. Та же, что в HeroMoveKit.</summary>
+        private const float HeroSpeed = 5.5f;
+
+        /// <summary>
+        /// Во сколько раз гнать клип, чтобы он соответствовал нашей скорости.
+        ///
+        /// У части наборов сам клип играется на месте, а движение лежит в
+        /// парном файле `_RM_`. Мерим сначала сам клип, потом двойника — и
+        /// только если оба молчат, оставляем единицу и говорим об этом вслух:
+        /// молчаливая единица означала бы «клип идеально подходит», а это
+        /// ровно та ложь, на которой мы уже обожглись.
+        /// </summary>
+        private static float RateFor(AnimationClip clip)
+        {
+            if (clip == null) return 1f;
+
+            float speed = ClipSpeed.Measure(clip);
+
+            if (speed <= 0.05f)
+            {
+                var twin = AssetDatabase.LoadAllAssetsAtPath(TwinPath(clip))
+                                        .OfType<AnimationClip>()
+                                        .FirstOrDefault(c => !c.name.StartsWith("__preview"));
+
+                if (twin != null) speed = ClipSpeed.Measure(twin);
+            }
+
+            if (speed <= 0.05f)
+            {
+                Debug.LogWarning($"[IsoRPG] Скорость «{clip.name}» не померилась — множитель 1.");
+                return 1f;
+            }
+
+            return HeroSpeed / speed;
+        }
+
+        /// <summary>Путь к парному клипу с корневым движением, если такой заведён.</summary>
+        private static string TwinPath(AnimationClip clip)
+        {
+            string path = AssetDatabase.GetAssetPath(clip);
+
+            if (path.Contains("_RM_")) return path;
+
+            // Synty: A_MOD_BL_Run_F_Masc -> A_MOD_BL_Run_F_RM_Masc
+            if (path.EndsWith("_Masc.fbx")) return path.Replace("_Masc.fbx", "_RM_Masc.fbx");
+
+            // DoubleL: .../InPlace/Run_F_InPlace.fbx -> .../Run_F.fbx
+            if (path.Contains("/InPlace/")) return path.Replace("/InPlace/", "/").Replace("_InPlace.fbx", ".fbx");
+
+            return path;
+        }
 
         /// <summary>
         /// Клипы, которые стоят в дереве хода прямо сейчас: покой, шаг, бег, спринт.

@@ -22,10 +22,10 @@ namespace IsoRPG.Player
     public sealed class IdleFidget : MonoBehaviour
     {
         [Tooltip("Через сколько секунд покоя может пойти поза ожидания, минимум.")]
-        [SerializeField] private float minGap = 20f;
+        [SerializeField] private float minGap = 30f;
 
         [Tooltip("То же, максимум. Промежуток случайный, иначе вставки идут по метроному.")]
-        [SerializeField] private float maxGap = 40f;
+        [SerializeField] private float maxGap = 50f;
 
         [Tooltip("Сколько длится сама поза, секунд.")]
         [SerializeField] private float hold = 3.2f;
@@ -80,20 +80,41 @@ namespace IsoRPG.Player
 
             if (!still)
             {
-                Schedule();
                 Fade(0f);
+                if (weight <= 0.01f) Schedule();
                 return;
             }
 
-            if (Time.time >= until && Time.time >= nextAt)
+            bool playing = Time.time < until;
+
+            // Новую позу заводим ТОЛЬКО когда слой полностью убран.
+            //
+            // Первая версия перепланировала время после угасания, а проверку
+            // делала до него — и следующая поза стартовала в том же кадре,
+            // когда кончилась предыдущая: позы шли нон-стоп и менялись при
+            // поднятом весе, то есть скачком. Павлон 04.09.2026: «меняются
+            // резко одномоментно, получается дёргание».
+            //
+            // Теперь срок следующей ставится СРАЗУ при запуске текущей.
+            // Пока он не наступил, слой лежит на нуле и герой стоит в своей
+            // основной стойке — ровно как просили: подождали, показали одну
+            // позу, плавно вернулись.
+            if (!playing && weight <= 0.01f && Time.time >= nextAt)
             {
                 animator.SetFloat(FidgetHash, Random.Range(0, poses));
+
+                // С начала, а не с того места, где слой погас в прошлый раз.
+                //
+                // Состояние на слое продолжает крутиться и при нулевом весе:
+                // без перезапуска вторая поза показалась бы с середины —
+                // герой дёрнулся бы в неё, вместо того чтобы войти плавно.
+                animator.Play("Fidget", layer, 0f);
+
                 until = Time.time + hold;
+                nextAt = until + Random.Range(minGap, maxGap);
             }
 
-            Fade(Time.time < until ? 1f : 0f);
-
-            if (Time.time >= until && weight <= 0.01f && nextAt < Time.time) Schedule();
+            Fade(playing ? 1f : 0f);
         }
 
         private void Schedule()

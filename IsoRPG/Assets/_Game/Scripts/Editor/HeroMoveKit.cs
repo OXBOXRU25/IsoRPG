@@ -180,10 +180,10 @@ namespace IsoRPG.EditorTools
                 Move + "/Idle/Idle/OneHand_Base_Stand_Idle_B_1.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
-                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
+                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
-                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx");
+                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx");
 
             if (fight == null)
             {
@@ -207,10 +207,10 @@ namespace IsoRPG.EditorTools
                 Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
-                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
+                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
-                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx");
+                Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx");
 
             if (!controller.parameters.Any(p => p.name == CombatParameter))
                 controller.AddParameter(CombatParameter, AnimatorControllerParameterType.Float);
@@ -538,6 +538,7 @@ namespace IsoRPG.EditorTools
                 (Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx", true),
                 (Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx", true),
                 (Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx", true),
+                (Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx", true),
                 (Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx", true),
                 (Jump + "/InPlace/OneHand_Base_Jump_End_2_InPlace.fbx", false),
                 (Jump + "/InPlace/OneHand_Base_Jump_End_3_InPlace.fbx", false),

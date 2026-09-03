@@ -247,6 +247,9 @@ namespace IsoRPG.EditorTools
 
             // Затягивание ран вне боя: пять в секунду.
             Ensure<IsoRPG.Combat.HealthRegen>(player);
+
+            // Редкие позы ожидания, когда герой долго стоит.
+            Ensure<IsoRPG.Player.IdleFidget>(player);
             Ensure<IsoRPG.Items.FoodConsumer>(player);
 
             // Размер сумки задаём явно: у компонента, уже лежащего в сцене,

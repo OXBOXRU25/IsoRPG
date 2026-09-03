@@ -115,6 +115,27 @@ namespace IsoRPG.EditorTools
         /// <summary>Сила удара о землю: 0 — мягко, 1 — с высоты.</summary>
         public const string FallParameter = "FallHard";
 
+        /// <summary>Какую позу ожидания проиграть: 0..3.</summary>
+        public const string FidgetParameter = "FidgetPick";
+
+        /// <summary>Имя слоя, поверх которого играются редкие позы ожидания.</summary>
+        public const string FidgetLayer = "Оживление";
+
+        /// <summary>
+        /// Редкие позы ожидания в бою. Выбор Павла 04.09.2026: основная
+        /// стойка пятая, а «если долго стоим — иногда 9, 10, 11, 12».
+        /// Это отдельный раздел набора, нарисованный именно под бой.
+        /// </summary>
+        private static readonly string[] Fidgets =
+        {
+            "/Combat Idle/Combat_Idle_2.fbx",
+            "/Combat Idle/Combat_Idle_3.fbx",
+            "/Combat Idle/Combat_Idle_4.fbx",
+            "/Combat Idle/Combat_Idle_5.fbx",
+        };
+
+        private const string Actions = "Assets/DoubleL/FBX_Animations/Actions";
+
         [MenuItem("Tools/IsoRPG/Герой: ход и прыжок из нового набора", priority = 43)]
         public static void Apply()
         {
@@ -156,13 +177,13 @@ namespace IsoRPG.EditorTools
             // увидит дёрганье — рядом лежит родной `A_MOD_BL_Sprint_F_Masc`,
             // замена в одну строку.
             var fight = BuildStride(controller, "Ход боевой", "",
-                Move + "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx",
+                Move + "/Idle/Idle/OneHand_Base_Stand_Idle_B_1.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
-                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX",
+                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
-                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX");
+                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx");
 
             if (fight == null)
             {
@@ -186,10 +207,10 @@ namespace IsoRPG.EditorTools
                 Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
-                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX",
+                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
                 Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
-                Boom + "/Unarmed/RPG-Character@Unarmed-Run-Forward.FBX");
+                Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx");
 
             if (!controller.parameters.Any(p => p.name == CombatParameter))
                 controller.AddParameter(CombatParameter, AnimatorControllerParameterType.Float);
@@ -298,6 +319,8 @@ namespace IsoRPG.EditorTools
                 }
             }
 
+            BuildFidgetLayer(controller);
+
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
 
@@ -306,6 +329,74 @@ namespace IsoRPG.EditorTools
             Debug.Log($"[IsoRPG] Ход героя переведён: деревьев {moved}, фаз прыжка {jumped} из 3. " +
                       $"Фазы: боевая есть, мирная {(peace != null ? "есть" : "НЕ НАЙДЕНА")}; " +
                       $"переключает параметр «{CombatParameter}».");
+        }
+
+        /// <summary>
+        /// Слой редких поз ожидания — поверх всего остального.
+        ///
+        /// Отдельным СЛОЕМ, а не состоянием в машине: так основная стойка
+        /// остаётся на месте и никуда не переключается, а поза ожидания
+        /// накладывается поверх неё весом. Машину состояний не трогаем —
+        /// значит и ломаться в ней нечему.
+        ///
+        /// Внутри дерево по параметру выбора: четыре позы, порог у каждой
+        /// свой. Выбирать состояниями с переходами было бы втрое больше
+        /// работы ради того же результата.
+        /// </summary>
+        private static void BuildFidgetLayer(AnimatorController controller)
+        {
+            var clips = Fidgets.Select(p => Clip(Actions + p)).Where(c => c != null).ToArray();
+
+            if (clips.Length == 0)
+            {
+                Debug.LogWarning("[IsoRPG] Позы ожидания не нашлись — слой не собран.");
+                return;
+            }
+
+            if (!controller.parameters.Any(p => p.name == FidgetParameter))
+                controller.AddParameter(FidgetParameter, AnimatorControllerParameterType.Float);
+
+            for (int i = controller.layers.Length - 1; i > 0; i--)
+                if (controller.layers[i].name == FidgetLayer) controller.RemoveLayer(i);
+
+            var machine = new AnimatorStateMachine
+            {
+                name = FidgetLayer,
+                hideFlags = HideFlags.HideInHierarchy,
+            };
+
+            AssetDatabase.AddObjectToAsset(machine, controller);
+
+            var tree = new BlendTree
+            {
+                name = "Позы ожидания",
+                blendType = BlendTreeType.Simple1D,
+                blendParameter = FidgetParameter,
+                useAutomaticThresholds = false,
+            };
+
+            AssetDatabase.AddObjectToAsset(tree, controller);
+
+            tree.children = clips
+                .Select((c, i) => new ChildMotion { motion = c, threshold = i, timeScale = 1f })
+                .ToArray();
+
+            var state = machine.AddState("Fidget");
+            state.motion = tree;
+            machine.defaultState = state;
+
+            controller.AddLayer(new AnimatorControllerLayer
+            {
+                name = FidgetLayer,
+                stateMachine = machine,
+                blendingMode = AnimatorLayerBlendingMode.Override,
+
+                // Ноль: поднимает вес игровой код, когда герой долго стоит.
+                defaultWeight = 0f,
+            });
+
+            Debug.Log("[IsoRPG] Слой оживления: поз " + clips.Length + " — " +
+                      string.Join(", ", clips.Select(c => c.name)) + ".");
         }
 
         /// <summary>
@@ -357,12 +448,16 @@ namespace IsoRPG.EditorTools
                 new ChildMotion { motion = run, threshold = HeroSpeed, timeScale = runScale },
             };
 
-            // Спринт — отдельная ступень, и клип выбран Павлоном глазами.
+            // Спринт — ТОТ ЖЕ клип бега, только быстрее.
             //
-            // 04.09.2026: «шестой бег хорошо было бы для спринта, прикольно
-            // выглядит» — это безоружный бег ExplosiveLLC. Своего клипа
-            // спринта у него нет, поэтому берём бег и гоним быстрее: у
-            // спринта размашистость и так читается сама.
+            // Решение Павла 04.09.2026 после двух проб: «спринт плохо, надо
+            // ставить обычный бег просто ускорять». Оба чужих клипа спринта
+            // приходилось гнать вдвое с лишним (DoubleL x2.00, ExplosiveLLC
+            // x2.22) и оба читались как перемотка — а вдобавок ломали
+            // однородность: в дереве оказывались две разные пластики.
+            //
+            // С тем же клипом смеси нет вовсе: на разгоне дерево переходит
+            // от бега к бегу, меняется только скорость воспроизведения.
             //
             // Решение Павла 04.09.2026: «меняем спринт на обычный бег с
             // ускорением». Причина в замере: любой чужой клип спринта

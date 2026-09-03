@@ -190,7 +190,7 @@ namespace IsoRPG.Cameras
         /// 0.8 при упоре 0.7 — это последняя треть приближения, ближе
         /// которой герой уже закрывает собой весь кадр.
         /// </summary>
-        private const float FadeZoomSpan = 0.8f;
+        private const float FadeZoomSpan = 0.55f;
 
         /// <summary>
         /// Насколько камера держится выше грунта, метры.
@@ -492,7 +492,18 @@ namespace IsoRPG.Cameras
 
             if (Application.isPlaying)
             {
-                orthoSize = Mathf.Lerp(orthoSize, desiredOrthoSize, 1f - Mathf.Exp(-zoomSmooth * Time.deltaTime));
+                // Сквозь героя камера проходит быстрее, чем едет обычно.
+                //
+                // Приём из WoW, замеченный Павлоном 04.09.2026: «когда
+                // приближаем до прозрачности, там небольшое ускорение камеры,
+                // пока она проходит через текстуру персонажа». Смысл в том,
+                // что полупрозрачный герой — состояние некрасивое и его надо
+                // проскочить, а не жить в нём. Разгоняем только на этом
+                // участке: heroAlpha строго между нулём и единицей.
+                float pace = zoomSmooth;
+                if (heroAlpha > 0.02f && heroAlpha < 0.98f) pace *= 2.2f;
+
+                orthoSize = Mathf.Lerp(orthoSize, desiredOrthoSize, 1f - Mathf.Exp(-pace * Time.deltaTime));
             }
             else
             {
@@ -902,9 +913,13 @@ namespace IsoRPG.Cameras
                 // Тело — скелетный меш, оружие — обычный, и это надёжный
                 // признак: он не зависит от того, вспомнил ли я все имена
                 // клинков, луков и щитов, которые появятся потом.
+                // Порог поздний: клинки живут почти до полного исчезновения
+                // тела. При 0.5 они пропадали на середине растворения, и на
+                // растянутом диапазоне это стало видно сразу — Павлон
+                // 04.09.2026: «при зуме опять стали кинжалы исчезать».
                 if (!(renderer is SkinnedMeshRenderer))
                 {
-                    renderer.enabled = alpha > 0.5f;
+                    renderer.enabled = alpha > 0.15f;
                     continue;
                 }
 

@@ -333,8 +333,8 @@ namespace IsoRPG.UI
             backdropRect.SetParent(rect, false);
             backdropRect.anchorMin = Vector2.zero;
             backdropRect.anchorMax = Vector2.one;
-            backdropRect.offsetMin = new Vector2(1.5f, 1.5f);
-            backdropRect.offsetMax = new Vector2(-1.5f, -1.5f);
+            backdropRect.offsetMin = new Vector2(1f, 1f);   // целый: 1.5 давал кант 2 с одной стороны и 3 с другой
+            backdropRect.offsetMax = new Vector2(-1f, -1f);
 
             var backdropImage = backdrop.GetComponent<Image>();
             backdropImage.color = CellEmpty;

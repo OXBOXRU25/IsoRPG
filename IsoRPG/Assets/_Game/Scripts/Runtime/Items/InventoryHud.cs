@@ -272,8 +272,8 @@ namespace IsoRPG.Items
             // Рамка тонкая: у рисунка предмета есть собственная тёмная
             // обводка, и толстая цветная рамка рядом с ней читается как
             // вторая обводка — глаз видит две границы вместо одной.
-            backdropRect.offsetMin = new Vector2(1.5f, 1.5f);
-            backdropRect.offsetMax = new Vector2(-1.5f, -1.5f);
+            backdropRect.offsetMin = new Vector2(1f, 1f);   // целый: 1.5 давал кант 2 с одной стороны и 3 с другой
+            backdropRect.offsetMax = new Vector2(-1f, -1f);
 
             var backdropImage = backdrop.GetComponent<Image>();
             backdropImage.color = CellBackdrop;

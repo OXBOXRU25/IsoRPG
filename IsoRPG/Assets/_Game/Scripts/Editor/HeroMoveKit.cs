@@ -87,6 +87,18 @@ namespace IsoRPG.EditorTools
         private const string Peace = "Assets/DoubleL/FBX_Animations/Base Move";
 
         /// <summary>
+        /// Набор передвижения Synty — родной для модели Sidekick.
+        ///
+        /// 346 клипов под нашего героя: ход и бег во все восемь сторон, в
+        /// горку и с горки, разгон и торможение с поворотом, повороты на
+        /// месте, прыжки по состоянию и аддитивные слои наклона и взгляда.
+        /// Пока берём отсюда только прямой ход; остальное — следующими
+        /// заходами, по одному, чтобы каждый можно было проверить отдельно.
+        /// </summary>
+        private const string Synty =
+            "Assets/Synty/AnimationBaseLocomotion/Animations/Sidekick/Masculine";
+
+        /// <summary>
         /// Параметр фазы: 0 — мирная пластика, 1 — боевая.
         ///
         /// Дробный намеренно. Будь он булевым, пришлось бы разводить фазы
@@ -109,37 +121,48 @@ namespace IsoRPG.EditorTools
 
             LoopMovement();
 
-            var fight = BuildStride(controller, "Ход боевой", Move,
-                "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx",
-                "/Walk/Type A/Base/InPlace/OneHand_Base_Walk_A_F_InPlace.fbx",
-                "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx",
-                "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx",
-                "/Walk/Type A/Base/OneHand_Base_Walk_A_F.fbx",
-                "/Run/Type A/Base/OneHand_Base_Run_A_F.fbx",
-                "/Sprint/Type A/Base/OneHand_Base_Sprint_A_F.fbx");
+            // Ход целиком из набора Synty — родного для нашей модели.
+            //
+            // Решение Павла 04.09.2026 после того, как он спросил: «а
+            // анимаций Synty для персонажа у нас нет?» Есть, и я их не
+            // посмотрел — нарушив собственное правило «сперва проверь, что по
+            // этой части уже есть в проекте». `AnimationBaseLocomotion` даёт
+            // 346 клипов под Sidekick, то есть нарисованных на тот же скелет
+            // и те же пропорции.
+            //
+            // Это и есть настоящая причина двух отвергнутых подряд бегов:
+            // «виляние задом» у безоружного DoubleL и «оттопыренный зад» у
+            // вооружённого — не плохие клипы, а чужие пропорции. Доворотом
+            // такое не лечится, только сменой набора.
+            //
+            // ПРАВИЛО, которое сюда же: внутри ОДНОГО дерева смешивания
+            // клипы должны быть из одного набора. Между состояниями — ход,
+            // удар, прыжок — наборы мешать можно и нужно (удары кинжалами у
+            // нас останутся из DoubleL, они хороши). А внутри дерева разные
+            // пропорции блендятся друг с другом, и герой начинает дёргаться.
+            var fight = BuildStride(controller, "Ход боевой", Synty,
+                "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
+                "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
+                "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx",
+                "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx",
+                "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx",
+                "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx",
+                "/Locomotion/Sprint/A_MOD_BL_Sprint_F_RM_Masc.fbx");
 
             if (fight == null)
             {
-                Debug.LogError("[IsoRPG] Клипы боевого хода не нашлись — ход не переведён.");
+                Debug.LogError("[IsoRPG] Клипы хода Synty не нашлись — ход не переведён.");
                 return;
             }
 
-            // Мирная фаза меняет ТОЛЬКО стойку покоя.
+            // Мирная фаза пока та же, что боевая.
             //
-            // Аллюры остаются вооружёнными, и это не экономия, а замер:
-            // безоружный бег из `Base Move` мы уже брали 03.09.2026 и уже
-            // отвергли — свободные махи руками и раскачка корпуса читаются
-            // как виляние задом. Павлон увидел это второй раз, когда я взял
-            // мирную ветку целиком: «бег стал выглядеть жутко, вернулось
-            // виляние задом». Жалоба была про ПОЗУ В ПОКОЕ, ею и лечим.
-            var peace = BuildStride(controller, "Ход мирный", "",
-                Peace + "/Stand_Idle/Idle/Stand_Idle_A_1.fbx",
-                Move + "/Walk/Type A/Base/InPlace/OneHand_Base_Walk_A_F_InPlace.fbx",
-                Move + "/Run/Type A/Base/InPlace/OneHand_Base_Run_A_F_InPlace.fbx",
-                Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx",
-                Move + "/Walk/Type A/Base/OneHand_Base_Walk_A_F.fbx",
-                Move + "/Run/Type A/Base/OneHand_Base_Run_A_F.fbx",
-                Move + "/Sprint/Type A/Base/OneHand_Base_Sprint_A_F.fbx");
+            // У Synty в этом наборе одна стойка стоя — боевой там нет вовсе.
+            // Разводить фазы клипами из разных наборов значило бы вернуть ту
+            // самую беду, от которой уходим. Боевую стойку подберём отдельным
+            // шагом, когда убедимся, что базовый ход хорош; параметр `Stance`
+            // остаётся на месте и ждёт её.
+            var peace = fight;
 
             if (!controller.parameters.Any(p => p.name == CombatParameter))
                 controller.AddParameter(CombatParameter, AnimatorControllerParameterType.Float);
@@ -162,7 +185,9 @@ namespace IsoRPG.EditorTools
             // Мирной ветки может не оказаться — тогда ход остаётся боевым,
             // как был. Молча ронять весь ход из-за отсутствия одной папки
             // нельзя: герой встанет в позу T.
-            tree.children = peace != null
+            // Одинаковые фазы — одно дитя, а не два: лишнее дерево в
+            // смешивании считается каждый кадр у каждого игрока.
+            tree.children = peace != null && peace != fight
                 ? new[]
                   {
                       new ChildMotion { motion = peace, threshold = 0f, timeScale = 1f },
@@ -336,6 +361,14 @@ namespace IsoRPG.EditorTools
                 (Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx", true),
                 (Move + "/Idle/Idle/OneHand_Base_Stand_Idle_A_1.fbx", true),
                 (Peace + "/Stand_Idle/Idle/Stand_Idle_A_1.fbx", true),
+
+                // Synty: то, что реально играет в дереве хода. Незацикленный
+                // клип бега доигрывает до конца и замирает — со стороны это
+                // выглядит как «герой поехал по земле стоя».
+                (Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx", true),
+                (Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx", true),
+                (Synty + "/Locomotion/Run/A_MOD_BL_Run_F_Masc.fbx", true),
+                (Synty + "/Locomotion/Sprint/A_MOD_BL_Sprint_F_Masc.fbx", true),
                 (Jump + "/InPlace/OneHand_Base_Jump_Air_Loop_InPlace.fbx", true),
                 (Jump + "/OneHand_Base_Jump_Air_Loop.fbx", true),
             };

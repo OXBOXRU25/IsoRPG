@@ -4513,6 +4513,10 @@ namespace IsoRPG.EditorTools
                     HeroModelProbe.Run();
                     break;
 
+                case "loot-glow":
+                    LootGlowKit.Apply();
+                    break;
+
                 case "hero-move":
                     HeroMoveKit.Apply();
                     break;

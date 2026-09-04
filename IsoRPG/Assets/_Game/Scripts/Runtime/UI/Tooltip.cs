@@ -26,7 +26,19 @@ namespace IsoRPG.UI
         // Фон полупрозрачный: под подсказкой остаётся видно, над чем она
         // висит. Совсем прозрачной делать нельзя — текст по пёстрой сцене
         // не читается.
-        private static readonly Color PanelColor = new Color32(0x14, 0x12, 0x0F, 0xE6);
+        /// <summary>
+        /// Фон подсказки — тот же, что у окна персонажа.
+        ///
+        /// Просьба Павла 05.09.2026: «цвет замени с коричневого на тот же, что
+        /// в окне персонажа». Прежний был теплее по всем трём составляющим
+        /// (14/12/0F против 13/13/12) и рядом с окнами читался как другой
+        /// материал — будто подсказка из другой игры.
+        ///
+        /// Число скопировано с `CharacterHud`, а не подобрано на глаз. Если
+        /// поменяется там, здесь придётся поправить руками — но заводить общий
+        /// словарь цветов ради двух окон пока дороже, чем эта строка.
+        /// </summary>
+        private static readonly Color PanelColor = new Color32(0x13, 0x13, 0x12, 0xF2);
         private static readonly Color EdgeColor = new Color32(0x4A, 0x44, 0x36, 0xC0);
         private static readonly Color SubtitleColor = new Color32(0x9A, 0x94, 0x86, 0xFF);
         private static readonly Color LabelColor = new Color32(0x9A, 0x94, 0x86, 0xFF);
@@ -44,6 +56,7 @@ namespace IsoRPG.UI
         private RectTransform panel;
         private Image icon;
         private Image iconBack;
+        private LayoutElement headerElement;
         private Text title;
         private Text subtitle;
         private RectTransform rows;
@@ -314,6 +327,29 @@ namespace IsoRPG.UI
             icon.enabled = has;
             iconBack.enabled = has;
 
+            // Нет иконки — убираем и её МЕСТО, а не только рисунок.
+            //
+            // Павлон 05.09.2026 про подсказки кнопок: «заголовок не ровно в
+            // плашке стоит и лишние отступы». Причина здесь: рисунок гасился,
+            // а пустой квадрат оставался в раскладке и отжимал заголовок
+            // вправо на свою ширину, заодно задавая шапке высоту в 40
+            // пикселей, которой нечем было заполниться.
+            //
+            // Выключаем сам объект: раскладка перестаёт его считать, и текст
+            // встаёт от левого края, как и описание под ним.
+            if (iconBack != null) iconBack.gameObject.SetActive(has);
+
+            // И минимальную высоту строки — тоже по иконке.
+            //
+            // Первой правки не хватило: я убрал сам квадрат, а у СТРОКИ шапки
+            // осталась заданная минимальная высота в 46 пикселей — ровно под
+            // иконку. Заголовок висел в ней по центру, и сверху оставалась
+            // пустая полоса. Павлон 05.09.2026: «сверху отступ лишний».
+            //
+            // Тот же урок, что и с манекеном: место занимала не одна вещь, а
+            // две, и убрав первую я решил, что закончил.
+            if (headerElement != null) headerElement.minHeight = has ? IconSize : 0f;
+
             if (!has) return;
 
             icon.sprite = sprite;
@@ -504,7 +540,8 @@ namespace IsoRPG.UI
             layout.childControlWidth = true;
             layout.childAlignment = TextAnchor.MiddleLeft;
 
-            header.GetComponent<LayoutElement>().minHeight = IconSize;
+            headerElement = header.GetComponent<LayoutElement>();
+            headerElement.minHeight = IconSize;
 
             var backGo = new GameObject("IconBack", typeof(Image), typeof(LayoutElement));
             var backRect = (RectTransform)backGo.transform;

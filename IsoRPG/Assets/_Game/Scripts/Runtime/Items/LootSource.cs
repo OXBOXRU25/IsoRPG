@@ -54,6 +54,17 @@ namespace IsoRPG.Items
         [Tooltip("Высота значка мешка над трупом.")]
         [SerializeField] private float markerHeight = 1.6f;
 
+        /// <summary>Где лежит свечение добычи. Копируется в Resources заданием.</summary>
+        private const string GlowPath = "FX/LootGlow";
+
+        /// <summary>
+        /// На какой высоте светится тело.
+        ///
+        /// Не над головой, а у земли: труп лежит, и свечение должно обнимать
+        /// его, а не висеть отдельным огоньком в воздухе.
+        /// </summary>
+        [SerializeField] private float glowHeight = 0.25f;
+
         private readonly List<ItemStack> contents = new List<ItemStack>();
         private int gold;
         private bool generated;
@@ -311,6 +322,35 @@ namespace IsoRPG.Items
         private void ShowMarker()
         {
             if (marker != null) return;
+
+            // Свечение на теле вместо коробки над ним.
+            //
+            // Решение Павла: «убрать розовые сумки выпадающие и сделать
+            // свечение на мобе». Коробка была примитивом с материалом по
+            // умолчанию — в нашем конвейере он и давал ту самую розовость.
+            //
+            // Эффект берём готовый из набора Synty, а не рисуем свой: там 180
+            // штук, и свечение под подбор в них уже есть. Ставим НА ТЕЛО, а не
+            // над ним: подсветить надо труп, чтобы глаз понял, куда кликать, —
+            // значок в воздухе для этого лишний посредник.
+            var effect = Resources.Load<GameObject>(GlowPath);
+
+            if (effect != null)
+            {
+                marker = Instantiate(effect, transform);
+                marker.name = "LootGlow";
+                marker.transform.localPosition = Vector3.up * glowHeight;
+                marker.transform.localRotation = Quaternion.identity;
+
+                return;
+            }
+
+            // Эффекта нет — оставляем прежний значок, чтобы добыча не стала
+            // невидимой совсем. Но говорим об этом вслух: молча подменять
+            // задуманное на запасное значит однажды удивиться, почему в игре
+            // не то, что решили.
+            Debug.LogWarning("[IsoRPG] Свечение добычи не найдено (" + GlowPath +
+                             ") — ставлю прежний значок.");
 
             marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
             marker.name = "LootMarker";

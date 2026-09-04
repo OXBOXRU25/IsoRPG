@@ -29,6 +29,7 @@ namespace IsoRPG.UI
         private const string EffectsKey = "isorpg.volume.effects";
         private const string SystemKey = "isorpg.volume.system";
         private const string AmbienceKey = "isorpg.volume.ambience";
+        private const string CombatKey = "isorpg.volume.combat";
 
         private static readonly Color PanelColor = new Color32(0x1C, 0x1A, 0x16, 0xF2);
         private static readonly Color PanelEdge = new Color32(0x3A, 0x36, 0x2C, 0xFF);
@@ -52,6 +53,7 @@ namespace IsoRPG.UI
         private Text sfxValue;
         private Text ambienceValue;
         private Text systemValue;
+        private Text combatValue;
 
         private IHudWindow[] others;
 
@@ -67,6 +69,7 @@ namespace IsoRPG.UI
             Sfx.EffectsVolume = PlayerPrefs.GetFloat(EffectsKey, 1f);
             Sfx.SystemVolume = PlayerPrefs.GetFloat(SystemKey, 0.8f);
             Sfx.AmbienceVolume = PlayerPrefs.GetFloat(AmbienceKey, 0.6f);
+            Sfx.CombatVolume = PlayerPrefs.GetFloat(CombatKey, 0.7f);
 
             Build();
         }
@@ -195,6 +198,7 @@ namespace IsoRPG.UI
             if (sfxValue != null) sfxValue.text = Percent(Sfx.EffectsVolume);
             if (ambienceValue != null) ambienceValue.text = Percent(Sfx.AmbienceVolume);
             if (systemValue != null) systemValue.text = Percent(Sfx.SystemVolume);
+            if (combatValue != null) combatValue.text = Percent(Sfx.CombatVolume);
         }
 
         private static string Percent(float value) => Mathf.RoundToInt(value * 100f) + "%";
@@ -286,6 +290,20 @@ namespace IsoRPG.UI
                 PlayerPrefs.SetFloat(AmbienceKey, value);
 
                 if (ambienceValue != null) ambienceValue.text = Percent(value);
+            });
+
+            // Бой — отдельным ползунком.
+            //
+            // Предложение Павла 05.09.2026: «может добавить отдельный ползунок
+            // звука для бой?» Он прав: рык зверя, удар и крик боли не влезали
+            // ни в «Окружение», ни в «Действия» — я перекладывал их туда-сюда
+            // и оба раза мешал. Своя ручка снимает выбор вовсе.
+            combatValue = MakeSlider("Бой", Sfx.CombatVolume, value =>
+            {
+                Sfx.CombatVolume = value;
+                PlayerPrefs.SetFloat(CombatKey, value);
+
+                if (combatValue != null) combatValue.text = Percent(value);
             });
 
             sfxValue = MakeSlider("Действия", Sfx.EffectsVolume, value =>

@@ -45,6 +45,32 @@ namespace IsoRPG.EditorTools
         /// <summary>Вздрагивание от удара. Направление пока одно — спереди.</summary>
         private const string GetHitClip = "Armed/RPG-Character@Armed-GetHit-F1.FBX";
 
+        /// <summary>
+        /// Вздрагивание по СТОРОНАМ, в порядке параметра `HitDir`.
+        ///
+        /// Павлон 04.09.2026 отобрал через консоль `Armed-GetHit-B1`, `-F1` и
+        /// `-F2` — «три стороны». Сторон берём четыре: драйвер уже считает
+        /// направление удара как 0 спереди, 1 сзади, 2 слева, 3 справа, и в
+        /// наборе ровно эти четыре клипа есть. Три из четырёх означало бы, что
+        /// с одной стороны играет чужой клип.
+        /// </summary>
+        private static readonly string[] GetHitBySide =
+        {
+            "Armed/RPG-Character@Armed-GetHit-F1.FBX",   // 0 — спереди
+            "Armed/RPG-Character@Armed-GetHit-B1.FBX",   // 1 — сзади
+            "Armed/RPG-Character@Armed-GetHit-L1.FBX",   // 2 — слева
+            "Armed/RPG-Character@Armed-GetHit-R1.FBX",   // 3 — справа
+        };
+
+        /// <summary>
+        /// Смерть — ВООРУЖЁННАЯ. Выбор Павла 04.09.2026 через консоль.
+        ///
+        /// В контроллере стояла `Unarmed-Death1`: герой падал, разжав пустые
+        /// руки, хотя в них два кинжала. Клип никем не назначался — он был
+        /// прописан вручную давно и с тех пор не пересматривался.
+        /// </summary>
+        private const string DeathClip = "Armed/RPG-Character@Armed-Death1.FBX";
+
         /// <summary>Уклонение вбок.</summary>
         private const string DodgeClip = "Armed/RPG-Character@Armed-Dodge-Backward.FBX";
 
@@ -131,6 +157,24 @@ namespace IsoRPG.EditorTools
             // его замаха не должно отменять этот замах — иначе в плотном бою
             // герой перестаёт бить вовсе.
             added += OneShot(controller, root, GetHitClip, "Hit", "GetHit", 0.06f);
+
+            // Вздрагивание разводим по сторонам и ставим вооружённую смерть.
+            SideHits(controller, root);
+            ArmedDeath(root);
+
+            // Ножны: достать и убрать оба кинжала.
+            //
+            // Клипы отобрал Павлон 04.09.2026 через консоль:
+            // `Unarmed-Unsheath-Dual-Hips` и `-Back` достают, парные
+            // `Armed-Sheath-Dual-*` убирают. Берём вариант «с пояса»: у
+            // разбойника кинжалы на поясе, а не за спиной.
+            added += OneShot(controller, root,
+                             "Unarmed/RPG-Character@Unarmed-Unsheath-Dual-Hips.FBX",
+                             "Unsheath", "Unsheath", 0.05f);
+
+            added += OneShot(controller, root,
+                             "Armed/RPG-Character@Armed-Sheath-Dual-ToUnarmed-Hips.FBX",
+                             "Sheath", "Sheath", 0.05f);
 
             // Уклонение.
             added += OneShot(controller, root, DodgeClip, "Dodge", "Dodge", 0.05f);
@@ -465,6 +509,16 @@ namespace IsoRPG.EditorTools
             var state = root.AddState(stateName);
             state.motion = clip;
 
+            // Триггер обязан существовать ДО того, как на него сошлётся
+            // переход.
+            //
+            // Иначе Unity молча создаёт переход в никуда и ругается только при
+            // загрузке: «uses parameter which does not exist». Поймал это на
+            // ножнах 05.09.2026 — состояния собрались, а клавиша не сработала
+            // бы вовсе. Прежние вызовы жили только потому, что их триггеры
+            // заводились выше по коду руками.
+            EnsureParameter(controller, trigger, AnimatorControllerParameterType.Trigger);
+
             var any = root.AddAnyStateTransition(state);
             any.AddCondition(AnimatorConditionMode.If, 0f, trigger);
             any.duration = blend;
@@ -496,6 +550,72 @@ namespace IsoRPG.EditorTools
         /// в клипе смерти. Павлон 01.09.2026: «кабан босс которого я убил
         /// мёртвый ездит по земле за мной».
         /// </summary>
+        /// <summary>
+        /// Развести вздрагивание по четырём сторонам.
+        ///
+        /// Состояние остаётся одно, но внутри — дерево по `HitDir`. Так проще
+        /// машины из четырёх состояний с переходами: направление здесь не
+        /// событие, а свойство удара, и выбирать клип должно смешивание.
+        /// </summary>
+        private static void SideHits(AnimatorController controller, AnimatorStateMachine root)
+        {
+            var hit = Find(root, "GetHit");
+            if (hit == null) return;
+
+            EnsureParameter(controller, "HitDir", AnimatorControllerParameterType.Int);
+
+            var tree = new BlendTree
+            {
+                name = "Вздрагивание по сторонам",
+                blendType = BlendTreeType.Simple1D,
+                blendParameter = "HitDir",
+                useAutomaticThresholds = false,
+            };
+
+            AssetDatabase.AddObjectToAsset(tree, controller);
+
+            var points = new System.Collections.Generic.List<ChildMotion>();
+
+            for (int i = 0; i < GetHitBySide.Length; i++)
+            {
+                var clip = LoadClip(GetHitBySide[i]);
+
+                if (clip == null) continue;
+
+                points.Add(new ChildMotion { motion = clip, threshold = i, timeScale = 1f });
+            }
+
+            if (points.Count < 2)
+            {
+                Debug.LogWarning("[IsoRPG] Сторон вздрагивания нашлось меньше двух — оставляю как было.");
+                return;
+            }
+
+            tree.children = points.ToArray();
+            hit.motion = tree;
+
+            Debug.Log($"[IsoRPG] Вздрагивание: сторон {points.Count} (спереди, сзади, слева, справа).");
+        }
+
+        /// <summary>Поставить вооружённую смерть вместо безоружной.</summary>
+        private static void ArmedDeath(AnimatorStateMachine root)
+        {
+            var death = Find(root, "Death");
+            if (death == null) return;
+
+            var clip = LoadClip(DeathClip);
+
+            if (clip == null)
+            {
+                Debug.LogWarning("[IsoRPG] Клипа вооружённой смерти нет — оставляю прежний.");
+                return;
+            }
+
+            death.motion = clip;
+
+            Debug.Log("[IsoRPG] Смерть: вооружённая, " + clip.name + ".");
+        }
+
         private static bool EnsureRevive(AnimatorStateMachine root)
         {
             var death = Find(root, "Death");

@@ -32,13 +32,13 @@ namespace IsoRPG.UI
         /// <summary>Затемнение недоступного: видно, но ясно, что пока нельзя.</summary>
         private static readonly Color Locked = new Color(0.42f, 0.42f, 0.42f, 1f);
 
-        private const float Width = 560f;
-        private const float Height = 452f;
-        private const float ColumnWidth = 168f;
+        private const float Width = 620f;
+        private const float Height = 500f;
+        private const float ColumnWidth = 190f;
         private const float CellSize = 52f;
-        private const float CellGap = 14f;
-        private const float RowGap = 64f;
-        private const float TreeTop = 92f;
+        private const float CellGap = 20f;
+        private const float RowGap = 76f;
+        private const float TreeTop = 104f;
 
         private TalentBook book;
         private Font font;
@@ -265,11 +265,11 @@ namespace IsoRPG.UI
                 var title = MakeText(parent, branch + "Title",
                     TalentDefinition.BranchName(branch), 13, TalentDefinition.BranchColor(branch));
 
-                PlaceLeft(title, new Vector2(columnX, -62f), new Vector2(ColumnWidth, 18f),
+                PlaceLeft(title, new Vector2(columnX, -58f), new Vector2(ColumnWidth, 18f),
                           TextAnchor.MiddleCenter);
 
                 var total = MakeText(parent, branch + "Total", "0", 12, DimColor);
-                PlaceLeft(total, new Vector2(columnX, -78f), new Vector2(ColumnWidth, 14f),
+                PlaceLeft(total, new Vector2(columnX, -80f), new Vector2(ColumnWidth, 14f),
                           TextAnchor.MiddleCenter);
 
                 branchTotals.Add(total);
@@ -359,7 +359,7 @@ namespace IsoRPG.UI
             rankRect.anchorMin = new Vector2(0.5f, 0f);
             rankRect.anchorMax = new Vector2(0.5f, 0f);
             rankRect.pivot = new Vector2(0.5f, 1f);
-            rankRect.anchoredPosition = new Vector2(0f, -1f);
+            rankRect.anchoredPosition = new Vector2(0f, -6f);
             rankRect.sizeDelta = new Vector2(CellSize + 8f, 12f);
             rankText.alignment = TextAnchor.UpperCenter;
 

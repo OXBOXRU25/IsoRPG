@@ -62,6 +62,27 @@ namespace IsoRPG.Audio
         private static float effectsVolume = 1f;
         private static float systemVolume = 1f;
         private static float ambienceVolume = 1f;
+        private static float combatVolume = 1f;
+
+        /// <summary>
+        /// Бой: удары, взмахи, голоса зверей, крики боли.
+        ///
+        /// Предложение Павла 05.09.2026, и оно снимает пограничный случай, на
+        /// котором я мялся. Рык зверя — это и не фон места, и не отклик на
+        /// действие игрока: он звучит сам по себе, но принадлежит бою. Пока
+        /// каналов было четыре, его приходилось класть либо к лесу, либо к
+        /// шагам, и в обоих случаях он мешал.
+        ///
+        /// Правило раздачи по каналам: <b>Бой</b> — всё, что звучит в драке;
+        /// <b>Действия</b> — что делает герой сам (шаги, подбор, надевание);
+        /// <b>Окружение</b> — что звучит без нас (лес, вода, вой вдалеке);
+        /// <b>Интерфейс</b> — окна и джинглы.
+        /// </summary>
+        public static float CombatVolume
+        {
+            get => combatVolume;
+            set => combatVolume = Mathf.Clamp01(value);
+        }
 
         /// <summary>Шаги, удары, еда — всё, что делает мир и персонажи.</summary>
         public static float EffectsVolume
@@ -106,13 +127,13 @@ namespace IsoRPG.Audio
         /// перестаёт быть тишиной. Без него бой звучит как череда попаданий
         /// без движения между ними.
         /// </summary>
-        public static void Swing(Vector3 at) => Play(bank?.swing, at, 0.55f, 0.12f);
+        public static void Swing(Vector3 at) => Play(bank?.swing, at, 0.55f, 0.12f, combatVolume);
 
-        public static void BladeHit(Vector3 at) => Play(bank?.bladeHit, at);
-        public static void HeavyHit(Vector3 at) => Play(bank?.heavyHit, at);
+        public static void BladeHit(Vector3 at) => Play(bank?.bladeHit, at, 1f, 0.05f, combatVolume);
+        public static void HeavyHit(Vector3 at) => Play(bank?.heavyHit, at, 1f, 0.05f, combatVolume);
         public static void BowShot(Vector3 at) => Play(bank?.bowShot, at);
         public static void DrawWeapon(Vector3 at) => Play(bank?.drawWeapon, at);
-        public static void Death(Vector3 at) => Play(bank?.death, at);
+        public static void Death(Vector3 at) => Play(bank?.death, at, 1f, 0.05f, combatVolume);
 
         // Деньги, подбор и надевание — отклик интерфейса, а не мира:
         // звучат они у игрока в руках, а не в точке на карте.
@@ -134,23 +155,52 @@ namespace IsoRPG.Audio
         public static void MerchantVoice(Vector3 at) => Play(bank?.voiceMerchant, at, 0.5f, 0.05f);
         public static void VillagerVoice(Vector3 at) => Play(bank?.voiceVillager, at, 0.5f, 0.05f);
 
-        /// <summary>Рык главаря. Громче остальных: это событие, а не реплика.</summary>
-        public static void BossRoar(Vector3 at) => Play(bank?.bossRoar, at, 0.9f, 0.04f);
+        /// <summary>
+        /// Громкость ВСЕХ звериных голосов — одна на всех.
+        ///
+        /// Число Павла 05.09.2026: «давай громкость всех рыков и хрюков сделаем
+        /// 0.50». Дальность он оставил как была — она и не мешала.
+        ///
+        /// Одно число, а не своё у каждого зверя: раньше они разъезжались
+        /// (0.90 у главаря, 0.70 у волка и кабана, 0.55 у воя), и подкрутить
+        /// «всех разом» было нельзя — приходилось помнить четыре места.
+        /// </summary>
+        private const float BeastVolume = 0.5f;
 
-        /// <summary>Рычание волка при захвате цели. Тише рыка главаря: он рядовой.</summary>
-        public static void WolfSnarl(Vector3 at) => Play(bank?.wolfSnarl, at, 0.7f, 0.07f);
+        /// <summary>
+        /// Звериные голоса идут по каналу ОКРУЖЕНИЯ.
+        ///
+        /// Павлон 05.09.2026, после первой правки: «всё равно очень громко» —
+        /// и на кадре настроек видно почему. У него «Действия» стоят на 72%, а
+        /// «Окружение» на 27%: рык шёл по самому громкому каналу из четырёх.
+        ///
+        /// По смыслу звериные голоса и есть фон места — они звучат сами по
+        /// себе, без участия игрока, в отличие от ударов и шагов. Значит и
+        /// ползунок у них должен быть тот, которым человек убавляет лес.
+        /// </summary>
+        /// <summary>Рык главаря при захвате цели.</summary>
+        public static void BossRoar(Vector3 at) =>
+            Play(bank?.bossRoar, at, BeastVolume, 0.04f, combatVolume);
+
+        /// <summary>Рычание волка при захвате цели.</summary>
+        public static void WolfSnarl(Vector3 at) =>
+            Play(bank?.wolfSnarl, at, BeastVolume, 0.07f, combatVolume);
 
         /// <summary>
         /// Волчий вой. Редкий и дальний — для настроения места.
         ///
-        /// Слышимость втрое больше обычной: вой на то и вой, что доносится
-        /// издалека. На общих восьми-двадцати восьми метрах он звучал бы
-        /// только когда волк уже виден, а тогда он не нужен.
+        /// Слышно за 90 метров против обычных 28: вой на то и вой, что
+        /// доносится издалека. Павлон дальность оставил.
+        ///
+        /// Идёт по каналу ОКРУЖЕНИЯ, а не эффектов, и это отдельная починка:
+        /// раньше он висел на эффектах, поэтому ползунок окружения на него не
+        /// влиял вовсе — а по смыслу вой это фон места, а не событие боя.
         /// </summary>
-        public static void WolfHowl(Vector3 at) => Play(bank?.wolfHowl, at, 0.55f, 0.05f, -1f, 90f);
+        public static void WolfHowl(Vector3 at) =>
+            Play(bank?.wolfHowl, at, BeastVolume, 0.05f, ambienceVolume, 90f);
 
         /// <summary>Хрюканье кабана.</summary>
-        public static void BoarGrunt(Vector3 at) => Play(bank?.boarGrunt, at, 0.7f, 0.1f);
+        public static void BoarGrunt(Vector3 at) => Play(bank?.boarGrunt, at, BeastVolume, 0.1f, combatVolume);
 
         // --- Гриб-исполин -------------------------------------------------
         //

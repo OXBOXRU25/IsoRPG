@@ -298,6 +298,15 @@ namespace IsoRPG.Combat
         /// </summary>
         private const float SlotBackInset = SlotSize * 0.02f;
 
+        /// <summary>
+        /// На сколько рисунок утоплен внутрь гнезда, пикселей.
+        ///
+        /// Ровно толщина канта рамки: иначе он ложится поверх краёв иконки и
+        /// срезает их — у кинжала кончик, у кулака пальцы. Считаем долей от
+        /// гнезда, чтобы при смене его размера отступ поехал вместе с ним.
+        /// </summary>
+        private const float IconInset = SlotSize * 0.10f;
+
         private static readonly Color ComboEmpty = new Color32(0x2E, 0x2A, 0x22, 0xFF);
         private static readonly Color ComboFull = new Color32(0xE8, 0xC3, 0x5A, 0xFF);
 
@@ -1133,12 +1142,20 @@ namespace IsoRPG.Combat
                     artRect.anchorMin = Vector2.zero;
                     artRect.anchorMax = Vector2.one;
 
-                    // Небольшой отступ: рисунок впритык к краю плашки
-                    // выглядит обрезанным.
-                    // Без отступа: рисунок уже нарисован с полями внутри
-                    // себя, и второй отступ делает иконку мелкой вдвое.
-                    artRect.offsetMin = Vector2.zero;
-                    artRect.offsetMax = Vector2.zero;
+                    // Рисунок вписан ВНУТРЬ рамки, а не под неё.
+                    //
+                    // Павлон 05.09.2026: «размер строится под весь контейнер
+                    // без учёта перекрытия рамкой, надо чтобы они вписывались
+                    // в рамку, а не перекрывались ей». Так и было: иконка
+                    // занимала гнездо целиком, а кант ложился сверху и съедал
+                    // её края — на кинжале срезался кончик, на кулаке пальцы.
+                    //
+                    // Отступ равен толщине канта. Раньше здесь стоял ноль
+                    // именно потому, что двойной отступ делал иконку мелкой:
+                    // тогда я отмерял его на глаз от всего гнезда, а надо от
+                    // канта — это втрое меньше.
+                    artRect.offsetMin = new Vector2(IconInset, IconInset);
+                    artRect.offsetMax = new Vector2(-IconInset, -IconInset);
 
                     var artImage = art.GetComponent<Image>();
                     artImage.sprite = ability.icon;

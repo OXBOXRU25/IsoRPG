@@ -134,6 +134,24 @@ namespace IsoRPG.Items
         private GameObject leftModel;
 
         /// <summary>
+        /// Спрятать клинки, не снимая их.
+        ///
+        /// Нужно ножнам: экипировка остаётся надетой — характеристики, урон и
+        /// приёмы работают как прежде, — а из рук оружие пропадает. Снимать
+        /// его по-настоящему нельзя: тогда герой на время убранных ножен
+        /// становился бы безоружным и по числам тоже.
+        /// </summary>
+        public void SetHidden(bool hidden)
+        {
+            if (rightModel != null) rightModel.SetActive(!hidden);
+            if (leftModel != null) leftModel.SetActive(!hidden);
+
+            // Пальцы держат рукоять только когда она есть.
+            if (animator != null && fistLayer >= 0)
+                animator.SetLayerWeight(fistLayer, hidden ? 0f : 1f);
+        }
+
+        /// <summary>
         /// Слой сжатой кисти. Ставит его задание `hand-pose`, а включаем его
         /// мы: пальцы должны обхватывать рукоять, но только когда она есть.
         ///

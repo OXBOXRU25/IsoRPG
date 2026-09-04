@@ -121,6 +121,9 @@ namespace IsoRPG.EditorTools
         /// <summary>Прошли верхнюю точку прыжка. По нему машина уходит в фазу полёта.</summary>
         public const string FallingParameter = "Falling";
 
+        /// <summary>Множитель темпа хода. 1 — как собрано; меняется на лету для примерки.</summary>
+        public const string RateParameter = "MoveRate";
+
         /// <summary>Какую позу ожидания проиграть: 0..3.</summary>
         public const string FidgetParameter = "FidgetPick";
 
@@ -410,6 +413,40 @@ namespace IsoRPG.EditorTools
                         case "Locomotion":
                             state.motion = tree;
                             moved++;
+
+                            // Темп хода — множителем состояния по параметру.
+                            //
+                            // Нужен, чтобы менять быстроту ног НА ЛЕТУ, не
+                            // пересобирая дерево: Павлон 05.09.2026 попросил
+                            // повесить варианты бега на клавишу и сравнить их
+                            // глазами. Число, которое нельзя вывести, ставится
+                            // в ряд вариантами — а тут его и правда не вывести:
+                            // наши 5.5 м/с не совпадают ни с одним аллюром
+                            // автора (бег 2.74, спринт 7.69).
+                            if (!controller.parameters.Any(p => p.name == RateParameter))
+                                controller.AddParameter(RateParameter, AnimatorControllerParameterType.Float);
+
+                            // Значение по умолчанию — ЕДИНИЦА, и записать его
+                            // надо через присвоение всего массива.
+                            //
+                            // Моя поломка 05.09.2026: `controller.parameters`
+                            // отдаёт КОПИЮ, и правка элемента в цикле никуда не
+                            // сохраняется. Параметр остался нулём, а он множит
+                            // скорость воспроизведения хода — ноги встали, и
+                            // Павлон увидел «персонаж ездит на одной ноге».
+                            //
+                            // Родня давней ловушке с сериализованным полем:
+                            // выглядит как присваивание, а на деле пишется в
+                            // копию, которую никто не читает.
+                            var all = controller.parameters;
+
+                            for (int p = 0; p < all.Length; p++)
+                                if (all[p].name == RateParameter) all[p].defaultFloat = 1f;
+
+                            controller.parameters = all;
+
+                            state.speedParameterActive = true;
+                            state.speedParameter = RateParameter;
                             break;
 
                         case "Jump_Start":
@@ -435,7 +472,20 @@ namespace IsoRPG.EditorTools
                                 if (link == null) continue;
 
                                 link.hasExitTime = false;
-                                link.duration = 0.05f;
+
+                                // Переход плавный, а не мгновенный.
+                                //
+                                // Павлон 05.09.2026: «в процессе прыжка он
+                                // поднимает руки вверх, а потом рывком
+                                // перемещает вниз». Это моя правка: я поставил
+                                // 0.05 с, и клип отталкивания обрывался прямо
+                                // на поднятых руках — вершина наступает раньше,
+                                // чем он доигрывает.
+                                //
+                                // Четверть секунды хватает, чтобы руки успели
+                                // опуститься смешиванием, и при этом сальто
+                                // по-прежнему начинается с вершины.
+                                link.duration = 0.25f;
                                 link.conditions = new[]
                                 {
                                     new AnimatorCondition
@@ -670,6 +720,9 @@ namespace IsoRPG.EditorTools
                 // Ноль: поднимает вес игровой код, когда герой долго стоит.
                 defaultWeight = 0f,
             });
+
+            // Пальцы — поверх всего, что мы только что добавили.
+            KeepFistLast(controller);
 
             Debug.Log("[IsoRPG] Слой оживления: поз " + clips.Length + " — " +
                       string.Join(", ", clips.Select(c => c.name)) + ".");
@@ -944,6 +997,79 @@ namespace IsoRPG.EditorTools
             return tree;
         }
 
+        /// <summary>
+        /// Кольцо спринта: вперёд свой клип, стороны — беговые.
+        ///
+        /// Набор Synty боковой спринт не рисовал, и это не пробел, а ответ
+        /// автора: боком с такой скоростью не бегают. Но играть при боковом
+        /// ходе клип «бег вперёд» ещё хуже — герой едет вбок лицом вперёд.
+        /// Поэтому стороны берём беговые: они хотя бы про боковое движение.
+        /// </summary>
+        private static BlendTree BuildSprintRing(AnimatorController controller, string name,
+                                                 Motion forward, AnimationClip idle, float sprintScale)
+        {
+            // Стороны гоним НЕ до полного совпадения с землёй.
+            //
+            // Предложение Павла 05.09.2026: «для спринта в стороны использовать
+            // анимацию обычного бега в стороны, только ускоренную». Так и
+            // делаем, но с оговоркой по числам: беговой клип нарисован под
+            // 2.74 м/с, а спринт несёт 9.35 — совпадение требует x3.4, вдвое
+            // больше того x2.00, который он принял для бега глазами.
+            //
+            // Поэтому целимся в тот же x2.00: боковой спринт по частоте ног
+            // выглядит как привычный бег, а не как перемотка. Ноги при этом
+            // немного отстают от земли — сознательный размен, тот же, что мы
+            // уже приняли на беге.
+            float sideRate = sprintScale > 0.1f ? 2f / sprintScale : 1f;
+
+            var plan = new (Vector2 position, string path)[]
+            {
+                (new Vector2(1f, 0f),  Synty + "/Locomotion/Run/A_MOD_BL_Run_FwdStrafeR_Masc.fbx"),
+                (new Vector2(-1f, 0f), Synty + "/Locomotion/Run/A_MOD_BL_Run_FwdStrafeL_Masc.fbx"),
+                (new Vector2(0f, -1f), Boom + "/Relax/RPG-Character@Relax-Walk-Backward.FBX"),
+            };
+
+            var children = new System.Collections.Generic.List<ChildMotion>
+            {
+                new ChildMotion { motion = forward, position = new Vector2(0f, 1f), timeScale = 1f },
+            };
+
+            foreach (var point in plan)
+            {
+                var clip = Clip(point.path);
+
+                if (clip == null) continue;
+
+                children.Add(new ChildMotion { motion = clip, position = point.position, timeScale = sideRate });
+            }
+
+            if (children.Count < 3)
+            {
+                Debug.LogWarning($"[IsoRPG] «{name}»: сторон мало — спринт остаётся одним клипом.");
+                return null;
+            }
+
+            if (idle != null)
+                children.Add(new ChildMotion { motion = idle, position = Vector2.zero, timeScale = 1f });
+
+            var tree = new BlendTree
+            {
+                name = name,
+                blendType = BlendTreeType.FreeformDirectional2D,
+                blendParameter = MoveXParameter,
+                blendParameterY = MoveYParameter,
+                useAutomaticThresholds = false,
+            };
+
+            AssetDatabase.AddObjectToAsset(tree, controller);
+
+            tree.children = children.ToArray();
+
+            Debug.Log($"[IsoRPG] «{name}»: кольцо спринта, точек {children.Count}.");
+
+            return tree;
+        }
+
         /// <summary>Где лежит одна сторона вооружённого кольца.</summary>
         private static string ArmedRingPath(string kind, string side) =>
             $"{Boom}/{kind}/RPG-Character@{kind}-Strafe-{side}.FBX";
@@ -1159,12 +1285,27 @@ namespace IsoRPG.EditorTools
             // реально быстрее. Стрекот при этом никуда не девается —
             // убрать его можно только уменьшив прибавку спринта.
             if (sprint != null)
+            {
+                // У спринта тоже своё КОЛЬЦО, а не один клип вперёд.
+                //
+                // Павлон 05.09.2026: «при спринте нет анимации бега вправо и
+                // влево, там та же анимация спринта, при которой персонаж
+                // бежит вперёд, но перемещается в стороны».
+                //
+                // Боковых клипов у спринта Synty нет вовсе — есть только
+                // `Sprint_F` и уклоны в горку. Поэтому кольцо собираем
+                // смешанное: вперёд его спринт, вбок и назад — беговые клипы,
+                // те же, что в обычном кольце. Ноги там частят сильнее
+                // нарисованного, но это честнее, чем бежать вбок лицом вперёд.
+                var sprintRing = BuildSprintRing(controller, name + " — спринт", sprint, idle, sprintScale);
+
                 children.Add(new ChildMotion
                 {
-                    motion = sprint,
+                    motion = sprintRing != null ? (Motion)sprintRing : sprint,
                     threshold = sprintTarget,
                     timeScale = sprintScale,
                 });
+            }
 
             tree.children = children.ToArray();
 
@@ -1175,6 +1316,52 @@ namespace IsoRPG.EditorTools
         }
 
         // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Слой сжатой кисти должен быть ПОСЛЕДНИМ.
+        ///
+        /// Павлон 05.09.2026 разглядел вблизи: «когда проигрывается анимация
+        /// ожидания, руки немного разжимаются, и кинжал уже висит в пальцах».
+        ///
+        /// Причина в порядке слоёв. Слои Unity применяются один за другим, и
+        /// поздний перебивает раннего. «Кисть» стояла вторым слоем, а
+        /// «Оживление» третьим — и оно БЕЗ МАСКИ, то есть накрывает всё тело,
+        /// включая пальцы. Поза ожидания приносила свои раскрытые ладони и
+        /// затирала хват.
+        ///
+        /// Двигаем кисть в конец, а не вешаем маску на оживление: маску
+        /// пришлось бы заводить каждому новому слою, а правило «пальцы поверх
+        /// всего» верно всегда — рукоять в руке не зависит от того, какую позу
+        /// герой сейчас принимает.
+        /// </summary>
+        private static void KeepFistLast(AnimatorController controller)
+        {
+            var layers = controller.layers;
+
+            int fist = -1;
+
+            for (int i = 0; i < layers.Length; i++)
+                if (layers[i].name == FistLayer) { fist = i; break; }
+
+            if (fist < 0 || fist == layers.Length - 1) return;
+
+            var moved = layers[fist];
+
+            var rest = new System.Collections.Generic.List<AnimatorControllerLayer>(layers);
+            rest.RemoveAt(fist);
+            rest.Add(moved);
+
+            // Присваиваем ВЕСЬ массив обратно: `controller.layers` отдаёт
+            // копию, и правка на месте никуда не сохранится. На этом я уже
+            // горел с параметрами — та же ловушка.
+            controller.layers = rest.ToArray();
+
+            Debug.Log($"[IsoRPG] Слой «{FistLayer}» переставлен последним " +
+                      $"(был {fist}, стал {rest.Count - 1}) — пальцы теперь поверх поз ожидания.");
+        }
+
+        /// <summary>Имя слоя сжатой кисти. Его ставит задание `hand-pose`.</summary>
+        public const string FistLayer = "Кисть";
 
         /// <summary>
         /// Замок челюсти герою.
@@ -1193,6 +1380,14 @@ namespace IsoRPG.EditorTools
             foreach (var router in Object.FindObjectsByType<IsoRPG.Player.PlayerInputRouter>(
                          FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
+                // Примерка бега — на героя, клавиша F8.
+                if (router.GetComponent<IsoRPG.Player.RunTryout>() == null)
+                    router.gameObject.AddComponent<IsoRPG.Player.RunTryout>();
+
+                // Ножны — клавиша Z.
+                if (router.GetComponent<IsoRPG.Combat.WeaponSheath>() == null)
+                    router.gameObject.AddComponent<IsoRPG.Combat.WeaponSheath>();
+
                 if (router.GetComponent<IsoRPG.World.JawLock>() != null) continue;
 
                 router.gameObject.AddComponent<IsoRPG.World.JawLock>();

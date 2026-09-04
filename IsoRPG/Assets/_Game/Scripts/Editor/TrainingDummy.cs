@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using IsoRPG.Combat;
 
@@ -26,32 +27,71 @@ namespace IsoRPG.EditorTools
 
         public static void Apply()
         {
+            OpenPlayableScene();
+
             var player = GameObject.Find("Player");
             if (player == null) { Debug.LogError("[IsoRPG] Героя нет."); return; }
 
             var old = GameObject.Find(Name);
             if (old != null) Object.DestroyImmediate(old);
 
-            // Модель берём ту же, что у героя: она точно есть, точно нужного
-            // размера и точно смотрится в нашем мире.
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Prefabs/Player.prefab");
-
-            if (source == null)
-            {
-                Debug.LogError("[IsoRPG] Нет Player.prefab — манекен не из чего собрать.");
-                return;
-            }
-
-            var dummy = (GameObject)PrefabUtility.InstantiatePrefab(source);
-            PrefabUtility.UnpackPrefabInstance(dummy, PrefabUnpackMode.Completely,
-                                               InteractionMode.AutomatedAction);
+            // Копируем ЖИВОГО героя из сцены, а не префаб.
+            //
+            // Павлон 04.09.2026: «ты это уже 1000 раз путаешь, у нашего героя
+            // другая модель». Он прав, и щуп это подтвердил числами:
+            // `Player.prefab` — вариант `SM_Chr_Commoner_Male_01` из
+            // PolygonElvenRealm, шестнадцать мешей крестьян и рыцарей, а на
+            // герое в сцене стоит ОДИН меш с материалом `Human-Custom2` и
+            // аватаром `Human-Custom2Avatar`. Совсем другая модель.
+            //
+            // Отсюда правило, которое я нарушал: манекен обязан СПРАШИВАТЬ
+            // героя, а не помнить, из чего тот сделан. Копия сцены переживёт
+            // любую смену модели, ссылка на префаб — нет.
+            // Собираем мишень ИЗ ПУСТОГО объекта, а не обстругиваем копию.
+            //
+            // Копия героя ловила нас четыре раза подряд, и каждый раз одним и
+            // тем же: на ней оставался компонент, который делает из мишени
+            // второго игрока. Сохранение (затирало прогресс), чтение клавиш
+            // (приёмы уходили манекену), экран смерти (выскакивал от смерти
+            // мишени), теперь урон бьёт по герою. Список снимаемого я писал по
+            // памяти — и каждый раз забывал следующий.
+            //
+            // Обратный порядок закрывает весь класс разом: берём только МОДЕЛЬ
+            // и добавляем ровно то, что мишени нужно. Лишнего не будет по
+            // построению, а не по моей внимательности.
+            var dummy = Object.Instantiate(player);
 
             dummy.name = Name;
 
-            // В трёх метрах перед героем — так, чтобы он попадал в кадр
-            // вместе с ним и по нему можно было бить, не бегая.
-            dummy.transform.position = player.transform.position + player.transform.forward * 3f;
-            dummy.transform.rotation = Quaternion.LookRotation(-player.transform.forward);
+            // Место — у лошади, а не перед героем.
+            //
+            // Павлон 04.09.2026: «не надо рядом, они стоят друг в друге,
+            // поставь где-то недалеко от лошади и зафиксируй там». Три метра
+            // перед героем оказались мало: при загрузке сохранения герой
+            // появляется в другом месте и въезжает в манекен.
+            //
+            // Лошадь — хороший ориентир: она стоит на одном месте, её видно
+            // издалека, и мишень рядом с ней читается как часть двора, а не
+            // как предмет, забытый посреди поля.
+            var horse = GameObject.Find("Лошадь");
+
+            if (horse != null)
+            {
+                // В трёх метрах в сторону от лошади, чтобы не влезть в неё.
+                dummy.transform.position = horse.transform.position + horse.transform.right * 3f;
+                dummy.transform.rotation = Quaternion.LookRotation(-horse.transform.right);
+
+                Debug.Log("[IsoRPG] Манекен поставлен у лошади.");
+            }
+            else
+            {
+                // Лошади нет — ставим перед героем, но подальше: пять метров
+                // вместо трёх, иначе он снова окажется внутри.
+                dummy.transform.position = player.transform.position + player.transform.forward * 5f;
+                dummy.transform.rotation = Quaternion.LookRotation(-player.transform.forward);
+
+                Debug.LogWarning("[IsoRPG] Лошади в сцене нет — манекен встал перед героем.");
+            }
 
             Strip(dummy);
 
@@ -80,12 +120,57 @@ namespace IsoRPG.EditorTools
 
             target.Setup("Манекен", Faction.Hostile);
 
+            // Оружие манекену выдаёт DummyHeal уже В ИГРЕ.
+            //
+            // Здесь это не работает и работать не может: у экипировки в
+            // редакторе не вызван Awake, ссылка на сумку внутри неё пустая, и
+            // надевание молча возвращает false — задание честно печатало
+            // «клинков в руках 0» и выглядело исправным.
             dummy.AddComponent<IsoRPG.Combat.DummyHeal>();
 
             EditorSceneManager_MarkDirty();
 
             Debug.Log($"[IsoRPG] Манекен поставлен в трёх метрах перед героем. " +
                       $"Бьётся, не отвечает, не умирает.");
+        }
+
+        /// <summary>
+        /// Открыть ту сцену, которая реально попадает в игру.
+        ///
+        /// В проекте две арены, и пакетный прогон по умолчанию открывает не
+        /// ту: `Arena` вместо `ArenaAuthor`. Задание без явного открытия
+        /// работало в случайной сцене и честно докладывало «готово» — а
+        /// манекен оказывался там, куда игрок не попадает.
+        ///
+        /// Имя не вписываем: СПРАШИВАЕМ настройки сборки. Список сцен там
+        /// один, и он же решает, что увидит игрок; своя копия имени разошлась
+        /// бы с ним на первой же перестановке.
+        /// </summary>
+        private static void OpenPlayableScene()
+        {
+            string path = null;
+
+            foreach (var entry in EditorBuildSettings.scenes)
+            {
+                if (!entry.enabled) continue;
+
+                // Первая сцена — меню; нам нужна игровая, то есть следующая.
+                if (entry.path.Contains("MainMenu")) continue;
+
+                path = entry.path;
+                break;
+            }
+
+            if (string.IsNullOrEmpty(path))
+            {
+                Debug.LogWarning("[IsoRPG] В настройках сборки нет игровой сцены — работаю в открытой.");
+                return;
+            }
+
+            if (EditorSceneManager.GetActiveScene().path != path)
+                EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+
+            Debug.Log("[IsoRPG] Манекен ставлю в сцену игры: " + path);
         }
 
         /// <summary>
@@ -153,37 +238,74 @@ namespace IsoRPG.EditorTools
         }
 
         /// <summary>
-        /// Снять всё, что делает из модели живого участника.
+        /// Оставить на манекене ТОЛЬКО разрешённое, а не снимать запрещённое.
         ///
-        /// Перечисляем поимённо, а не «всё кроме нужного»: список компонентов
-        /// героя растёт, и однажды в манекен уехало бы что-нибудь новое —
-        /// например управление или камера.
+        /// Перечисление «что снять» подвело четыре раза подряд, и каждый раз
+        /// одинаково: я писал список по памяти, а на копии героя оставался
+        /// компонент, делающий из мишени второго игрока.
+        ///
+        ///  * `SaveService` — писал в файл героя и затирал его прогресс;
+        ///  * `AbilityBook` — читал цифровые клавиши, и приёмы уходили манекену;
+        ///  * `DeathScreen` — показывал экран смерти, когда умирал манекен;
+        ///  * дальше урон по мишени стал бить по герою.
+        ///
+        /// Белый список закрывает весь класс сразу: что бы ни появилось у героя
+        /// завтра, на манекен оно не переедет, потому что переезжает только
+        /// названное здесь. Признак правильного списка — в нём НЕТ ничего, что
+        /// читает ввод, пишет сохранение или показывает интерфейс.
         /// </summary>
+        private static readonly System.Type[] Allowed =
+        {
+            typeof(Transform),
+            typeof(Animator),
+            typeof(SkinnedMeshRenderer),
+            typeof(MeshRenderer),
+            typeof(MeshFilter),
+            typeof(CapsuleCollider),
+            typeof(BoxCollider),
+            typeof(SphereCollider),
+            typeof(Health),
+            typeof(Targetable),
+            typeof(IsoRPG.Combat.DummyHeal),
+            typeof(IsoRPG.Combat.HandAttachments),
+            typeof(IsoRPG.Items.Equipment),
+            typeof(IsoRPG.Items.Inventory),
+            typeof(IsoRPG.Items.WeaponVisual),
+            typeof(IsoRPG.World.JawLock),
+        };
+
         private static void Strip(GameObject go)
         {
-            Kill<IsoRPG.Player.PlayerInputRouter>(go);
-            Kill<IsoRPG.Player.ClickToMoveController>(go);
-            Kill<IsoRPG.Player.KeyboardMove>(go);
-            Kill<IsoRPG.Player.PlayerMotor>(go);
-            Kill<IsoRPG.Player.JumpGesture>(go);
-            Kill<IsoRPG.Player.IdleFidget>(go);
-            Kill<IsoRPG.Player.HoverInspector>(go);
-            Kill<IsoRPG.Player.AnimTryout>(go);
-            Kill<MonsterBrain>(go);
-            Kill<MeleeCombatant>(go);
-            Kill<DeathHandler>(go);
-            Kill<Respawner>(go);
-            Kill<IsoRPG.Items.Equipment>(go);
-            Kill<IsoRPG.Items.Inventory>(go);
-            Kill<IsoRPG.Items.CharacterPreview>(go);
-            Kill<UnityEngine.AI.NavMeshAgent>(go);
-            Kill<CharacterController>(go);
-            Kill<IsoRPG.UI.MouseCursor>(go);
-            Kill<IsoRPG.Combat.HealthRegen>(go);
+            // Идём по ВСЕЙ ветке: лишнее у героя висит и на корне, и на модели.
+            var all = go.GetComponentsInChildren<Component>(true);
+
+            int removed = 0;
+
+            foreach (var component in all)
+            {
+                if (component == null) continue;
+
+                var type = component.GetType();
+
+                bool keep = false;
+
+                foreach (var allowed in Allowed)
+                {
+                    if (allowed.IsAssignableFrom(type)) { keep = true; break; }
+                }
+
+                if (keep) continue;
+
+                Object.DestroyImmediate(component);
+                removed++;
+            }
 
             // Интерфейс героя целиком: манекену не нужны ни полоски, ни окна.
             foreach (var canvas in go.GetComponentsInChildren<Canvas>(true))
                 if (canvas != null) Object.DestroyImmediate(canvas.gameObject);
+
+            Debug.Log($"[IsoRPG] С манекена снято лишних компонентов: {removed}. " +
+                      $"Оставлено только разрешённое — ни ввода, ни сохранения, ни интерфейса.");
         }
 
         private static void Kill<T>(GameObject go) where T : Component

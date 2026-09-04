@@ -94,7 +94,13 @@ namespace IsoRPG.EditorTools
             var console = player.GetComponent<IsoRPG.UI.AnimConsole>();
             if (console == null) console = player.AddComponent<IsoRPG.UI.AnimConsole>();
 
-            console.Setup(clips.ToArray(), controller);
+            // Список «в деле» берём у сборщика дерева — он и решает, какие
+            // клипы стоят в игре. Своей копии здесь нет намеренно: копия
+            // разошлась бы с деревом на первой правке, и Павлон смотрел бы
+            // клипы, которых в игре уже нет.
+            var used = System.Linq.Enumerable.ToArray(HeroMoveKit.UsedSideClipNames());
+
+            console.Setup(clips.ToArray(), controller, used);
 
             EditorUtility.SetDirty(console);
             UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();

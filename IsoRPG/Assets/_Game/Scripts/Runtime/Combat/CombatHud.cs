@@ -268,6 +268,21 @@ namespace IsoRPG.Combat
         /// <see cref="SlotSlice"/>), и кромка выходит примерно в девять точек.
         /// </summary>
         private const float SlotSize = 58f;
+
+        /// <summary>
+        /// Сколько гнёзд в ряду и сколько рядов.
+        ///
+        /// Второй ряд — просьба Павла 04.09.2026 после того, как приехал набор
+        /// из восемнадцати умений разбойника: в один ряд они не помещаются
+        /// физически, а панель, которая растёт вбок, разъезжается на пол-экрана.
+        ///
+        /// Ряды считаются снизу вверх: нулевой — тот, что у края экрана, с
+        /// привычными клавишами 1..0. Второй лежит над ним.
+        /// </summary>
+        private const int RowSlots = 10;
+
+        /// <inheritdoc cref="RowSlots"/>
+        private const int BarRows = 2;
         private const float SlotGap = 6f;
 
         /// <summary>Во сколько раз ужата каменная оправа гнезда. В нормативе Synty множители 1.5–3.</summary>
@@ -872,7 +887,7 @@ namespace IsoRPG.Combat
 
             // Над панелью способностей: она сама стоит на высоте полосы
             // опыта плюс отступ, а мы поднимаемся ещё на её высоту.
-            rect.anchoredPosition = new Vector2(0f, ScreenMargin + ExpBarHeight + SlotSize + 18f);
+            rect.anchoredPosition = new Vector2(0f, ScreenMargin + ExpBarHeight + BarRows * SlotSize + (BarRows - 1) * SlotGap + 18f);
             rect.sizeDelta = new Vector2(240f, 14f);
 
             var track = new GameObject("Track", typeof(Image));
@@ -931,10 +946,11 @@ namespace IsoRPG.Combat
             // прыгает и меняет ширину — и мышечная память игрока на пятый
             // слот сбрасывается. Пустые гнёзда заодно честно говорят, сколько
             // приёмов ещё будет.
-            const int BarSlots = 10;
+            const int BarSlots = RowSlots * BarRows;
 
             int ready = abilities.Abilities.Count;
-            float totalWidth = BarSlots * SlotSize + (BarSlots - 1) * SlotGap;
+            float totalWidth = RowSlots * SlotSize + (RowSlots - 1) * SlotGap;
+            float totalHeight = BarRows * SlotSize + (BarRows - 1) * SlotGap;
 
             var bar = new GameObject("AbilityBar", typeof(RectTransform));
             abilityBarObject = bar;
@@ -944,7 +960,7 @@ namespace IsoRPG.Combat
             barRect.anchorMax = new Vector2(0.5f, 0f);
             barRect.pivot = new Vector2(0.5f, 0f);
             barRect.anchoredPosition = new Vector2(0f, ScreenMargin + ExpBarHeight);
-            barRect.sizeDelta = new Vector2(totalWidth, SlotSize);
+            barRect.sizeDelta = new Vector2(totalWidth, totalHeight);
 
             // Нарисованная рамка под ряд иконок.
             //
@@ -975,7 +991,7 @@ namespace IsoRPG.Combat
                 // слотами это стало видно сразу.
                 //
                 // Даём 116 на торцы плюс 34 на воздух по краям ряда.
-                frameRect.sizeDelta = new Vector2(totalWidth + 150f, SlotSize + 34f);
+                frameRect.sizeDelta = new Vector2(totalWidth + 150f, BarRows * SlotSize + (BarRows - 1) * SlotGap + 34f);
 
                 var frameImage = frameGo.GetComponent<Image>();
                 frameImage.sprite = plate;
@@ -1038,13 +1054,19 @@ namespace IsoRPG.Combat
             if (backing != null)
             {
                 for (int i = 0; i < BarSlots; i++)
-                    AddSlotArt(barRect, i * (SlotSize + SlotGap), backing, "SlotBack" + (i + 1),
-                               SlotBackInset);
+                    AddSlotArt(barRect, (i % RowSlots) * (SlotSize + SlotGap), backing,
+                               "SlotBack" + (i + 1), SlotBackInset,
+                               (i / RowSlots) * (SlotSize + SlotGap));
             }
 
             for (int i = 0; i < BarSlots; i++)
             {
-                float x = i * (SlotSize + SlotGap);
+                // Ряды снизу вверх: нулевой у края экрана с клавишами 1..0,
+                // второй над ним. Считаем от номера гнезда, а не двумя
+                // циклами — тогда пустые гнёзда, подложки и рамка живут по
+                // одному правилу и не разъедутся при смене числа рядов.
+                float x = (i % RowSlots) * (SlotSize + SlotGap);
+                float y = (i / RowSlots) * (SlotSize + SlotGap);
 
                 // Гнездо под приём, которого ещё нет: пустая плашка без
                 // рисунка, без цифры и без нажатия. Подсказки у него тоже
@@ -1052,13 +1074,24 @@ namespace IsoRPG.Combat
                 // читается как поломка.
                 if (i >= ready)
                 {
+                    // Каменная подложка уже нарисовала гнездо — своей плашки
+                    // не надо.
+                    //
+                    // Павлон 04.09.2026 на втором ряду: «почему бордюр ушёл
+                    // вправо? убирай, эта обводка иконок должна быть на
+                    // верхнем ряду». Обводка там была — её закрывала вот эта
+                    // тёмная плашка, положенная сверху. Пока пустых гнёзд было
+                    // два, это читалось как задумка; на двенадцати стало видно,
+                    // что половина панели просто чёрная.
+                    if (backing != null) continue;
+
                     var emptyGo = new GameObject("Slot" + (i + 1) + "Empty", typeof(Image));
                     var emptyRect = (RectTransform)emptyGo.transform;
                     emptyRect.SetParent(barRect, false);
                     emptyRect.anchorMin = Vector2.zero;
                     emptyRect.anchorMax = Vector2.zero;
                     emptyRect.pivot = Vector2.zero;
-                    emptyRect.anchoredPosition = new Vector2(x, 0f);
+                    emptyRect.anchoredPosition = new Vector2(x, y);
                     emptyRect.sizeDelta = new Vector2(SlotSize, SlotSize);
 
                     var emptyImage = emptyGo.GetComponent<Image>();
@@ -1078,7 +1111,7 @@ namespace IsoRPG.Combat
                 slotRect.anchorMin = new Vector2(0f, 0f);
                 slotRect.anchorMax = new Vector2(0f, 0f);
                 slotRect.pivot = new Vector2(0f, 0f);
-                slotRect.anchoredPosition = new Vector2(x, 0f);
+                slotRect.anchoredPosition = new Vector2(x, y);
                 slotRect.sizeDelta = new Vector2(SlotSize, SlotSize);
 
                 // Плашка у всех одинаковая, а рисунок сверху свой. Разные
@@ -1176,8 +1209,17 @@ namespace IsoRPG.Combat
 
             if (slotFrame != null)
             {
+                // По рядам, как подложки и сами гнёзда.
+                //
+                // Этот проход я под второй ряд не поправил, и рамки остались
+                // только на нижнем — Павлон 04.09.2026: «вот эти рамки что тут
+                // делают? они должны быть на 2-м ряде скилов». Раскладка
+                // гнезда описана в трёх местах (подложка, гнездо, рамка), и
+                // поправив два, я честно считал, что закончил.
                 for (int i = 0; i < BarSlots; i++)
-                    AddSlotArt(barRect, i * (SlotSize + SlotGap), slotFrame, "SlotFrame" + (i + 1));
+                    AddSlotArt(barRect, (i % RowSlots) * (SlotSize + SlotGap), slotFrame,
+                               "SlotFrame" + (i + 1), 0f,
+                               (i / RowSlots) * (SlotSize + SlotGap));
             }
         }
 
@@ -1188,7 +1230,7 @@ namespace IsoRPG.Combat
         /// иначе панель перестанет нажиматься, а причина будет невидимой.
         /// </summary>
         private static void AddSlotArt(RectTransform bar, float x, Sprite sprite, string name,
-                                       float inset = 0f)
+                                       float inset = 0f, float y = 0f)
         {
             var go = new GameObject(name, typeof(Image));
             var rect = (RectTransform)go.transform;
@@ -1197,7 +1239,7 @@ namespace IsoRPG.Combat
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.zero;
             rect.pivot = Vector2.zero;
-            rect.anchoredPosition = new Vector2(x + inset, inset);
+            rect.anchoredPosition = new Vector2(x + inset, y + inset);
             rect.sizeDelta = new Vector2(SlotSize - inset * 2f, SlotSize - inset * 2f);
 
             var image = go.GetComponent<Image>();

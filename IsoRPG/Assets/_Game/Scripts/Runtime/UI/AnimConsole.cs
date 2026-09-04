@@ -26,6 +26,16 @@ namespace IsoRPG.UI
         [Tooltip("Все клипы, какие собрало задание anim-console.")]
         [SerializeField] private AnimationClip[] clips = new AnimationClip[0];
 
+        /// <summary>
+        /// Имена клипов, которые сейчас РЕАЛЬНО стоят в дереве хода.
+        ///
+        /// Заполняет сборщик консоли тем же списком, по которому строится
+        /// дерево. Нужно вкладке «В деле»: во вкладке по слову набирается
+        /// шесть десятков похожих клипов, и понять, какой из них играет в
+        /// игре, по имени нельзя.
+        /// </summary>
+        [SerializeField] private string[] inUse = new string[0];
+
         [Tooltip("Контроллер-заготовка с одним состоянием: в него и подставляем клип.")]
         [SerializeField] private RuntimeAnimatorController previewController;
 
@@ -48,10 +58,11 @@ namespace IsoRPG.UI
         private AnimatorOverrideController over;
         private AnimationClip slot;
 
-        public void Setup(AnimationClip[] all, RuntimeAnimatorController preview)
+        public void Setup(AnimationClip[] all, RuntimeAnimatorController preview, string[] used = null)
         {
             clips = all;
             previewController = preview;
+            inUse = used ?? new string[0];
         }
 
         private void Update()
@@ -108,6 +119,19 @@ namespace IsoRPG.UI
             ("Уклонения",  new[] { "dodge", "roll" }),
             ("Стойки",     new[] { "idle" }),
             ("Ход",        new[] { "walk", "run", "sprint" }),
+
+            // Стороны — просьба Павла 04.09.2026 после того, как нашлось
+            // кольцо направлений Synty: «выведи в консоль отдельную вкладку
+            // со всеми этими анимациями, чтобы я посмотрел». Сюда попадает
+            // всё, чем герой двигается не прямо вперёд: восемь сторон хода и
+            // бега, повороты на месте и мелкие переступания.
+            ("Стороны",    new[] { "strafe", "turn_standing", "shuffle" }),
+
+            // «В деле» — не по слову, а по списку: ровно те клипы, что стоят
+            // в дереве хода. Павлон 04.09.2026: «в сторонах куча анимаций
+            // перемешалось, не знаю какие смотреть». Пустой массив здесь
+            // означает особый отбор, см. Refilter.
+            ("В деле",     null),
             ("Ножны",      new[] { "sheath", "switch" }),
             ("Прыжок",     new[] { "jump", "fall", "air" }),
             ("Реакции",    new[] { "hit", "block", "stun", "knock" }),
@@ -131,6 +155,21 @@ namespace IsoRPG.UI
                 string name = clips[i].name.ToLowerInvariant();
 
                 if (mask.Length > 0 && !name.Contains(mask)) continue;
+
+                // Вкладка «В деле»: отбор по списку, а не по слову.
+                if (words == null)
+                {
+                    bool used = false;
+
+                    for (int u = 0; u < inUse.Length; u++)
+                        if (string.Equals(inUse[u], clips[i].name, System.StringComparison.OrdinalIgnoreCase))
+                        { used = true; break; }
+
+                    if (!used) continue;
+
+                    shown.Add(i);
+                    continue;
+                }
 
                 if (words.Length > 0)
                 {
@@ -326,13 +365,16 @@ namespace IsoRPG.UI
         {
             tabLabels = new Text[Tabs.Length];
 
-            const float w = 108f;
+            // Шесть в ряд, а не пять: с одиннадцатой вкладкой третий ряд
+            // наехал бы на список — он начинается с −88, а ряд лёг бы на −84.
+            const float w = 88f;
             const float h = 20f;
+            const int perRow = 6;
 
             for (int i = 0; i < Tabs.Length; i++)
             {
-                int row = i / 5;
-                int col = i % 5;
+                int row = i / perRow;
+                int col = i % perRow;
 
                 var go = new GameObject("Вкладка" + i, typeof(Image), typeof(Button));
                 var rect = (RectTransform)go.transform;

@@ -104,6 +104,20 @@ namespace IsoRPG.Player
         /// <summary>Фактическая скорость по земле. Аниматор выбирает по ней шаг и бег.</summary>
         public float Speed { get; private set; }
 
+        /// <summary>
+        /// С какой высоты должно быть падение, чтобы делать сальто, метры.
+        ///
+        /// Обычный прыжок у нас 1.45 м — с него сальто выглядит суетой.
+        /// Порог вдвое выше: сальто крутят, когда есть время в воздухе.
+        /// </summary>
+        private const float FlipHeight = 3f;
+
+        /// <summary>Прошли ли верхнюю точку: дальше только вниз.</summary>
+        public bool Falling { get; private set; }
+
+        /// <summary>Хватает ли высоты под ногами на сальто. Меряется один раз, на вершине.</summary>
+        public bool HighEnoughToFlip { get; private set; }
+
         /// <summary>Стоит ли герой на земле. Нужно прыжку и падению.</summary>
         public bool IsGrounded => body != null && body.isGrounded;
 
@@ -159,13 +173,39 @@ namespace IsoRPG.Player
                     deepestFall = 0f;
                 }
 
+                // Коснулись земли — полёт кончился, сальто больше не крутим.
+                Falling = false;
+                HighEnoughToFlip = false;
+
                 // Небольшой прижим вниз: ровно ноль оставляет капсулу
                 // «висящей» на границе, и isGrounded начинает мигать.
                 if (fallSpeed < 0f) fallSpeed = -StickToGround;
             }
             else
             {
+                float wasRising = fallSpeed;
+
                 fallSpeed -= Gravity * Time.deltaTime;
+
+                // Верхняя точка прыжка: скорость только что сменила знак.
+                //
+                // Павлон 04.09.2026 про сальто: «он должен начинаться ровно в
+                // верхней точке прыжка, а начинается сейчас при движении уже
+                // вниз» — и второе: «флип оставляем только прыжку с высоты».
+                //
+                // Оба условия решаются здесь и одним лучом за прыжок: на
+                // вершине смотрим, сколько под нами до земли. Мерить каждый
+                // кадр незачем — это ММО, а вершина бывает раз за полёт.
+                if (wasRising > 0f && fallSpeed <= 0f)
+                {
+                    HighEnoughToFlip = Physics.Raycast(
+                        transform.position + Vector3.up * 0.2f, Vector3.down,
+                        out var below, FlipHeight, ~0, QueryTriggerInteraction.Ignore)
+                        ? (transform.position.y - below.point.y) > FlipHeight * 0.5f
+                        : true;   // луч не достал земли — значит падать далеко
+
+                    Falling = true;
+                }
 
                 // Самая быстрая точка падения за полёт, а не скорость в
                 // момент касания: у капсулы последний кадр перед землёй

@@ -115,6 +115,12 @@ namespace IsoRPG.EditorTools
         /// <summary>Сила удара о землю: 0 — мягко, 1 — с высоты.</summary>
         public const string FallParameter = "FallHard";
 
+        /// <summary>Сальто в полёте: 1 — крутим. Включает мотор на вершине прыжка.</summary>
+        public const string FlipParameter = "Flip";
+
+        /// <summary>Прошли верхнюю точку прыжка. По нему машина уходит в фазу полёта.</summary>
+        public const string FallingParameter = "Falling";
+
         /// <summary>Какую позу ожидания проиграть: 0..3.</summary>
         public const string FidgetParameter = "FidgetPick";
 
@@ -176,40 +182,59 @@ namespace IsoRPG.EditorTools
             // смесь двух пластик с разными пропорциями. Заказчик предупреждён;
             // увидит дёрганье — рядом лежит родной `A_MOD_BL_Sprint_F_Masc`,
             // замена в одну строку.
-            // Двумерный ход: вперёд, назад, вбок. Клипы направлений Павлон
-            // отобрал сам через консоль 04.09.2026.
+            // Кольцо направлений — по схеме автора набора, а не своей.
+            //
+            // У Synty под нашу же модель нарисованы все восемь сторон хода и
+            // бега, и в его контроллере `AC_Sidekick_Masculine` они уже
+            // расставлены. Схема снята оттуда 04.09.2026 целиком:
+            //
+            //  * направление НОРМАЛИЗОВАНО — точки стоят на единичной
+            //    окружности, а быстроту выбирает отдельная ось Speed. Иначе
+            //    одно дерево отвечало бы сразу на два вопроса;
+            //  * тип дерева — направленное (FreeformDirectional2D), и девятая
+            //    точка стоит в самом центре: она и снимает метание между
+            //    соседями на нулевой скорости, из-за которого я в прошлый раз
+            //    взял декартово;
+            //  * колец ДВА — «лицом вперёд» и «спиной», — и различаются они
+            //    всего четырьмя боковыми клипами. Автор развёл их потому, что
+            //    ноги перекрещиваются по-разному в зависимости от того, откуда
+            //    герой пришёл в это направление;
+            //  * граница между кольцами асимметрична: −55°…+125°. Числа его,
+            //    и они сходятся со списком файлов — в переднем наборе есть
+            //    задне-правый клип и нет задне-левого.
+            //
+            // Своей расстановки здесь нет ни одной: подобранная на глаз, она
+            // дала бы предельный образец каждый второй раз.
             if (!controller.parameters.Any(p => p.name == MoveXParameter))
                 controller.AddParameter(MoveXParameter, AnimatorControllerParameterType.Float);
 
             if (!controller.parameters.Any(p => p.name == MoveYParameter))
                 controller.AddParameter(MoveYParameter, AnimatorControllerParameterType.Float);
 
-            var runClip = Clip(Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx");
-            var walkClip = Clip(Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx");
+            if (!controller.parameters.Any(p => p.name == FacingParameter))
+                controller.AddParameter(FacingParameter, AnimatorControllerParameterType.Float);
+
+            if (!controller.parameters.Any(p => p.name == TurnStepParameter))
+                controller.AddParameter(TurnStepParameter, AnimatorControllerParameterType.Float);
+
             var idlePeace = Clip(Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx");
             var idleFight = Clip(Move + "/Idle/Idle/OneHand_Base_Stand_Idle_B_1.fbx");
 
-            var backClip = Clip(Boom + "/Relax/RPG-Character@Relax-Run-Backward.FBX");
-            var leftClip = Clip(Boom + "/Relax/RPG-Character@Relax-Run-Left.FBX");
-            var rightClip = Clip(Boom + "/Relax/RPG-Character@Relax-Run-Right.FBX");
+            // Кольца сторон — из ExplosiveLLC, по фазе.
+            //
+            // Выбор Павла 04.09.2026: он посмотрел клипы в консоли и сказал
+            // «все хорошо выглядят, ставь». Родное кольцо Synty при этом
+            // остаётся в коде ниже (`BuildFacingPair`) — оно точнее по
+            // пропорциям, но руки в нём пустые, а у героя два кинжала.
+            //
+            // Замер, из-за которого поехала боковая скорость: эти клипы
+            // нарисованы под 1.9–2.3 м/с, то есть МЕДЛЕННЕЕ кольца Synty
+            // (2.74). На прежних 3.85 они шли бы с растяжкой x1.83 — почти
+            // перемотка. Поэтому боковая доля опущена до 0.55.
+            var fightRing = BuildArmedRing(controller, "Стороны боевые", "Armed", idleFight);
+            var peaceRing = BuildArmedRing(controller, "Стороны мирные", "Unarmed", idlePeace ?? idleFight);
 
-            float walkAt2 = Speed(Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx", 1.8f);
-            float runAt2 = Speed(Move + "/Sprint/Type A/Base/OneHand_Base_Sprint_A_F.fbx", 5.0f);
-            float runScale2 = runAt2 > 0.1f ? HeroSpeed / runAt2 : 1f;
-
-            BlendTree fight2 = null, peace2 = null;
-
-            if (runClip != null && walkClip != null && idleFight != null)
-            {
-                fight2 = BuildStride2D(controller, "Ход боевой 2D", idleFight, walkClip, runClip,
-                                       backClip, leftClip, rightClip, walkAt2, runScale2);
-
-                peace2 = BuildStride2D(controller, "Ход мирный 2D", idlePeace ?? idleFight,
-                                       walkClip, runClip, backClip, leftClip, rightClip,
-                                       walkAt2, runScale2);
-            }
-
-            var fight = BuildStride(controller, "Ход боевой", "",
+            var fight = BuildStride(controller, "Ход боевой", "", null, fightRing,
                 Move + "/Idle/Idle/OneHand_Base_Stand_Idle_B_1.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
                 Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx",
@@ -236,7 +261,7 @@ namespace IsoRPG.EditorTools
             // только в полосе около полутора метров в секунду, а стоя и на
             // бегу играет чистый клип. Это не то же самое, что мешать бег с
             // бегом, где смесь идёт постоянно.
-            var peace = BuildStride(controller, "Ход мирный", "",
+            var peace = BuildStride(controller, "Ход мирный", "", null, peaceRing,
                 Synty + "/Idles/A_MOD_BL_Idle_Standing_Masc.fbx",
                 Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_Masc.fbx",
                 Move + "/Sprint/Type A/Base/InPlace/OneHand_Base_Sprint_A_F_InPlace.fbx",
@@ -282,8 +307,58 @@ namespace IsoRPG.EditorTools
             var jumpStart = Clip(Synty + "/InAir/A_MOD_BL_Jump_Running_Masc.fbx")
                             ?? Clip(Jump + "/InPlace/OneHand_Base_Jump_Start_InPlace.fbx");
 
-            var jumpAir = Clip(Jump + "/InPlace/OneHand_Base_Jump_Air_Loop_InPlace.fbx")
-                          ?? Clip(Jump + "/OneHand_Base_Jump_Air_Loop.fbx");
+            // Верхняя точка прыжка — сальто.
+            //
+            // Идея Павла 04.09.2026: «в прыжке делать флип в верхней точке до
+            // приземления», и клип он назвал сам — `Armed-Jump-Flip`, 0.47 с.
+            //
+            // Ставим его вместо зависания в воздухе: фаза полёта у нас как раз
+            // и есть «верхняя точка», между отталкиванием и касанием. Клип
+            // короче обычного зависания, поэтому зацикливаем — на долгом
+            // падении сальто повторится, а на обычном прыжке пройдёт один раз.
+            var hangClip = Clip(Jump + "/InPlace/OneHand_Base_Jump_Air_Loop_InPlace.fbx")
+                           ?? Clip(Jump + "/OneHand_Base_Jump_Air_Loop.fbx");
+
+            var flipClip = Clip(Boom + "/Armed/RPG-Character@Armed-Jump-Flip.FBX");
+
+            Motion jumpAir = hangClip;
+
+            if (hangClip != null && flipClip != null)
+            {
+                if (!controller.parameters.Any(p => p.name == FlipParameter))
+                    controller.AddParameter(FlipParameter, AnimatorControllerParameterType.Float);
+
+                // Воздушная фаза — двумя видами: обычное зависание и сальто.
+                //
+                // Павлон 04.09.2026, двумя уточнениями: «флип оставляем только
+                // прыжку с высоты, простому прыжку убираем» и «он должен
+                // начинаться ровно в верхней точке, а начинается при движении
+                // уже вниз».
+                //
+                // И то и другое решает мотор: он ловит миг, когда скорость
+                // подъёма сменила знак, и там же одним лучом смотрит, есть ли
+                // под ногами высота. Дерево только выбирает по его ответу —
+                // само оно про высоту ничего не знает и знать не должно.
+                var airTree = new BlendTree
+                {
+                    name = "Полёт",
+                    blendType = BlendTreeType.Simple1D,
+                    blendParameter = FlipParameter,
+                    useAutomaticThresholds = false,
+                };
+
+                AssetDatabase.AddObjectToAsset(airTree, controller);
+
+                airTree.children = new[]
+                {
+                    new ChildMotion { motion = hangClip, threshold = 0f, timeScale = 1f },
+                    new ChildMotion { motion = flipClip, threshold = 1f, timeScale = 1f },
+                };
+
+                jumpAir = airTree;
+
+                Debug.Log("[IsoRPG] Полёт: зависание и сальто, переключает «Flip».");
+            }
 
             // Приземление в двух видах: мягкое и с высоты.
             //
@@ -339,6 +414,40 @@ namespace IsoRPG.EditorTools
 
                         case "Jump_Start":
                             if (jumpStart != null) { state.motion = jumpStart; jumped++; }
+
+                            // Уход в полёт — по ВЕРШИНЕ, а не по времени клипа.
+                            //
+                            // Павлон 04.09.2026 дважды: «он должен начинаться
+                            // ровно в верхней точке» и «ты так и не поймал, он
+                            // уже когда герой приземляется». Причина была не в
+                            // моём параметре, а здесь: переход стоял по
+                            // `ExitTime 0.85`, то есть после 85% клипа
+                            // отталкивания. Клип Synty длинный, и фаза полёта
+                            // начиналась, когда герой уже падал.
+                            //
+                            // Теперь машину переключает мотор: он один знает,
+                            // в каком кадре скорость подъёма сменила знак.
+                            if (!controller.parameters.Any(p => p.name == FallingParameter))
+                                controller.AddParameter(FallingParameter, AnimatorControllerParameterType.Bool);
+
+                            foreach (var link in state.transitions)
+                            {
+                                if (link == null) continue;
+
+                                link.hasExitTime = false;
+                                link.duration = 0.05f;
+                                link.conditions = new[]
+                                {
+                                    new AnimatorCondition
+                                    {
+                                        mode = AnimatorConditionMode.If,
+                                        parameter = FallingParameter,
+                                        threshold = 0f,
+                                    },
+                                };
+                            }
+
+                            Debug.Log("[IsoRPG] Прыжок: полёт начинается по вершине, а не по времени клипа.");
                             break;
 
                         case "Jump_Air":
@@ -567,32 +676,260 @@ namespace IsoRPG.EditorTools
         }
 
         /// <summary>
-        /// Двумерное дерево хода: вперёд, назад, вбок.
+        /// Стойка, которая умеет переступать при повороте на месте.
         ///
-        /// Просьба Павла 04.09.2026 — «делаем один в один как в WoW»: W бежит
-        /// вперёд, S шагает назад, A и D с зажатой правой кнопкой несут героя
-        /// боком, лицом вперёд. Клипы он отобрал сам через консоль: назад и
-        /// вбок берём у `Relax`, там полный набор восьми направлений.
+        /// Задача Павла 04.09.2026: A и D поворачивают вид, и герой обязан
+        /// переставлять ноги, а не ехать вокруг оси. У Synty под это есть
+        /// `Turn_Standing_90L/R` — родные клипы под нашу модель.
         ///
-        /// Оси — скорость в СВОИХ координатах героя, метры в секунду: вперёд
-        /// это плюс по Y, вправо — плюс по X. Поэтому пороги можно ставить
-        /// прямо в метрах, а не в долях, и дерево само разбирается, что
-        /// подмешать на диагонали.
+        /// Ставим их не отдельным состоянием, как у автора, а прямо в точку
+        /// покоя дерева хода: тогда переход стойка↔переступание достаётся
+        /// смешиванием даром, а машину состояний трогать не приходится —
+        /// значит и ломаться в ней нечему.
         ///
-        /// Тип Cartesian, а не Directional: направленный считает углы и на
-        /// нулевой скорости мечется между соседями, потому что угол там не
-        /// определён. Декартов же спокойно сходится к центру — к покою.
+        /// Клип рассчитан на один поворот на 90°, а игрок держит клавишу
+        /// сколько хочет. Поэтому зацикливаем его (это делает `LoopMovement`)
+        /// и подгоняем темп: своя скорость клипа — 90° за его длину, наша —
+        /// столько, сколько крутит камера.
         /// </summary>
-        private static BlendTree BuildStride2D(AnimatorController controller, string name,
-                                               AnimationClip idle, AnimationClip walk,
-                                               AnimationClip run, AnimationClip back,
-                                               AnimationClip left, AnimationClip right,
-                                               float walkAt, float runScale)
+        private static Motion BuildTurnInPlace(AnimatorController controller, string owner, AnimationClip idle)
         {
+            // У автора ДВА темпа поворота, и это его распределение, а не
+            // пробел: доворот на 90° идёт 93 град/с, разворот на 180° — 142.
+            // Берём тот, чья скорость ближе к нашей, — тогда клип играет как
+            // нарисован. Выбор автоматический, чтобы правка скорости поворота
+            // не требовала помнить про второе место.
+            var slowLeft = Clip(Synty + "/Locomotion/Turn/A_MOD_BL_Turn_Standing_90L_Masc.fbx");
+            var slowRight = Clip(Synty + "/Locomotion/Turn/A_MOD_BL_Turn_Standing_90R_Masc.fbx");
+            var fastLeft = Clip(Synty + "/Locomotion/Turn/A_MOD_BL_Turn_Standing_180L_Masc.fbx");
+            var fastRight = Clip(Synty + "/Locomotion/Turn/A_MOD_BL_Turn_Standing_180R_Masc.fbx");
+
+            float slowRate = slowLeft != null && slowLeft.length > 0.05f ? 90f / slowLeft.length : 0f;
+            float fastRate = fastLeft != null && fastLeft.length > 0.05f ? 180f / fastLeft.length : 0f;
+
+            AnimationClip left, right;
+            float ownRate;
+
+            bool takeFast = fastRate > 1f &&
+                            (slowRate < 1f ||
+                             Mathf.Abs(fastRate - TurnDegreesPerSecond) <=
+                             Mathf.Abs(slowRate - TurnDegreesPerSecond));
+
+            if (takeFast) { left = fastLeft; right = fastRight; ownRate = fastRate; }
+            else { left = slowLeft; right = slowRight; ownRate = slowRate; }
+
+            if (idle == null || left == null || right == null)
+            {
+                Debug.LogWarning($"[IsoRPG] «{owner}»: клипов поворота на месте нет — стойка осталась неподвижной.");
+                return idle;
+            }
+
+            float scale = ownRate > 1f ? TurnDegreesPerSecond / ownRate : 1f;
+
+            var tree = new BlendTree
+            {
+                name = owner + ": стойка и поворот",
+                blendType = BlendTreeType.Simple1D,
+                blendParameter = TurnStepParameter,
+                useAutomaticThresholds = false,
+            };
+
+            AssetDatabase.AddObjectToAsset(tree, controller);
+
+            tree.children = new[]
+            {
+                new ChildMotion { motion = left, threshold = -1f, timeScale = scale },
+                new ChildMotion { motion = idle, threshold = 0f, timeScale = 1f },
+                new ChildMotion { motion = right, threshold = 1f, timeScale = scale },
+            };
+
+            Debug.Log($"[IsoRPG] «{owner}»: переступание при повороте — клип на {ownRate:0} град/с, " +
+                      $"нам нужно {TurnDegreesPerSecond:0}, темп x{scale:0.00}.");
+
+            return tree;
+        }
+
+        /// <summary>
+        /// Пара колец направлений одного аллюра: «лицом вперёд» и «спиной».
+        ///
+        /// Между ними переключает параметр <see cref="FacingParameter"/>, и
+        /// это ровно схема автора набора. Кольца различаются всего четырьмя
+        /// боковыми клипами, но разница видна: ноги перекрещиваются иначе,
+        /// когда герой пришёл в это направление с заднего хода.
+        /// </summary>
+        private static BlendTree BuildFacingPair(AnimatorController controller, string name,
+                                                 string gait, AnimationClip idle)
+        {
+            var forward = BuildRing(controller, name + " (лицом)", gait, idle, backwards: false);
+            var backward = BuildRing(controller, name + " (спиной)", gait, idle, backwards: true);
+
+            if (forward == null) return null;
+
+            if (backward == null) return forward;
+
+            var pair = new BlendTree
+            {
+                name = name,
+                blendType = BlendTreeType.Simple1D,
+                blendParameter = FacingParameter,
+                useAutomaticThresholds = false,
+            };
+
+            AssetDatabase.AddObjectToAsset(pair, controller);
+
+            pair.children = new[]
+            {
+                new ChildMotion { motion = backward, threshold = 0f, timeScale = 1f },
+                new ChildMotion { motion = forward, threshold = 1f, timeScale = 1f },
+            };
+
+            return pair;
+        }
+
+        /// <summary>
+        /// Кольцо восьми направлений плюс покой в центре.
+        ///
+        /// Расстановка снята с авторского контроллера
+        /// `AC_Sidekick_Masculine` 04.09.2026, до единой точки. Свои числа
+        /// здесь не подбираются вовсе — у автора эта же модель и эти же
+        /// клипы, и он уже выбрал, что куда ставить.
+        ///
+        /// Одна деталь, которую на глаз не угадать: в кольце «лицом вперёд»
+        /// задние точки берутся из НАБОРА ЗАДНЕГО ХОДА, а задне-правая — из
+        /// переднего. Отсюда и асимметричная граница −55°…+125°: сектор
+        /// «лицом» сдвинут вправо ровно настолько, насколько хватает
+        /// нарисованных клипов.
+        /// </summary>
+        /// <summary>
+        /// Расстановка восьми сторон, снятая с авторского контроллера.
+        ///
+        /// Единственное место, где эти клипы перечислены: дерево строит по
+        /// нему точки, а зацикливание по нему же берёт файлы. Пока список жил
+        /// в двух местах, любой новый клип надо было чинить дважды — и второй
+        /// раз всегда забывался.
+        /// </summary>
+        private static (Vector2 position, string side)[] RingPlan(bool backwards) => new[]
+        {
+            (new Vector2(0f, 1f),       "FwdStrafeF"),
+            (new Vector2(0.7f, 0.7f),   "FwdStrafeFR"),
+            (new Vector2(1f, 0f),       backwards ? "BckStrafeR" : "FwdStrafeR"),
+            (new Vector2(0.7f, -0.7f),  backwards ? "BckStrafeBR" : "FwdStrafeBR"),
+            (new Vector2(0f, -1f),      "BckStrafeB"),
+            (new Vector2(-0.7f, -0.7f), "BckStrafeBL"),
+            (new Vector2(-1f, 0f),      backwards ? "BckStrafeL" : "FwdStrafeL"),
+            (new Vector2(-0.7f, 0.7f),  backwards ? "BckStrafeFL" : "FwdStrafeFL"),
+        };
+
+        /// <summary>Где лежит клип одной стороны кольца. Играем версию без корневого движения.</summary>
+        private static string RingClipPath(string gait, string side) =>
+            $"{Synty}/Locomotion/{gait}/A_MOD_BL_{gait}_{side}_Masc.fbx";
+
+        /// <summary>Все клипы, которые кольцо реально играет: обе стороны, оба аллюра.</summary>
+        internal static System.Collections.Generic.IEnumerable<string> RingClipPaths()
+        {
+            foreach (var gait in new[] { "Walk", "Run" })
+                foreach (var backwards in new[] { false, true })
+                    foreach (var point in RingPlan(backwards))
+                        yield return RingClipPath(gait, point.side);
+        }
+
+        /// <summary>
+        /// Имена клипов, которые СТОЯТ В ИГРЕ на сторонах и поворотах.
+        ///
+        /// Просьба Павла 04.09.2026: во вкладке «Стороны» он получил 64 клипа
+        /// вперемешку — приседания, мелкие переступания, всё подряд, — и не
+        /// понял, какие смотреть. Здесь ровно то, что играет: кольцо
+        /// направлений и переступание при повороте.
+        ///
+        /// Список тот же, по которому строится дерево, — не вторая его копия.
+        /// Копия разошлась бы на первой правке, и он смотрел бы клипы, которых
+        /// в игре уже нет.
+        /// </summary>
+        internal static System.Collections.Generic.IEnumerable<string> UsedSideClipNames()
+        {
+            var seen = new System.Collections.Generic.HashSet<string>();
+
+            // Кольцо, которое стоит в дереве СЕЙЧАС, — вооружённое и
+            // безоружное из ExplosiveLLC. Родное кольцо Synty здесь больше не
+            // перечисляется: список обязан показывать то, что играет, иначе
+            // Павлон смотрел бы клипы, которых в игре нет.
+            foreach (var path in ArmedRingPaths())
+            {
+                string name = System.IO.Path.GetFileNameWithoutExtension(path);
+                if (seen.Add(name)) yield return name;
+            }
+
+            // Повороты: какой из двух возьмёт дерево, решает скорость. Отдаём
+            // оба — Павлон смотрит и медленный, и быстрый.
+            foreach (var turn in new[] { "90L", "90R", "180L", "180R" })
+            {
+                string name = $"A_MOD_BL_Turn_Standing_{turn}_Masc";
+                if (seen.Add(name)) yield return name;
+            }
+        }
+
+        /// <summary>
+        /// Кольцо восьми сторон из набора ExplosiveLLC — с оружием в руках.
+        ///
+        /// Павлон 04.09.2026 посмотрел клипы в консоли и сказал «все хорошо
+        /// выглядят, ставь». Причина, по которой они лучше родного кольца
+        /// Synty, простая: у героя два кинжала, а Synty рисовал стороны для
+        /// пустых рук — там кисти висят свободно.
+        ///
+        /// Набор даёт ДВА кольца, вооружённое и безоружное, и это ровно наши
+        /// две фазы: боевая берёт `Armed`, мирная `Unarmed`. Внутри каждого
+        /// дерева один набор — правило соблюдено.
+        ///
+        /// Расстановка та же авторская, что снята с Synty: восемь точек на
+        /// единичной окружности плюс покой в центре. Схема не зависит от
+        /// набора, она про то, как устроено направленное дерево.
+        /// </summary>
+        private static BlendTree BuildArmedRing(AnimatorController controller, string name,
+                                                string kind, AnimationClip idle)
+        {
+            // Клипы отобраны Павлоном через консоль 04.09.2026, поимённо.
+            //
+            // Он перебрал набор глазами и назвал четыре: вперёд и вбок —
+            // Synty `Run_FwdStrafe*`, назад — `Relax-Walk-Backward` из
+            // ExplosiveLLC. Диагоналей он не называл, поэтому их нет: дерево
+            // само смешает соседей, а придуманная мной восьмёрка была бы
+            // подбором вместо его выбора.
+            //
+            // Наборы внутри кольца смешаны — вперёд и вбок Synty, назад
+            // ExplosiveLLC. Это против правила «один набор в дереве», но это
+            // его выбор глазами, а вердикт по виду весит больше правила.
+            var plan = new (Vector2 position, string path)[]
+            {
+                (new Vector2(0f, 1f),  Synty + "/Locomotion/Run/A_MOD_BL_Run_FwdStrafeF_Masc.fbx"),
+                (new Vector2(1f, 0f),  Synty + "/Locomotion/Run/A_MOD_BL_Run_FwdStrafeR_Masc.fbx"),
+                (new Vector2(-1f, 0f), Synty + "/Locomotion/Run/A_MOD_BL_Run_FwdStrafeL_Masc.fbx"),
+                (new Vector2(0f, -1f), Boom + "/Relax/RPG-Character@Relax-Walk-Backward.FBX"),
+            };
+
+            var children = new System.Collections.Generic.List<ChildMotion>();
+
+            foreach (var point in plan)
+            {
+                var clip = Clip(point.path);
+
+                if (clip == null) continue;
+
+                children.Add(new ChildMotion { motion = clip, position = point.position, timeScale = 1f });
+            }
+
+            if (children.Count < 4)
+            {
+                Debug.LogWarning($"[IsoRPG] «{name}»: сторон нашлось {children.Count} из 4 — кольцо пропущено.");
+                return null;
+            }
+
+            if (idle != null)
+                children.Add(new ChildMotion { motion = idle, position = Vector2.zero, timeScale = 1f });
+
             var tree = new BlendTree
             {
                 name = name,
-                blendType = BlendTreeType.FreeformCartesian2D,
+                blendType = BlendTreeType.FreeformDirectional2D,
                 blendParameter = MoveXParameter,
                 blendParameterY = MoveYParameter,
                 useAutomaticThresholds = false,
@@ -600,39 +937,107 @@ namespace IsoRPG.EditorTools
 
             AssetDatabase.AddObjectToAsset(tree, controller);
 
-            var children = new System.Collections.Generic.List<ChildMotion>
-            {
-                new ChildMotion { motion = idle, position = Vector2.zero, timeScale = 1f },
-                new ChildMotion { motion = walk, position = new Vector2(0f, walkAt), timeScale = 1f },
-                new ChildMotion { motion = run,  position = new Vector2(0f, HeroSpeed), timeScale = runScale },
-            };
-
-            // Боковые и задний ход — из другого набора, и это осознанно: у
-            // нашего их нет вовсе, а без них герой вбок «едет лицом вперёд»,
-            // что и было главной претензией.
-            if (back != null)
-                children.Add(new ChildMotion
-                { motion = back, position = new Vector2(0f, -HeroSpeed * 0.7f), timeScale = 1f });
-
-            if (left != null)
-                children.Add(new ChildMotion
-                { motion = left, position = new Vector2(-HeroSpeed * 0.8f, 0f), timeScale = 1f });
-
-            if (right != null)
-                children.Add(new ChildMotion
-                { motion = right, position = new Vector2(HeroSpeed * 0.8f, 0f), timeScale = 1f });
-
             tree.children = children.ToArray();
 
-            Debug.Log($"[IsoRPG] «{name}»: двумерное дерево, точек {children.Count} " +
-                      $"(вперёд {HeroSpeed:0.0}, шаг {walkAt:0.0}, назад и вбок из Relax).");
+            Debug.Log($"[IsoRPG] «{name}»: кольцо {kind}, точек {children.Count}.");
 
             return tree;
         }
 
-        /// <summary>Скорость в своих координатах героя: вправо и вперёд, м/с.</summary>
+        /// <summary>Где лежит одна сторона вооружённого кольца.</summary>
+        private static string ArmedRingPath(string kind, string side) =>
+            $"{Boom}/{kind}/RPG-Character@{kind}-Strafe-{side}.FBX";
+
+        /// <summary>Все восемь сторон обоих колец — для зацикливания.</summary>
+        internal static System.Collections.Generic.IEnumerable<string> ArmedRingPaths()
+        {
+            foreach (var kind in new[] { "Armed", "Unarmed" })
+                foreach (var side in new[] { "Forward", "Forward-Right", "Right", "Backward-Right",
+                                             "Backward", "Backward-Left", "Left", "Forward-Left" })
+                    yield return ArmedRingPath(kind, side);
+        }
+
+        private static BlendTree BuildRing(AnimatorController controller, string name,
+                                           string gait, AnimationClip idle, bool backwards)
+        {
+            var children = new System.Collections.Generic.List<ChildMotion>();
+
+            foreach (var point in RingPlan(backwards))
+            {
+                var clip = Clip(RingClipPath(gait, point.side));
+
+                if (clip == null) continue;
+
+                children.Add(new ChildMotion
+                {
+                    motion = clip,
+                    position = point.position,
+                    timeScale = 1f,
+                });
+            }
+
+            if (children.Count < 4)
+            {
+                Debug.LogWarning($"[IsoRPG] «{name}»: клипов направлений нашлось {children.Count} — кольцо пропущено.");
+                return null;
+            }
+
+            // Девятая точка — покой в самом центре. Она и снимает метание
+            // между соседями на нулевой скорости: у направленного дерева угол
+            // в нуле не определён, и без центра оно дёргается.
+            if (idle != null)
+                children.Add(new ChildMotion { motion = idle, position = Vector2.zero, timeScale = 1f });
+
+            var tree = new BlendTree
+            {
+                name = name,
+                blendType = BlendTreeType.FreeformDirectional2D,
+                blendParameter = MoveXParameter,
+                blendParameterY = MoveYParameter,
+                useAutomaticThresholds = false,
+            };
+
+            AssetDatabase.AddObjectToAsset(tree, controller);
+
+            tree.children = children.ToArray();
+
+            Debug.Log($"[IsoRPG] «{name}»: кольцо направлений, точек {children.Count} " +
+                      $"(схема автора {gait}).");
+
+            return tree;
+        }
+
+        /// <summary>
+        /// Направление хода в своих координатах героя: X вправо, Y вперёд.
+        ///
+        /// НОРМАЛИЗОВАНО — точка всегда на единичной окружности либо в нуле.
+        /// Быстроту выбирает отдельная ось <c>Speed</c>: одно дерево не должно
+        /// отвечать сразу на два вопроса, это схема автора набора.
+        /// </summary>
         public const string MoveXParameter = "MoveX";
+
+        /// <inheritdoc cref="MoveXParameter"/>
         public const string MoveYParameter = "MoveY";
+
+        /// <summary>
+        /// Каким кольцом идти: 1 — лицом вперёд, 0 — спиной.
+        ///
+        /// Граница у автора асимметрична, −55°…+125°, и это не описка: в
+        /// переднем наборе есть задне-правый клип и нет задне-левого.
+        /// </summary>
+        public const string FacingParameter = "Facing";
+
+        /// <summary>Переступание при повороте на месте: −1 влево, +1 вправо.</summary>
+        public const string TurnStepParameter = "TurnStep";
+
+        /// <summary>
+        /// С какой скоростью A и D крутят вид, градусов в секунду.
+        ///
+        /// Одно число в двух местах: по нему подгоняется темп клипа
+        /// переступания, а крутит вид ходьба на клавишах. Пусть сборщик
+        /// СПРАШИВАЕТ её у игры, а не помнит свою копию.
+        /// </summary>
+        private static float TurnDegreesPerSecond => IsoRPG.Player.KeyboardMove.TurnInPlaceDefault;
 
         /// <summary>
         /// Одномерное дерево аллюров одной фазы: покой → шаг → бег → спринт.
@@ -644,6 +1049,7 @@ namespace IsoRPG.EditorTools
         /// героя везёт капсула, и клип, который едет сам, уехал бы от неё.
         /// </summary>
         private static BlendTree BuildStride(AnimatorController controller, string name, string root,
+                                             Motion walkRing, Motion runRing,
                                              string idlePath, string walkPath, string runPath, string sprintPath,
                                              string walkRef, string runRef, string sprintRef)
         {
@@ -676,12 +1082,60 @@ namespace IsoRPG.EditorTools
             float sprintTarget = HeroSpeed * SprintFactor;
             float sprintScale = sprintAt > 0.1f ? sprintTarget / sprintAt : 1f;
 
+            // Шаг и боковой бег идут кольцом направлений, передний бег — нет.
+            //
+            // Почему не всё кольцом: замер 04.09.2026 показал, что кольцо
+            // Synty нарисовано под 2.74 м/с, а герой бегает 5.5 — растяжка
+            // ровно вдвое, та самая «перемотка», которую Павлон забраковал на
+            // спринте. Поэтому вперёд остаётся принятый им клип DoubleL
+            // (нарисован под 6.16, идёт почти как есть), а кольцо ставится на
+            // боковую скорость — 0.7 от полной, то есть 3.85 м/с. Там
+            // растяжка выходит x1.4 против x2.0, и ноги совпадают с землёй.
+            //
+            // Боковых клипов у спринта Synty нет вовсе, и это не пробел, а
+            // ответ автора: боком с такой скоростью не бегают.
+            // Кольцо стоит на ПОЛНОЙ беговой скорости.
+            //
+            // Павлон 04.09.2026 назвал клипы поимённо и для бега вперёд тоже:
+            // `Run_FwdStrafeF`. Значит отдельной точки «бег вперёд другим
+            // набором» больше нет — вперёд и вбок идут одним кольцом, и порог
+            // у него общий.
+            float ringAt = HeroSpeed;
+
+            // Скорость кольца — среднее по четырём сторонам, а не по одной.
+            // У ExplosiveLLC они расходятся заметно: вперёд 2.28, вбок 1.90.
+            // Взять крайнюю значило бы промахнуться на четверть в ту или
+            // другую сторону, и ноги поехали бы по земле на половине сторон.
+            // Темп кольца — по клипу бега вперёд: он в нём главный, и по нему
+            // игрок судит, «едет» герой или бежит.
+            float ringSpeed = Speed(Synty + "/Locomotion/Run/A_MOD_BL_Run_F_RM_Masc.fbx", 2.74f);
+            float ringScale = ringSpeed > 0.1f ? ringAt / ringSpeed : 1f;
+
+            float walkRingSpeed = Speed(Synty + "/Locomotion/Walk/A_MOD_BL_Walk_F_RM_Masc.fbx", 1.54f);
+
             var children = new System.Collections.Generic.List<ChildMotion>
             {
-                new ChildMotion { motion = idle, threshold = 0f, timeScale = 1f },
-                new ChildMotion { motion = walk, threshold = walkAt, timeScale = 1f },
-                new ChildMotion { motion = run, threshold = HeroSpeed, timeScale = runScale },
+                new ChildMotion { motion = BuildTurnInPlace(controller, name, idle), threshold = 0f, timeScale = 1f },
+                new ChildMotion
+                {
+                    motion = walkRing ?? (Motion)walk,
+                    threshold = walkRing != null ? walkRingSpeed : walkAt,
+                    timeScale = 1f,
+                },
             };
+
+            if (runRing != null)
+            {
+                children.Add(new ChildMotion { motion = runRing, threshold = ringAt, timeScale = ringScale });
+
+                Debug.Log($"[IsoRPG] «{name}»: кольцо на {ringAt:0.0} м/с, клип нарисован под " +
+                          $"{ringSpeed:0.00} — темп x{ringScale:0.00}.");
+            }
+            else
+            {
+                // Кольца нет — остаётся прежний бег вперёд одним клипом.
+                children.Add(new ChildMotion { motion = run, threshold = HeroSpeed, timeScale = runScale });
+            }
 
             // Спринт — ТОТ ЖЕ клип бега, только быстрее.
             //
@@ -781,7 +1235,34 @@ namespace IsoRPG.EditorTools
                 (Jump + "/OneHand_Base_Jump_Air_Loop.fbx", true),
             };
 
-            foreach (var (path, loop) in files)
+            // Кольцо направлений и переступание — тем же списком, что строит
+            // дерево. Незацикленный боковой клип доигрывает и замирает: герой
+            // едет вбок в позе стоя, ровно как было с бегом.
+            var loops = new System.Collections.Generic.List<(string Path, bool Loop)>(files);
+
+            foreach (var path in RingClipPaths())
+                loops.Add((path, true));
+
+            foreach (var path in ArmedRingPaths())
+                loops.Add((path, true));
+
+            loops.Add((Synty + "/Locomotion/Turn/A_MOD_BL_Turn_Standing_90L_Masc.fbx", true));
+            loops.Add((Synty + "/Locomotion/Turn/A_MOD_BL_Turn_Standing_90R_Masc.fbx", true));
+
+            // Клипы, отобранные Павлоном 04.09.2026 поимённо.
+            loops.Add((Synty + "/Locomotion/Run/A_MOD_BL_Run_FwdStrafeF_Masc.fbx", true));
+            loops.Add((Synty + "/Locomotion/Run/A_MOD_BL_Run_FwdStrafeR_Masc.fbx", true));
+            loops.Add((Synty + "/Locomotion/Run/A_MOD_BL_Run_FwdStrafeL_Masc.fbx", true));
+            loops.Add((Boom + "/Relax/RPG-Character@Relax-Walk-Backward.FBX", true));
+            // Сальто НЕ зацикливаем.
+            //
+            // Павлон 04.09.2026: «если высота большая, он делает не 1 флип, а
+            // 2, должен быть только 1». Клип я зациклил заодно со всей
+            // пластикой — а сальто это разовое движение, и на долгом падении
+            // оно честно повторялось.
+            loops.Add((Boom + "/Armed/RPG-Character@Armed-Jump-Flip.FBX", false));
+
+            foreach (var (path, loop) in loops)
             {
                 var importer = AssetImporter.GetAtPath(path) as ModelImporter;
                 if (importer == null) continue;
@@ -822,7 +1303,7 @@ namespace IsoRPG.EditorTools
         /// Трогаем только версии `_RM_`: играем мы `_InPlace`, поэтому на
         /// саму игру настройка не влияет — лишь на возможность померить.
         /// </summary>
-        private static void UnbakeRoot(string path)
+        internal static void UnbakeRoot(string path)
         {
             var importer = AssetImporter.GetAtPath(path) as ModelImporter;
             if (importer == null) return;

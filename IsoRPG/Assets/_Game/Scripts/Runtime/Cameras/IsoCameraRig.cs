@@ -210,6 +210,16 @@ namespace IsoRPG.Cameras
         private const float HeadReach = FadeZoomEnd * 1.6f;
 
         /// <summary>
+        /// Какая доля диапазона растворения реально видна полупрозрачной.
+        ///
+        /// 0.3 значит: две трети пути герой идёт плотным, и гаснет на
+        /// последней трети. Число взято из эталона — в WoW полупрозрачной
+        /// фазы не видно вовсе, а сузить сам диапазон нельзя: на узком мы
+        /// уже были, и он дал мигание между щелчками колеса.
+        /// </summary>
+        private const float FadeSharp = 0.3f;
+
+        /// <summary>
         /// Насколько камера держится выше грунта, метры.
         ///
         /// Здесь стояло 0.35 — «чтобы не резать землю ближней плоскостью», и
@@ -338,6 +348,39 @@ namespace IsoRPG.Cameras
         private bool orbitFromWorld;
         private bool steerFromWorld;
 
+        /// <summary>
+        /// Ведёт ли правая кнопка героя за камерой прямо сейчас.
+        ///
+        /// В WoW это переключатель всего управления: под правой кнопкой герой
+        /// смотрит туда же, куда камера, A и D становятся боковым ходом, а
+        /// корпус за направлением движения больше не доворачивается. Признак
+        /// живёт здесь, потому что здесь он и вычисляется — вместе с проверкой
+        /// «нажали по миру, а не по окну». Ввод его СПРАШИВАЕТ, а не заводит
+        /// свой: две копии одного условия расходятся на первой же правке.
+        /// </summary>
+        public bool SteeringHero { get; private set; }
+
+        /// <summary>Просили ли повернуть вид с клавиш в этом кадре.</summary>
+        private bool keysTurning;
+
+        /// <summary>
+        /// Повернуть вид с клавиш A и D — вместе с героем.
+        ///
+        /// Зовёт ходьба на клавишах. Здесь, а не у неё, потому что поворачивается
+        /// именно КАМЕРА: герой доворачивается вслед, как под правой кнопкой.
+        /// Держать это в двух местах нельзя — разойдутся на первой правке.
+        /// </summary>
+        public void TurnFromKeys(float degrees)
+        {
+            if (Mathf.Abs(degrees) < 0.0001f) return;
+
+            desiredYaw += degrees;
+            keysTurning = true;
+        }
+
+        /// <summary>Куда сейчас смотрит камера по горизонтали. Ход на клавишах считает «вперёд» от неё.</summary>
+        public float Yaw => yaw;
+
         /// <summary>Стоит ли указатель над интерфейсом прямо сейчас.</summary>
         private static bool PointerOverUi()
         {
@@ -392,6 +435,8 @@ namespace IsoRPG.Cameras
 
             bool orbit = mouse.leftButton.isPressed && orbitFromWorld;
             bool steer = mouse.rightButton.isPressed && steerFromWorld;
+
+            SteeringHero = steer;
 
             if (!orbit && !steer) return;
 
@@ -571,6 +616,28 @@ namespace IsoRPG.Cameras
             if (Application.isPlaying && deltaTime > 0f)
             {
                 yaw = Mathf.LerpAngle(yaw, desiredYaw, 1f - Mathf.Exp(-rotateSmooth * deltaTime));
+
+                // Поворот с клавиш A и D — то же самое, что правой кнопкой.
+                //
+                // Поправка Павла 04.09.2026: «A и D не просто персонажа
+                // поворачивают, а поворачивают камеру, а персонаж
+                // поворачивается за ней». Я сделал наоборот — крутил героя, а
+                // камера оставалась висеть, — и это не мелочь: в WoW игрок
+                // смотрит на мир из-за плеча, поэтому поворот обязан двигать
+                // ВИД, иначе герой уходит из кадра боком.
+                //
+                // Доворачиваем по фактическому углу камеры, а не по желаемому:
+                // тогда герой честно отстаёт от вида на сглаживание, как в
+                // образце, а не обгоняет его.
+                if (keysTurning && target != null)
+                {
+                    target.rotation = Quaternion.RotateTowards(
+                        target.rotation,
+                        Quaternion.Euler(0f, yaw, 0f),
+                        heroTurnSpeed * deltaTime);
+                }
+
+                keysTurning = false;
             }
             else
             {
@@ -906,6 +973,22 @@ namespace IsoRPG.Cameras
 
             float alpha = Mathf.Min(byDistance, byZoom);
 
+            // Полупрозрачного героя быть почти не должно.
+            //
+            // Эталон снят с WoW 04.09.2026: Павлон крутил колесо, я снимал его
+            // экран по кадру каждые 250 мс. На одном кадре герой виден
+            // ЦЕЛИКОМ и плотный, на следующем его нет вовсе. Промежуточного
+            // состояния нет ни на одном кадре — не «быстро тает», а просто
+            // не существует. Его слова: «я даже не успею заметить, как он
+            // растворяется, это происходит за доли секунды».
+            //
+            // Диапазон при этом сужать нельзя: на узком мы уже были, и он дал
+            // мигание между щелчками колеса. Поэтому сжимаем не диапазон, а
+            // КРИВУЮ: почти весь путь герой идёт плотным, и гаснет на
+            // последней трети. Плавность по щелчкам сохраняется, а призрака
+            // на экране нет.
+            alpha = Mathf.Clamp01(alpha / FadeSharp);
+
             if (Mathf.Abs(alpha - heroAlpha) < 0.01f) return;
 
             heroAlpha = alpha;
@@ -944,9 +1027,38 @@ namespace IsoRPG.Cameras
 
                 if (solid) continue;
 
-                renderer.GetPropertyBlock(heroBlock);
-                heroBlock.SetColor(BaseColorId, new Color(1f, 1f, 1f, alpha));
-                renderer.SetPropertyBlock(heroBlock);
+                SetFadeAlpha(renderer, alpha);
+            }
+        }
+
+        /// <summary>
+        /// Поставить прозрачность, не трогая собственный цвет материала.
+        ///
+        /// Раньше здесь стоял блок свойств с белым базовым цветом:
+        /// <c>SetColor(_BaseColor, Color(1,1,1,alpha))</c>. Он задавал не
+        /// только альфу — он ЗАТИРАЛ окраску материала белым, и герой на
+        /// растворении выцветал. Павлон 04.09.2026: «прозрачность
+        /// обесцвечивает текстуры, выглядит плохо».
+        ///
+        /// Теперь альфа ставится в самих прозрачных копиях, а RGB берётся из
+        /// оригинала — цвет остаётся тем же, меняется только видимость.
+        /// </summary>
+        private void SetFadeAlpha(Renderer renderer, float alpha)
+        {
+            if (fadeMaterials == null || !fadeMaterials.TryGetValue(renderer, out var faded)) return;
+            if (!solidMaterials.TryGetValue(renderer, out var original)) return;
+
+            for (int i = 0; i < faded.Length; i++)
+            {
+                if (faded[i] == null) continue;
+
+                Color tint = original.Length > i && original[i] != null && original[i].HasProperty(BaseColorId)
+                    ? original[i].GetColor(BaseColorId)
+                    : Color.white;
+
+                tint.a = alpha;
+
+                faded[i].SetColor(BaseColorId, tint);
             }
         }
 

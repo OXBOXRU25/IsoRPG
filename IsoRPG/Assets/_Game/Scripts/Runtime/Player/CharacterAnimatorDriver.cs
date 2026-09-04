@@ -31,6 +31,38 @@ namespace IsoRPG.Player
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int AttackSpeedHash = Animator.StringToHash("AttackSpeed");
 
+        /// <summary>
+        /// Направление хода в координатах героя и выбор кольца.
+        ///
+        /// Кормят двумерное дерево по схеме автора набора: направление
+        /// нормализовано, быстроту решает отдельно Speed, а Facing выбирает
+        /// между кольцом «лицом вперёд» и «спиной».
+        /// </summary>
+        private static readonly int MoveXHash = Animator.StringToHash("MoveX");
+        private static readonly int MoveYHash = Animator.StringToHash("MoveY");
+        private static readonly int FacingHash = Animator.StringToHash("Facing");
+
+        /// <summary>
+        /// Переступание при повороте на месте: −1 влево, +1 вправо.
+        ///
+        /// Отдельно от <c>Turn</c>: тот считается по фактическому довороту
+        /// корпуса и кормит зверей, а этот — прямое намерение игрока. Одно
+        /// имя на два смысла и было бы тем самым «списком в двух местах».
+        /// </summary>
+        private static readonly int TurnStepHash = Animator.StringToHash("TurnStep");
+
+        /// <summary>
+        /// Сальто в полёте: 1 — крутим, 0 — обычное зависание.
+        ///
+        /// Включается ровно на вершине прыжка и только если под ногами есть
+        /// высота. Оба условия считает мотор — он один знает, когда скорость
+        /// сменила знак.
+        /// </summary>
+        private static readonly int FlipHash = Animator.StringToHash("Flip");
+
+        /// <summary>Прошли верхнюю точку: машина уходит в фазу полёта.</summary>
+        private static readonly int FallingHash = Animator.StringToHash("Falling");
+
         /// <summary>Множитель скорости приземления: на бегу оно должно пройти быстрее.</summary>
         private static readonly int LandSpeedHash = Animator.StringToHash("LandSpeed");
         private static readonly int AttackHash = Animator.StringToHash("Attack");
@@ -139,6 +171,21 @@ namespace IsoRPG.Player
         private bool hasCombatFlag;
         private bool hasStance;
         private bool hasFall;
+
+        /// <summary>Есть ли у контроллера кольцо направлений. Только у героя.</summary>
+        private bool hasRing;
+        private bool hasFacing;
+        private bool hasTurnStep;
+        private bool hasFlip;
+        private bool hasFalling;
+
+        private float ringX;
+        private float ringY = 1f;
+        private float facing = 1f;
+        private float turnStep;
+
+        /// <summary>Курс корпуса в прошлом кадре: по нему видно поворот от камеры.</summary>
+        private float lastBodyYaw;
         private bool hasStrafe;
         private bool hasTurn;
 
@@ -202,6 +249,16 @@ namespace IsoRPG.Player
             // каждый кадр у каждого существа это ММО не переживёт.
             hasStance = Has(StanceHash, AnimatorControllerParameterType.Float);
             hasFall = Has(FallHash, AnimatorControllerParameterType.Float);
+
+            // Кольцо направлений тоже только у героя: зверям вбок ходить
+            // нечем, у них таких клипов нет.
+            hasRing = Has(MoveXHash, AnimatorControllerParameterType.Float)
+                      && Has(MoveYHash, AnimatorControllerParameterType.Float);
+
+            hasFacing = Has(FacingHash, AnimatorControllerParameterType.Float);
+            hasTurnStep = Has(TurnStepHash, AnimatorControllerParameterType.Float);
+            hasFlip = Has(FlipHash, AnimatorControllerParameterType.Float);
+            hasFalling = Has(FallingHash, AnimatorControllerParameterType.Bool);
 
             CountAttackVariants();
 
@@ -309,6 +366,125 @@ namespace IsoRPG.Player
 
             animator.SetFloat(FallHash,
                 Mathf.InverseLerp(SoftLanding, HardLanding, motor.LastFallSpeed));
+        }
+
+        /// <summary>
+        /// Кормит кольцо направлений: куда герой идёт в своих координатах.
+        ///
+        /// Формулы взяты у автора набора (`SamplePlayerAnimationController`),
+        /// а не выведены заново: направление — это проекции хода на «вперёд» и
+        /// «вправо» героя, сглаженные, и переключатель кольца по углу между
+        /// курсом и ходом.
+        ///
+        /// Спрашиваем ЖЕЛАНИЕ игрока, а не фактическую скорость: упёршись в
+        /// камень, герой должен перебирать ногами в ту сторону, куда жмут, —
+        /// капсула сама решит, поедет он или нет. У фактической скорости в
+        /// упоре ноль, и кольцо схлопнулось бы в центр, то есть в стойку.
+        ///
+        /// Числа автора: сглаживание 5, переключение кольца 20, граница
+        /// сектора «лицом» −55°…+125°.
+        /// </summary>
+        private void DriveRing()
+        {
+            if (keys == null) keys = GetComponent<KeyboardMove>();
+
+            // Переступание при повороте на месте. Сглаживаем, иначе нога
+            // выбрасывается кадром на нажатие и на отпускание.
+            if (hasTurnStep)
+            {
+                float wanted = keys != null ? keys.Turning : 0f;
+
+                // Под правой кнопкой корпус крутит КАМЕРА, а не клавиши.
+                //
+                // Павлон 04.09.2026: «при зажатой правой кнопке когда камера
+                // крутится и герой поворачивается, почему он перестал
+                // переступать ногами». Потому что я привязал переступание к
+                // клавишам A/D, а в этом режиме они дают боковой ход, и
+                // намерение поворота там нулевое.
+                //
+                // Спрашивать надо не источник, а результат: насколько градусов
+                // корпус повернулся за кадр. Тогда переступание работает от
+                // любого поворота — клавишами, мышью, чем угодно дальше.
+                if (Mathf.Abs(wanted) < 0.01f)
+                {
+                    float yawNow = transform.eulerAngles.y;
+                    float spin = Mathf.DeltaAngle(lastBodyYaw, yawNow);
+                    lastBodyYaw = yawNow;
+
+                    if (Time.deltaTime > 0.0001f)
+                    {
+                        float rate = spin / Time.deltaTime;
+
+                        // Нормируем по той же скорости, что крутят клавиши:
+                        // на ней клип идёт как нарисован.
+                        wanted = Mathf.Clamp(rate / KeyboardMove.TurnInPlaceDefault, -1f, 1f);
+                    }
+
+                    // Переступают только стоя: на ходу ноги уже заняты, и
+                    // подмешивать к бегу разворот на месте значит заплетать их.
+                    if (smoothedSpeed > 0.2f) wanted = 0f;
+                }
+                else
+                {
+                    lastBodyYaw = transform.eulerAngles.y;
+                }
+
+                turnStep = Mathf.Lerp(turnStep, wanted, 1f - Mathf.Exp(-10f * Time.deltaTime));
+
+                if (Mathf.Abs(turnStep) < 0.01f) turnStep = 0f;
+
+                animator.SetFloat(TurnStepHash, turnStep);
+            }
+
+            if (!hasRing) return;
+
+            Vector2 wish;
+
+            if (keys != null && keys.IsSteering)
+            {
+                wish = keys.Wish;
+            }
+            else
+            {
+                // Ходьба по клику: там герой всегда доворачивается лицом, и
+                // направление берём с фактического хода — оно почти всегда
+                // «вперёд», но на дуге обхода честно уходит вбок.
+                Vector3 velocity = agent != null && agent.isActiveAndEnabled
+                    ? transform.InverseTransformDirection(agent.velocity)
+                    : Vector3.zero;
+
+                wish = new Vector2(velocity.x, velocity.z);
+
+                if (wish.sqrMagnitude > 0.01f) wish.Normalize();
+                else wish = new Vector2(0f, 1f);
+            }
+
+            // В покое смотрим «вперёд», как у автора: обнулять направление
+            // нельзя, иначе на торможении последние кадры бега проходят через
+            // центр кольца и герой на миг встаёт в стойку прямо на ходу.
+            if (wish.sqrMagnitude < 0.01f) wish = new Vector2(0f, 1f);
+
+            float damp = 5f * Time.deltaTime;
+
+            ringX = Mathf.Lerp(ringX, wish.x, damp);
+            ringY = Mathf.Lerp(ringY, wish.y, damp);
+
+            animator.SetFloat(MoveXHash, ringX);
+            animator.SetFloat(MoveYHash, ringY);
+
+            if (!hasFacing) return;
+
+            // Каким кольцом идти. Граница асимметрична, потому что таким её
+            // сделал автор: в переднем наборе есть задне-правый клип и нет
+            // задне-левого.
+            float angle = Mathf.Atan2(wish.x, wish.y) * Mathf.Rad2Deg;
+            float target = angle > -55f && angle < 125f ? 1f : 0f;
+
+            facing = Mathf.Abs(facing - target) <= 0.001f
+                ? target
+                : Mathf.SmoothStep(facing, target, Mathf.Clamp01(20f * Time.deltaTime));
+
+            animator.SetFloat(FacingHash, facing);
         }
 
         private void DriveCombatStance()
@@ -433,6 +609,15 @@ namespace IsoRPG.Player
 
             animator.SetFloat(SpeedHash, smoothedSpeed);
 
+            // Сальто: только после верхней точки и только с высоты.
+            if (hasFlip && motor != null)
+                animator.SetFloat(FlipHash, motor.Falling && motor.HighEnoughToFlip ? 1f : 0f);
+
+            // Вершина прыжка — сигнал машине уходить в фазу полёта.
+            if (hasFalling && motor != null)
+                animator.SetBool(FallingHash, motor.Falling);
+
+            DriveRing();
             DriveCombatStance();
             DriveLanding();
 
@@ -560,8 +745,19 @@ namespace IsoRPG.Player
         /// <summary>Крадётся или нет. Скрытность — состояние, а не действие.</summary>
         public void SetSneaking(bool sneaking)
         {
-            if (animator != null && Has(SneakingHash, AnimatorControllerParameterType.Bool))
-                animator.SetBool(SneakingHash, sneaking);
+            if (animator == null) return;
+
+            bool known = Has(SneakingHash, AnimatorControllerParameterType.Bool);
+
+            if (known) animator.SetBool(SneakingHash, sneaking);
+
+            // Павлон 04.09.2026: «у скрытности анимация вообще пропала, она
+            // была». Печатаем, что именно происходит: знает ли контроллер
+            // параметр и в какое состояние он уходит. Без этого остаётся
+            // гадать, а гадали мы сегодня уже трижды.
+            Debug.Log($"[IsoRPG] Скрытность {(sneaking ? "включена" : "снята")}: " +
+                      $"параметр {(known ? "есть" : "НЕТ")}, состояние " +
+                      $"{animator.GetCurrentAnimatorStateInfo(0).shortNameHash}.");
         }
 
         /// <summary>

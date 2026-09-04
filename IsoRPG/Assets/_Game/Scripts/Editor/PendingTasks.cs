@@ -4505,6 +4505,14 @@ namespace IsoRPG.EditorTools
                     HeroAnimProbe.Run();
                     break;
 
+                case "strafe-probe":
+                    StrafeProbe.Run();
+                    break;
+
+                case "hero-model":
+                    HeroModelProbe.Run();
+                    break;
+
                 case "hero-move":
                     HeroMoveKit.Apply();
                     break;
